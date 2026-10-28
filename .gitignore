@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Astro
+web/dist/
+web/.astro/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Python (scraper)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Scraper raw HTML cache (re-creatable; keep geocode_cache.json tracked)
+scraper/.cache/
+
+# Tooling
+.playwright-mcp/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/extensions.json
+.idea/
