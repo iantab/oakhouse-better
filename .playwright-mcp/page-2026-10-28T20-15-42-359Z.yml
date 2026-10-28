@@ -1,0 +1,750 @@
+- generic [active] [ref=f4e1]:
+  - article [ref=f4e2]:
+    - generic [ref=f4e4]:
+      - heading [level=1] [ref=f4e5]:
+        - link [ref=f4e6] [cursor=pointer]:
+          - /url: /eng/
+          - img "OAKHOUSE" [ref=f4e8]
+      - navigation [ref=f4e9]:
+        - list [ref=f4e10]:
+          - listitem [ref=f4e11]:
+            - text: Find a room
+            - generic [ref=f4e13]:
+              - generic [ref=f4e14]:
+                - generic [ref=f4e15]:
+                  - strong [ref=f4e16]: Property Type
+                  - list [ref=f4e17]:
+                    - listitem [ref=f4e18]:
+                      - generic [ref=f4e19] [cursor=pointer]: Share House
+                    - listitem [ref=f4e20]:
+                      - generic [ref=f4e21] [cursor=pointer]: Social Residence
+                    - listitem [ref=f4e22]:
+                      - generic [ref=f4e23] [cursor=pointer]: Apartments
+                    - listitem [ref=f4e24]:
+                      - generic [ref=f4e25] [cursor=pointer]: Furnished Apartments
+                    - listitem [ref=f4e26]:
+                      - generic [ref=f4e27] [cursor=pointer]: Gran Stay
+                - generic [ref=f4e28]:
+                  - strong [ref=f4e29]: Area
+                  - list [ref=f4e30]:
+                    - listitem [ref=f4e31]:
+                      - link "Tokyo" [ref=f4e32] [cursor=pointer]:
+                        - /url: /eng/area/tokyo
+                    - listitem [ref=f4e33]:
+                      - link "Saitama" [ref=f4e34] [cursor=pointer]:
+                        - /url: /eng/area/saitama
+                    - listitem [ref=f4e35]:
+                      - link "Kanagawa" [ref=f4e36] [cursor=pointer]:
+                        - /url: /eng/area/kanagawa
+                    - listitem [ref=f4e37]:
+                      - link "Chiba" [ref=f4e38] [cursor=pointer]:
+                        - /url: /eng/area/chiba
+                    - listitem [ref=f4e39]:
+                      - link "Aichi" [ref=f4e40] [cursor=pointer]:
+                        - /url: /eng/area/aichi
+                    - listitem [ref=f4e41]:
+                      - link "Kyoto" [ref=f4e42] [cursor=pointer]:
+                        - /url: /eng/area/kyoto
+                    - listitem [ref=f4e43]:
+                      - link "Osaka" [ref=f4e44] [cursor=pointer]:
+                        - /url: /eng/area/osaka
+                    - listitem [ref=f4e45]:
+                      - link "Hyogo" [ref=f4e46] [cursor=pointer]:
+                        - /url: /eng/area/hyogo
+                    - listitem [ref=f4e47]:
+                      - link "Fukuoka" [ref=f4e48] [cursor=pointer]:
+                        - /url: /eng/area/fukuoka
+                - generic [ref=f4e49]:
+                  - strong [ref=f4e50]: Popular
+                  - list [ref=f4e51]:
+                    - listitem [ref=f4e52]:
+                      - link "All Filters" [ref=f4e53] [cursor=pointer]:
+                        - /url: /eng/kodawari
+                    - listitem [ref=f4e54]:
+                      - generic [ref=f4e55] [cursor=pointer]: Requirements
+                    - listitem [ref=f4e56]:
+                      - generic [ref=f4e57] [cursor=pointer]: Room Type
+                    - listitem [ref=f4e58]:
+                      - generic [ref=f4e59] [cursor=pointer]: Facility
+                    - listitem [ref=f4e60]:
+                      - generic [ref=f4e61] [cursor=pointer]: Fee
+                - generic [ref=f4e62]:
+                  - strong [ref=f4e63]: Recommended
+                  - list [ref=f4e64]:
+                    - listitem [ref=f4e65]:
+                      - link "Available Rooms" [ref=f4e66] [cursor=pointer]:
+                        - /url: /eng/house/instock
+                    - listitem [ref=f4e67]:
+                      - link "Newly opened" [ref=f4e68] [cursor=pointer]:
+                        - /url: /eng/house/new
+                    - listitem [ref=f4e69]:
+                      - link "CAMPAIGN" [ref=f4e70] [cursor=pointer]:
+                        - /url: /eng/house/campaign
+                - generic [ref=f4e71]:
+                  - strong [ref=f4e72]: Search Methods
+                  - list [ref=f4e73]:
+                    - listitem [ref=f4e74]:
+                      - link "Search by Map" [ref=f4e75] [cursor=pointer]:
+                        - /url: /eng/search/
+                    - listitem [ref=f4e76]:
+                      - link "Search by Train Line or Station" [ref=f4e77] [cursor=pointer]:
+                        - /url: /eng/search/train
+                    - listitem [ref=f4e78]:
+                      - link "Search by Commute Time" [ref=f4e79] [cursor=pointer]:
+                        - /url: /eng/search/commute
+                    - listitem [ref=f4e80]:
+                      - link "House index" [ref=f4e81] [cursor=pointer]:
+                        - /url: /eng/house_index
+              - generic [ref=f4e82] [cursor=pointer]: Close
+          - listitem [ref=f4e83]:
+            - text: Special Offers
+            - generic [ref=f4e85]:
+              - generic [ref=f4e86]:
+                - strong [ref=f4e87]: Special Offers
+                - list [ref=f4e88]:
+                  - listitem [ref=f4e89]:
+                    - link "Smart Member The Smart Membership is a service provided by Oak House for tenants. This is a very economical discount program that provides a monthly discount of up to 16,000 yen on rent by depositing a certain amount of money." [ref=f4e90] [cursor=pointer]:
+                      - /url: /eng/smart
+                      - text: Smart Member
+                      - generic [ref=f4e91]: The Smart Membership is a service provided by Oak House for tenants. This is a very economical discount program that provides a monthly discount of up to 16,000 yen on rent by depositing a certain amount of money.
+                  - listitem [ref=f4e92]:
+                    - link "Transfer Campaign 【Only for those who currently living in the other share house company】Receive 10,000 Yen in points that can be used on a rent discount!" [ref=f4e93] [cursor=pointer]:
+                      - /url: /eng/norikae2021
+                      - text: Transfer Campaign
+                      - generic [ref=f4e94]: 【Only for those who currently living in the other share house company】Receive 10,000 Yen in points that can be used on a rent discount!
+              - generic [ref=f4e95]:
+                - strong [ref=f4e96]: Rental Plans
+                - list [ref=f4e97]:
+                  - listitem [ref=f4e98]:
+                    - link "FIX Plan If you are staying for a short period of time or already know when your move out date upon your move in,this plan is a great way to save money. Apply FIX plan, get10,000 yen points back! This plan is a great way to save on short stays." [ref=f4e99] [cursor=pointer]:
+                      - /url: /eng/mypage/request/fixplan
+                      - text: FIX Plan
+                      - generic [ref=f4e100]: If you are staying for a short period of time or already know when your move out date upon your move in,this plan is a great way to save money. Apply FIX plan, get10,000 yen points back! This plan is a great way to save on short stays.
+              - generic [ref=f4e101]:
+                - strong [ref=f4e102]: Benefits
+                - list [ref=f4e103]:
+                  - listitem [ref=f4e104]:
+                    - link "The student discount Live in a Share House and enjoy your campus life! Save money with discounts and have a unique and exciting experience unlike any other student!" [ref=f4e105] [cursor=pointer]:
+                      - /url: /eng/gakuwari
+                      - text: The student discount
+                      - generic [ref=f4e106]: Live in a Share House and enjoy your campus life! Save money with discounts and have a unique and exciting experience unlike any other student!
+                  - listitem [ref=f4e107]:
+                    - link [ref=f4e108] [cursor=pointer]:
+                      - /url: /eng/affiliate/
+                      - text: Affiliate Program
+                      - generic [ref=f4e109]: Refer friends and acquaintances to Oakhouse and earn rewards!Blogs, SNS and other media are also welcome!
+              - generic [ref=f4e110] [cursor=pointer]: Close
+          - listitem [ref=f4e111]:
+            - link "Event" [ref=f4e112] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/event
+          - listitem [ref=f4e113]:
+            - text: Resident Voice
+            - generic [ref=f4e115]:
+              - generic [ref=f4e116]:
+                - generic [ref=f4e117]:
+                  - strong [ref=f4e118]: Interview
+                  - list [ref=f4e119]:
+                    - listitem [ref=f4e120]:
+                      - link "Resident interview" [ref=f4e121] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/special/category/interview_resident
+                - generic [ref=f4e122]:
+                  - strong [ref=f4e123]: Blog
+                  - list [ref=f4e124]:
+                    - listitem [ref=f4e125]:
+                      - link "Blogs" [ref=f4e126] [cursor=pointer]:
+                        - /url: /blog/?lang=eng
+                - generic [ref=f4e127]:
+                  - strong [ref=f4e128]: Housing Guide
+                  - list [ref=f4e129]:
+                    - listitem [ref=f4e130]:
+                      - link "What is a share house?" [ref=f4e131] [cursor=pointer]:
+                        - /url: /eng/sharehouse
+                    - listitem [ref=f4e132]:
+                      - link "What is coliving?" [ref=f4e133] [cursor=pointer]:
+                        - /url: /eng/coliving/
+                    - listitem [ref=f4e134]:
+                      - link "How to choose a share house" [ref=f4e135] [cursor=pointer]:
+                        - /url: /eng/sharehouse/howto
+                    - listitem [ref=f4e136]:
+                      - link "Share house Q&A" [ref=f4e137] [cursor=pointer]:
+                        - /url: /eng/sharehouse/qa
+                    - listitem [ref=f4e138]:
+                      - link "About Room Sharing" [ref=f4e139] [cursor=pointer]:
+                        - /url: /eng/sharehouse/roomshare
+                    - listitem [ref=f4e140]:
+                      - link "About the Guest House" [ref=f4e141] [cursor=pointer]:
+                        - /url: /eng/sharehouse/guesthouse
+                    - listitem [ref=f4e142]:
+                      - link "Oakhouse apartments" [ref=f4e143] [cursor=pointer]:
+                        - /url: /eng/apartment
+                    - listitem [ref=f4e144]:
+                      - link "Oakhouse apartments Q&A" [ref=f4e145] [cursor=pointer]:
+                        - /url: /eng/apartment/qa
+                    - listitem [ref=f4e146]:
+                      - link "About Social Residence®" [ref=f4e147] [cursor=pointer]:
+                        - /url: /eng/social-residence
+                    - listitem [ref=f4e148]:
+                      - link "Social Residence® Q&A" [ref=f4e149] [cursor=pointer]:
+                        - /url: /eng/social-residence/qa
+                    - listitem [ref=f4e150]:
+                      - link "What is Gran Stay?" [ref=f4e151] [cursor=pointer]:
+                        - /url: /eng/granstay
+                    - listitem [ref=f4e152]:
+                      - link "Gran Stay Q&A" [ref=f4e153] [cursor=pointer]:
+                        - /url: /eng/granstay/qa
+                - generic [ref=f4e154]:
+                  - strong [ref=f4e155]: Featured
+                  - list [ref=f4e156]:
+                    - listitem [ref=f4e157]:
+                      - link "Housing Tips" [ref=f4e158] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/column
+                    - listitem [ref=f4e159]:
+                      - link "International Share House to meet people from abroad" [ref=f4e160] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/international-exchange
+                    - listitem [ref=f4e161]:
+                      - link "Share House to meet Japanese people" [ref=f4e162] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/international-student
+                    - listitem [ref=f4e163]:
+                      - link "New encounters at a share house" [ref=f4e164] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/konkatsu
+                    - listitem [ref=f4e165]:
+                      - link "Working holiday in Oakhouse" [ref=f4e166] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/working_holiday
+              - generic [ref=f4e167] [cursor=pointer]: Close
+          - listitem [ref=f4e168]:
+            - link "Corporate Use" [ref=f4e169] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/juristic
+          - listitem [ref=f4e170]:
+            - text: About Oakhouse
+            - generic [ref=f4e172]:
+              - generic [ref=f4e173]:
+                - generic [ref=f4e174]:
+                  - strong [ref=f4e175]: Company profile
+                  - list [ref=f4e176]:
+                    - listitem [ref=f4e177]:
+                      - link "Company profile" [ref=f4e178] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/summary
+                    - listitem [ref=f4e179]:
+                      - link "Privacy Policy" [ref=f4e180] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/privacy
+                - generic [ref=f4e181]:
+                  - strong [ref=f4e182]: Our Services
+                  - list [ref=f4e183]:
+                    - listitem [ref=f4e184]:
+                      - link "About Oakhouse Portal" [ref=f4e185] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/about
+                    - listitem [ref=f4e186]:
+                      - link "Search for a room you can really use" [ref=f4e187] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/statement
+                    - listitem [ref=f4e188]:
+                      - link "Rental Brokerage Service" [ref=f4e189] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/brokerage
+                    - listitem [ref=f4e190]:
+                      - link "Oakhouse official app" [ref=f4e191] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/app
+                    - listitem [ref=f4e192]:
+                      - link "GAIA Jobs & Career" [ref=f4e193] [cursor=pointer]:
+                        - /url: https://www.oakhouse.jp/eng/gaia
+                - generic [ref=f4e194]:
+                  - strong [ref=f4e195]: Community
+                  - list [ref=f4e196]:
+                    - listitem [ref=f4e197]:
+                      - link "What is an Oak Fellows" [ref=f4e198] [cursor=pointer]:
+                        - /url: /eng/fellows
+                - generic [ref=f4e199]:
+                  - strong [ref=f4e200]: Official SNS
+                  - list [ref=f4e201]:
+                    - listitem [ref=f4e202]:
+                      - link "Facebook" [ref=f4e203] [cursor=pointer]:
+                        - /url: https://ja-jp.facebook.com/oakhouse.jp
+                    - listitem [ref=f4e204]:
+                      - link "Instagram" [ref=f4e205] [cursor=pointer]:
+                        - /url: https://instagram.com/oakhouse_jp/
+                    - listitem [ref=f4e206]:
+                      - link "YouTube" [ref=f4e207] [cursor=pointer]:
+                        - /url: https://www.youtube.com/user/OakhouseGuestHouse
+                    - listitem [ref=f4e208]:
+                      - link "Twitter" [ref=f4e209] [cursor=pointer]:
+                        - /url: https://twitter.com/oakhouse_jp
+              - generic [ref=f4e210] [cursor=pointer]: Close
+      - list [ref=f4e212]:
+        - listitem [ref=f4e213]:
+          - link "Support" [ref=f4e214] [cursor=pointer]:
+            - /url: /eng/helpcenter/
+        - listitem [ref=f4e216]:
+          - link "Lang" [ref=f4e217] [cursor=pointer]:
+            - /url: "#"
+          - list [ref=f4e220]:
+            - listitem [ref=f4e221]:
+              - link "Japanese" [ref=f4e222] [cursor=pointer]:
+                - /url: /search
+            - listitem [ref=f4e224]:
+              - link "English" [ref=f4e225] [cursor=pointer]:
+                - /url: /eng/search
+            - listitem [ref=f4e227]:
+              - link "Chinese" [ref=f4e228] [cursor=pointer]:
+                - /url: /cn/search
+            - listitem [ref=f4e230]:
+              - link "French" [ref=f4e231] [cursor=pointer]:
+                - /url: /fra/search
+            - listitem [ref=f4e233]:
+              - link "Korean" [ref=f4e234] [cursor=pointer]:
+                - /url: /kr/search
+        - listitem [ref=f4e236]:
+          - link "My Page" [ref=f4e237] [cursor=pointer]:
+            - /url: /eng/mypage
+        - listitem [ref=f4e239]:
+          - link "Cart 0" [ref=f4e240] [cursor=pointer]:
+            - /url: /eng/mypage/cart
+            - generic [ref=f4e241]: Cart
+            - text: "0"
+    - generic [ref=f4e242]:
+      - navigation [ref=f4e244]:
+        - list [ref=f4e245]:
+          - listitem [ref=f4e246]:
+            - link "Oakhouse" [ref=f4e247] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/
+          - listitem [ref=f4e249]:
+            - link "Search by Map" [ref=f4e250] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/search
+      - generic [ref=f4e252]:
+        - generic [ref=f4e255]:
+          - generic [ref=f4e258]:
+            - list [ref=f4e260]:
+              - listitem [ref=f4e261]:
+                - textbox "Please enter keywords" [ref=f4e262]: Shibuya Station, Tokyo, Japon
+                - generic [ref=f4e263] [cursor=pointer]
+                - button [ref=f4e264] [cursor=pointer]:
+                  - img "Moving width=" [ref=f4e265]
+            - generic [ref=f4e266]:
+              - button "Initial fees&Conditions" [ref=f4e268] [cursor=pointer]
+              - button "Room type" [ref=f4e270] [cursor=pointer]
+              - generic [ref=f4e271]:
+                - button "Rent" [ref=f4e272] [cursor=pointer]
+                - text: 〜
+              - generic [ref=f4e273]:
+                - button "Size" [ref=f4e274] [cursor=pointer]
+                - text: 〜
+              - button "Move-in date" [ref=f4e276] [cursor=pointer]
+              - button "Other" [ref=f4e278] [cursor=pointer]
+          - paragraph [ref=f4e280]:
+            - strong [ref=f4e281]: "Popular Filters:"
+            - generic [ref=f4e282]:
+              - generic [ref=f4e283]: "[Initial fees&Conditions]"
+              - link "Foreign Residents Allowed" [ref=f4e284] [cursor=pointer]:
+                - /url: "#"
+              - link "No Key Money" [ref=f4e285] [cursor=pointer]:
+                - /url: "#"
+              - generic [ref=f4e286]: "[Room type]"
+              - link "Single Room" [ref=f4e287] [cursor=pointer]:
+                - /url: "#"
+              - link "Apartments" [ref=f4e288] [cursor=pointer]:
+                - /url: "#"
+              - generic [ref=f4e289]: "[Move-in date]"
+              - link "Next month" [ref=f4e290] [cursor=pointer]:
+                - /url: "#"
+              - link "Month after next onward" [ref=f4e291] [cursor=pointer]:
+                - /url: "#"
+              - generic [ref=f4e292]: "[Other]"
+              - link "Furnished" [ref=f4e293] [cursor=pointer]:
+                - /url: "#"
+              - link "No gender requirement" [ref=f4e294] [cursor=pointer]:
+                - /url: "#"
+        - paragraph [ref=f4e298]:
+          - generic [ref=f4e299]: "0"
+          - text: properties,
+          - generic [ref=f4e300]: "0"
+          - text: rooms found.
+          - generic [ref=f4e301] [cursor=pointer]: Share
+        - paragraph:
+          - link "Unlock the areas":
+            - /url: javascript:void(0)
+        - button [ref=f4e302] [cursor=pointer]
+        - paragraph [ref=f4e303]:
+          - generic [ref=f4e304] [cursor=pointer]: "?"
+          - button "Get current location" [ref=f4e307] [cursor=pointer]
+        - heading "Search by keyword" [level=1] [ref=f4e310]
+    - generic [ref=f4e312]:
+      - paragraph [ref=f4e313]: Recently viewed properties
+      - list
+    - generic [ref=f4e314]:
+      - navigation [ref=f4e316]:
+        - list [ref=f4e317]:
+          - listitem [ref=f4e318]:
+            - link "Oakhouse" [ref=f4e319] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/
+          - listitem [ref=f4e321]:
+            - link "Search by Map" [ref=f4e322] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/search
+      - paragraph [ref=f4e324]:
+        - link "For FAQs and Inquiries, visit to the Help Center" [ref=f4e325] [cursor=pointer]:
+          - /url: /eng/helpcenter
+      - generic [ref=f4e326]:
+        - paragraph:
+          - generic [ref=f4e327] [cursor=pointer]: Return to top
+        - paragraph [ref=f4e328]
+        - generic [ref=f4e330]:
+          - list [ref=f4e331]:
+            - listitem [ref=f4e332]:
+              - link "About Oakhouse Portal" [ref=f4e333] [cursor=pointer]:
+                - /url: https://www.oakhouse.jp/eng/about
+            - listitem [ref=f4e334]:
+              - link "Company Outline" [ref=f4e335] [cursor=pointer]:
+                - /url: https://www.oakhouse.jp/eng/summary
+            - listitem [ref=f4e336]:
+              - link "Company Overview" [ref=f4e337] [cursor=pointer]:
+                - /url: https://www.oakhouse.jp/eng/tradelaw
+            - listitem [ref=f4e338]:
+              - link "Privacy Policy" [ref=f4e339] [cursor=pointer]:
+                - /url: https://www.oakhouse.jp/eng/privacy
+          - list [ref=f4e340]:
+            - listitem [ref=f4e341]:
+              - link "Help Center" [ref=f4e342] [cursor=pointer]:
+                - /url: https://www.oakhouse.jp/eng/helpcenter
+            - listitem [ref=f4e343]:
+              - link "Smart Membership" [ref=f4e344] [cursor=pointer]:
+                - /url: https://www.oakhouse.jp/eng/smart
+          - list [ref=f4e345]:
+            - listitem [ref=f4e346]:
+              - link "Site Map" [ref=f4e347] [cursor=pointer]:
+                - /url: https://www.oakhouse.jp/eng/sitemap
+            - listitem [ref=f4e348]:
+              - link "Listing Companies" [ref=f4e349] [cursor=pointer]:
+                - /url: https://www.oakhouse.jp/eng/company
+            - listitem [ref=f4e350]:
+              - link "Hostel" [ref=f4e351] [cursor=pointer]:
+                - /url: https://www.oakhouse.jp/contents/eng/hostel
+        - generic [ref=f4e352]:
+          - paragraph [ref=f4e353]: SOCIAL ACCOUNT
+          - list [ref=f4e354]:
+            - listitem [ref=f4e355]:
+              - link "Facebook" [ref=f4e356] [cursor=pointer]:
+                - /url: https://www.facebook.com/OakhouseTokyo
+            - listitem [ref=f4e357]:
+              - link "Instagram" [ref=f4e358] [cursor=pointer]:
+                - /url: https://www.instagram.com/oakhousetokyo
+            - listitem [ref=f4e359]:
+              - link "YouTube" [ref=f4e360] [cursor=pointer]:
+                - /url: https://www.youtube.com/channel/UCBAl9UhxUCNfyhhw9xDo-Bg
+        - paragraph [ref=f4e362]:
+          - strong [ref=f4e363]: Oakhouse Co., Ltd. is a share house management company founded in 1992.
+          - text: All the buildings listed on this site are directly-managed and original to Oakhouse. Room vacancy information is updated every 15 minutes, for faster and more accurate information than other portal sites. Information about new houses and special deals only found on this site are also updated regularly, and registered members can also receive official PAO points that can be used toward monthly rent. Questions and other inquiries can be made in Japanese, English, Korean, Chinese, and French through the online help desk 24 hours a day.
+        - generic [ref=f4e365]:
+          - term [ref=f4e366]:
+            - link "Find a share house in Tokyo" [ref=f4e367] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/tokyo
+          - definition [ref=f4e368]:
+            - list [ref=f4e369]:
+              - listitem [ref=f4e370]:
+                - link "Kichijoji - Tachikawa - Koganei - Machida" [ref=f4e371] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida
+              - listitem [ref=f4e372]:
+                - link "Ikebukuro - Akabane - Nerima - Korakuen" [ref=f4e373] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ikebukuro-korakuen-akabane-nerima
+              - listitem [ref=f4e374]:
+                - link "Shinjuku - Nakano - Koenji - Takadanobaba" [ref=f4e375] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/shinjuku-takadanobaba-nakano-koenji
+              - listitem [ref=f4e376]:
+                - link "Shibuya - Meguro - Setagaya" [ref=f4e377] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/shibuya-meguro-setagaya
+              - listitem [ref=f4e378]:
+                - link "Kamata - Shinagawa - Akihabara - Aoyama" [ref=f4e379] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/akihabara-aoyama-shinagawa-kamata
+              - listitem [ref=f4e380]:
+                - link "Asakusa - Ueno - Toyosu" [ref=f4e381] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ueno-asakusa-toyosu
+          - definition [ref=f4e382]:
+            - list [ref=f4e383]:
+              - listitem [ref=f4e384]:
+                - link "Chiyoda" [ref=f4e385] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/akihabara-aoyama-shinagawa-kamata/chiyoda
+              - listitem [ref=f4e386]:
+                - link "Chuo" [ref=f4e387] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/akihabara-aoyama-shinagawa-kamata/chuou
+              - listitem [ref=f4e388]:
+                - link "Minato" [ref=f4e389] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/akihabara-aoyama-shinagawa-kamata/minato
+              - listitem [ref=f4e390]:
+                - link "Shinjuku" [ref=f4e391] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/shinjuku-takadanobaba-nakano-koenji/shinjuku
+              - listitem [ref=f4e392]:
+                - link "Bunkyo" [ref=f4e393] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ikebukuro-korakuen-akabane-nerima/bunkyo
+              - listitem [ref=f4e394]:
+                - link "Taito" [ref=f4e395] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ueno-asakusa-toyosu/taito
+              - listitem [ref=f4e396]:
+                - link "Sumida" [ref=f4e397] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ueno-asakusa-toyosu/sumida
+              - listitem [ref=f4e398]:
+                - link "Koto" [ref=f4e399] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ueno-asakusa-toyosu/koutou
+              - listitem [ref=f4e400]:
+                - link "Shinagawa" [ref=f4e401] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/akihabara-aoyama-shinagawa-kamata/shinagawa
+              - listitem [ref=f4e402]:
+                - link "Meguro" [ref=f4e403] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/shibuya-meguro-setagaya/meguro
+              - listitem [ref=f4e404]:
+                - link "Ota" [ref=f4e405] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/akihabara-aoyama-shinagawa-kamata/ota
+              - listitem [ref=f4e406]:
+                - link "Setagaya" [ref=f4e407] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/shibuya-meguro-setagaya/setagaya
+              - listitem [ref=f4e408]:
+                - link "Shibuya" [ref=f4e409] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/shibuya-meguro-setagaya/shibuya
+              - listitem [ref=f4e410]:
+                - link "Nakano" [ref=f4e411] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/shinjuku-takadanobaba-nakano-koenji/nakano
+              - listitem [ref=f4e412]:
+                - link "Suginami" [ref=f4e413] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/shinjuku-takadanobaba-nakano-koenji/suginami
+              - listitem [ref=f4e414]:
+                - link "Toshima" [ref=f4e415] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ikebukuro-korakuen-akabane-nerima/toshima
+              - listitem [ref=f4e416]:
+                - link "Kita" [ref=f4e417] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ikebukuro-korakuen-akabane-nerima/kita
+              - listitem [ref=f4e418]:
+                - link "Arakawa" [ref=f4e419] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ikebukuro-korakuen-akabane-nerima/arakawa
+              - listitem [ref=f4e420]:
+                - link "Itabashi" [ref=f4e421] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ikebukuro-korakuen-akabane-nerima/itabashi
+              - listitem [ref=f4e422]:
+                - link "Nerima" [ref=f4e423] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ikebukuro-korakuen-akabane-nerima/nerima
+              - listitem [ref=f4e424]:
+                - link "Adachi" [ref=f4e425] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ueno-asakusa-toyosu/adachi
+              - listitem [ref=f4e426]:
+                - link "Katsushika" [ref=f4e427] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ueno-asakusa-toyosu/katsushika
+              - listitem [ref=f4e428]:
+                - link "Edogawa" [ref=f4e429] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/ueno-asakusa-toyosu/edogawa
+              - listitem [ref=f4e430]:
+                - link "Hachiouji" [ref=f4e431] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/hachioji
+              - listitem [ref=f4e432]:
+                - link "Tachikawa" [ref=f4e433] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/tachikawa
+              - listitem [ref=f4e434]:
+                - link "Musashino" [ref=f4e435] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/musashino
+              - listitem [ref=f4e436]:
+                - link "Mitaka" [ref=f4e437] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/mitaka
+              - listitem [ref=f4e438]:
+                - link "Fuchu" [ref=f4e439] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/fuchu
+              - listitem [ref=f4e440]:
+                - link "Akishima" [ref=f4e441] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/akishima
+              - listitem [ref=f4e442]:
+                - link "Chofu" [ref=f4e443] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/chofu
+              - listitem [ref=f4e444]:
+                - link "Machida" [ref=f4e445] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/machida
+              - listitem [ref=f4e446]:
+                - link "Koganei" [ref=f4e447] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/koganei
+              - listitem [ref=f4e448]:
+                - link "Hino" [ref=f4e449] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/hino
+              - listitem [ref=f4e450]:
+                - link "Kokubunji" [ref=f4e451] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/kokubunji
+              - listitem [ref=f4e452]:
+                - link "Higashi-Kurume" [ref=f4e453] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/higasikurume
+              - listitem [ref=f4e454]:
+                - link "Tama" [ref=f4e455] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/tama
+              - listitem [ref=f4e456]:
+                - link "Nishi-Tokyo" [ref=f4e457] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/nishitokyo
+              - listitem [ref=f4e458]:
+                - link "Kodaira" [ref=f4e459] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/kodaira
+              - listitem [ref=f4e460]:
+                - link "Fussa" [ref=f4e461] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/fussa
+              - listitem [ref=f4e462]:
+                - link "Inagi" [ref=f4e463] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/tokyo/kichijoji-tachikawa-koganei-machida/inagi
+          - term [ref=f4e464]:
+            - link "Find a share house in Saitama" [ref=f4e465] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/saitama
+          - definition [ref=f4e466]:
+            - list [ref=f4e467]:
+              - listitem [ref=f4e468]:
+                - link "Saitama" [ref=f4e469] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/saitama
+              - listitem [ref=f4e470]:
+                - link "Saitama Kawaguchi" [ref=f4e471] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/kawaguchi
+              - listitem [ref=f4e472]:
+                - link "Toda" [ref=f4e473] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/toda
+              - listitem [ref=f4e474]:
+                - link "Saitama Niiza" [ref=f4e475] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/niza
+              - listitem [ref=f4e476]:
+                - link "Tokorozawa" [ref=f4e477] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/tokorozawa
+              - listitem [ref=f4e478]:
+                - link "Koshigaya" [ref=f4e479] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/koshigaya
+              - listitem [ref=f4e480]:
+                - link "Kawagoe" [ref=f4e481] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/kawagoe
+              - listitem [ref=f4e482]:
+                - link "Fujimino city" [ref=f4e483] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/fujimino
+              - listitem [ref=f4e484]:
+                - link "Warabi" [ref=f4e485] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/warabi
+              - listitem [ref=f4e486]:
+                - link "Asaka" [ref=f4e487] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/saitama/asaka
+          - term [ref=f4e488]:
+            - link "Find a share house in Chiba" [ref=f4e489] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/chiba
+          - definition [ref=f4e490]:
+            - list [ref=f4e491]:
+              - listitem [ref=f4e492]:
+                - link "Ichikawa" [ref=f4e493] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/chiba/ichikawa
+              - listitem [ref=f4e494]:
+                - link "Funabashi" [ref=f4e495] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/chiba/funabashi
+              - listitem [ref=f4e496]:
+                - link "Nagareyama" [ref=f4e497] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/chiba/nagareyama
+              - listitem [ref=f4e498]:
+                - link "Matsudo" [ref=f4e499] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/chiba/matsudo
+              - listitem [ref=f4e500]:
+                - link "Yachiyo" [ref=f4e501] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/chiba/yachiyo
+          - term [ref=f4e502]:
+            - link "Find a share house in Kanagawa" [ref=f4e503] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/kanagawa
+          - definition [ref=f4e504]:
+            - list [ref=f4e505]:
+              - listitem [ref=f4e506]:
+                - link "Yokohama" [ref=f4e507] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/kanagawa/yokohama
+              - listitem [ref=f4e508]:
+                - link "Kawasaki" [ref=f4e509] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/kanagawa/kawasaki
+              - listitem [ref=f4e510]:
+                - link "Sagamihara" [ref=f4e511] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/kanagawa/sagamihara
+              - listitem [ref=f4e512]:
+                - link "Kamakura" [ref=f4e513] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/kanagawa/kamakura
+          - term [ref=f4e514]:
+            - link "Find a share house in Aichi" [ref=f4e515] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/aichi
+          - definition [ref=f4e516]:
+            - list [ref=f4e517]:
+              - listitem [ref=f4e518]:
+                - link "Kariya" [ref=f4e519] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/aichi/kariya
+          - term [ref=f4e520]:
+            - link "Find a share house in Kyoto" [ref=f4e521] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/kyoto
+          - definition [ref=f4e522]:
+            - list [ref=f4e523]:
+              - listitem [ref=f4e524]:
+                - link "Kyoto" [ref=f4e525] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/kyoto/kyoto
+          - term [ref=f4e526]:
+            - link "Find a share house in Osaka" [ref=f4e527] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/osaka
+          - definition [ref=f4e528]:
+            - list [ref=f4e529]:
+              - listitem [ref=f4e530]:
+                - link "Osaka" [ref=f4e531] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/osaka/osaka
+              - listitem [ref=f4e532]:
+                - link "Settsu" [ref=f4e533] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/osaka/settsu
+              - listitem [ref=f4e534]:
+                - link "Takatsuki" [ref=f4e535] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/osaka/takatsuki
+          - term [ref=f4e536]:
+            - link "Find a share house in Hyogo" [ref=f4e537] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/hyogo
+          - definition [ref=f4e538]:
+            - list [ref=f4e539]:
+              - listitem [ref=f4e540]:
+                - link "Takarazuka" [ref=f4e541] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/hyogo/takarazuka
+              - listitem [ref=f4e542]:
+                - link "Amagasaki" [ref=f4e543] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/hyogo/amagasaki
+              - listitem [ref=f4e544]:
+                - link "Kobe" [ref=f4e545] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/hyogo/kobe
+              - listitem [ref=f4e546]:
+                - link "KAWANISHI City" [ref=f4e547] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/hyogo/kawanishi
+              - listitem [ref=f4e548]:
+                - link "Nishinomiya" [ref=f4e549] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/hyogo/nishinomiya
+              - listitem [ref=f4e550]:
+                - link "Ashiya" [ref=f4e551] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/hyogo/ashiya
+          - term [ref=f4e552]:
+            - link "Find a share house in Nara" [ref=f4e553] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/nara
+          - definition [ref=f4e554]:
+            - list [ref=f4e555]:
+              - listitem [ref=f4e556]:
+                - link "Nara" [ref=f4e557] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/nara/nara
+          - term [ref=f4e558]:
+            - link "Find a share house in Fukuoka" [ref=f4e559] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/fukuoka
+          - definition [ref=f4e560]:
+            - list [ref=f4e561]:
+              - listitem [ref=f4e562]:
+                - link "Fukuoka" [ref=f4e563] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/fukuoka/fukuoka
+          - term [ref=f4e564]:
+            - link "Find a share house in Okinawa" [ref=f4e565] [cursor=pointer]:
+              - /url: https://www.oakhouse.jp/eng/area/okinawa
+          - definition [ref=f4e566]:
+            - list [ref=f4e567]:
+              - listitem [ref=f4e568]:
+                - link "Yonabaru Town, Shimajiri District" [ref=f4e569] [cursor=pointer]:
+                  - /url: https://www.oakhouse.jp/eng/area/okinawa/Yonabaru-cho_shimajiri-gun
+        - paragraph [ref=f4e570]: Copyright © OAKHOUSE All Right Reserved.
+    - generic [ref=f4e573]:
+      - generic [ref=f4e574]:
+        - paragraph [ref=f4e575]
+        - paragraph [ref=f4e576]
+        - paragraph [ref=f4e578]: Let's go to Japan!
+        - paragraph [ref=f4e579]:
+          - strong [ref=f4e580]: You will receive 10,000 yen worth of points that can be used for the full rent!
+          - emphasis [ref=f4e581]: Please click the 'Free registration here' button directly and complete the registration process within the same browser. Points are valid for 6 months from the date of registration.
+      - generic [ref=f4e582]:
+        - paragraph [ref=f4e583]:
+          - link "Free registration here" [ref=f4e584] [cursor=pointer]:
+            - /url: https://www.oakhouse.jp/eng/om/register?sm_tag=FP9Qgdi5&utm_source=maxymiser&utm_medium=banner&utm_campaign=gotonippon
+        - paragraph
+      - paragraph [ref=f4e586]:
+        - 'link "If you have an account: Log in" [ref=f4e587] [cursor=pointer]':
+          - /url: https://www.oakhouse.jp/eng/mypage/login
+  - status [ref=f4e588]
+  - generic [ref=f4e590]:
+    - link [ref=f4e592] [cursor=pointer]:
+      - /url: javascript:void(0)
+      - img "閉じる" [ref=f4e593]
+    - paragraph [ref=f4e594]: サポート
+    - iframe [ref=f4e596]
