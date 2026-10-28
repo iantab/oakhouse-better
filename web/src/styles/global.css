@@ -195,6 +195,13 @@ th.features, td.features { min-width: 200px; }
 .facts.stacked { grid-template-columns: 1fr; gap: 0; }
 .facts.stacked dt { font-size: 0.8rem; max-width: none; }
 .facts.stacked dd { margin-bottom: 8px; }
+
+/* Detail page: Soon/Full toggles. Pure CSS so Full rooms are hidden from first paint. */
+.room-toggles { display: flex; align-items: center; gap: 4px 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.room-toggles .room-count { margin-left: auto; }
+.rooms-panel:has(#show-full:not(:checked)) tr[data-status='full'],
+.rooms-panel:has(#show-soon:not(:checked)) tr[data-status='soon'] { display: none; }
+.rooms-empty { margin: 12px 0 0; }
 .facts dd { margin: 0; }
 .map { width: 100%; height: 260px; border: 0; border-radius: 8px; }
 .room-photos { display: flex; gap: 4px; }

@@ -22,6 +22,9 @@ const rooms = [...p.rooms].sort(
   (a, b) => statusRank[a.status] - statusRank[b.status] || (a.monthly_total ?? a.rent ?? 0) - (b.monthly_total ?? b.rent ?? 0),
 );
 const open = rooms.filter((r) => r.status !== 'full');
+const statusCount = (s: Room['status']) => rooms.filter((r) => r.status === s).length;
+const soonCount = statusCount('soon');
+const fullCount = statusCount('full');
 const prices = rooms.map((r) => r.monthly_total ?? r.rent).filter((n): n is number => n != null);
 
 const g = p.geo;
@@ -40,10 +43,10 @@ const roomChips = (r: Room) =>
 
 const photos = p.photos.length >= 3 ? p.photos : [...p.photos, ...rooms.flatMap((r) => r.photos.slice(0, 1).map((src) => ({ src, caption: `Room ${r.number}` })))];
 
-const mapUrl =
-  p.lat != null && p.lng != null
-    ? `https://www.openstreetmap.org/export/embed.html?bbox=${p.lng - 0.008},${p.lat - 0.005},${p.lng + 0.008},${p.lat + 0.005}&layer=mapnik&marker=${p.lat},${p.lng}`
-    : null;
+// Google Maps for everyday use (OSM is only our station data source). The output=embed URL needs no API key.
+const hasCoords = p.lat != null && p.lng != null;
+const mapUrl = hasCoords ? `https://maps.google.com/maps?q=${p.lat},${p.lng}&z=16&hl=en&output=embed` : null;
+const googleMapsUrl = hasCoords ? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}` : null;
 const areaHref = (depth: number) => `${base}conditions/?area=${p.area_path.slice(0, depth + 1).join('/')}`;
 const areaNames = [p.prefecture, p.region, p.ward];
 // Skip a breadcrumb level that repeats its parent's name ("Saitama › Saitama")
@@ -89,12 +92,25 @@ const fees = (r: Room) =>
 
   <div class="detail-grid">
     <div>
-      <section class="panel">
+      <section class="panel rooms-panel">
         <h2>Rooms</h2>
         {commonKeys.length > 0 && (
           <div style="margin-bottom:12px">
             <div class="small muted" style="margin-bottom:6px">{rooms.length > 1 ? 'Every room has' : 'Room features'}</div>
             <ul class="chips">{commonKeys.map((k) => <li class="chip on">{amenityLabel.get(k)!.label}</li>)}</ul>
+          </div>
+        )}
+        {/* Hiding is CSS-only (.rooms-panel:has(...) in global.css); the script below just updates the count. */}
+        {(soonCount > 0 || fullCount > 0) && (
+          <div class="room-toggles">
+            <span class="small muted">Show:</span>
+            {soonCount > 0 && (
+              <label class="check"><input type="checkbox" id="show-soon" checked /> Soon <span class="count">({soonCount})</span></label>
+            )}
+            {fullCount > 0 && (
+              <label class="check"><input type="checkbox" id="show-full" /> Full <span class="count">({fullCount})</span></label>
+            )}
+            <span class="small muted room-count" data-total={rooms.length}></span>
           </div>
         )}
         <div class="table-scroll">
@@ -108,7 +124,7 @@ const fees = (r: Room) =>
             <tbody>
               {
                 rooms.map((r) => (
-                  <tr class={r.status === 'full' ? 'is-full' : undefined}>
+                  <tr class={r.status === 'full' ? 'is-full' : undefined} data-status={r.status}>
                     <td>
                       <span class={`badge ${r.status}`}>{STATUS[r.status]}</span>
                       {r.available_from && <div class="small muted">from {r.available_from}</div>}
@@ -143,6 +159,11 @@ const fees = (r: Room) =>
             </tbody>
           </table>
         </div>
+        <p class="rooms-empty muted" hidden>
+          {open.length === 0
+            ? <>All rooms here are full right now. Tick <strong>Full</strong> above to see them.</>
+            : <>No rooms are available right now. Tick <strong>Soon</strong> above to see upcoming rooms.</>}
+        </p>
         {rooms.some((r) => r.contract_fee) && (
           <p class="small muted">One-time contract fee: {[...new Set(rooms.map((r) => r.contract_fee).filter(Boolean))].map((n) => yen(n)).join(' / ')}.</p>
         )}
@@ -177,7 +198,12 @@ const fees = (r: Room) =>
 
       <section class="panel">
         <h2>Getting there</h2>
-        {mapUrl && <iframe class="map" src={mapUrl} title={`Map of ${p.name}`} loading="lazy" />}
+        {mapUrl && <iframe class="map" src={mapUrl} title={`Map of ${p.name}`} loading="lazy" referrerpolicy="no-referrer-when-downgrade" />}
+        {googleMapsUrl && (
+          <p class="small" style="margin:6px 0 0">
+            <a href={googleMapsUrl} target="_blank" rel="noopener">Open in Google Maps ↗</a>
+          </p>
+        )}
         {
           p.stations.length > 0 ? (
             <table style="margin-top:10px">
@@ -236,3 +262,20 @@ const fees = (r: Room) =>
     </div>
   </div>
 </Base>
+
+<script>
+  // Rows are hidden by CSS; this only keeps the "Showing X of N" text and empty state in sync.
+  const panel = document.querySelector<HTMLElement>('.rooms-panel');
+  if (panel) {
+    const count = panel.querySelector<HTMLElement>('.room-count');
+    const empty = panel.querySelector<HTMLElement>('.rooms-empty')!;
+    const update = () => {
+      const rows = [...panel.querySelectorAll<HTMLElement>('tbody tr[data-status]')];
+      const shown = rows.filter((r) => getComputedStyle(r).display !== 'none').length;
+      if (count) count.textContent = `Showing ${shown} of ${count.dataset.total} rooms`;
+      empty.hidden = shown > 0;
+    };
+    panel.addEventListener('change', update);
+    update();
+  }
+</script>
