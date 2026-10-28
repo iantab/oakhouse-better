@@ -10,10 +10,14 @@ Live site: https://iantab.github.io/oakhouse-better/
 ```
 GitHub Actions (daily 03:00 JST, on push to master, or manual)
   scraper/build.py  → scrapes oakhouse.jp/eng, writes JSON into web/   (never committed)
+     or data-pull   → re-uses the data already on the live site (pushes that don't touch scraper/)
   astro build       → static site, one page per property
   deploy-pages      → GitHub Pages
 ```
 
+- **When it scrapes:** daily, on pushes that change `scraper/`, and on manual runs (**Actions → Scrape & deploy →
+  Run workflow**; untick "scrape" to just rebuild). Other pushes, such as site or README changes, rebuild in a couple
+  of minutes using the current live data.
 - **No backend or database.** The results page filters `search-index.json` in the browser.
 - **Scraped listings are not committed.** Between runs, `actions/cache` keeps only the last successful listing
   counts. If a scrape returns more than 10% fewer listings than last time, the job fails and the previous
@@ -68,8 +72,8 @@ git add geocode.json ../web/src/data/stations.json ../web/src/data/lines.json
 
 ## One-time GitHub setup
 
-Repository **Settings → Pages → Source: GitHub Actions**. The workflow then deploys on every push to `master` and
-daily.
+Repository **Settings → Pages → Source: GitHub Actions**. The workflow then deploys on every push to `master`
+(scraping only if `scraper/` changed) and scrapes and deploys daily.
 
 ## Data notes
 

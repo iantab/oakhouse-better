@@ -1,4 +1,8 @@
-# Scrape oakhouse.jp, build the Astro site from the fresh data and deploy it to GitHub Pages.
+# Build the Astro site and deploy it to GitHub Pages, scraping oakhouse.jp first when needed:
+#   - daily schedule, or a manual run with "scrape" ticked → fresh scrape
+#   - push touching scraper/ → fresh scrape (parser/output may have changed)
+#   - any other push → reuse the data already on the live site (no scrape), falling back to a
+#     scrape if that download fails
 # Scraped listings are never committed: they live in the Pages deployment. Reference data that
 # rarely changes is committed (scraper/geocode.json, web/src/data/stations.json + lines.json);
 # the only run state kept between runs (last successful counts) lives in actions/cache.
@@ -10,6 +14,11 @@ on:
   push:
     branches: [master]
   workflow_dispatch:
+    inputs:
+      scrape:
+        description: Scrape oakhouse.jp (untick to just rebuild with the current live data)
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -27,17 +36,44 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Decide whether to scrape
+        id: mode
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          DISPATCH_SCRAPE: ${{ inputs.scrape }}
+          REPO: ${{ github.repository }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: bash .github/scripts/should-scrape.sh >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v7
+        if: steps.mode.outputs.scrape == 'false'
+        with:
+          node-version: 24
+
+      # On failure (site down, never deployed) the scrape steps below run instead.
+      - name: Reuse deployed data
+        id: pull
+        if: steps.mode.outputs.scrape == 'false'
+        continue-on-error: true
+        run: node web/scripts/data-pull.mjs
+
       - uses: actions/setup-python@v7
+        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
         with:
           python-version: "3.14"
           cache: pip
           cache-dependency-path: scraper/requirements.txt
 
-      - run: pip install -r scraper/requirements.txt
+      - name: Install scraper dependencies
+        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
+        run: pip install -r scraper/requirements.txt
 
       # Caches are immutable, so save under a new key every run and restore the newest by prefix.
       # Saved only when the job succeeds, so a failed scrape never replaces the last good state.
       - name: Restore scraper state
+        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
         uses: actions/cache@v6
         with:
           path: scraper/.cache/last-good.json
@@ -47,6 +83,7 @@ jobs:
       # Exits non-zero if the listing count drops >10% vs. the last good run; the job then stops
       # and the previous deployment stays live.
       - name: Scrape oakhouse.jp
+        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
         working-directory: scraper
         run: python build.py
 
