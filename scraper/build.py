@@ -124,7 +124,8 @@ def main() -> None:
     ap.add_argument("--limit", type=int, help="only process the first N listings (local testing)")
     ap.add_argument("--offline", action="store_true", help="use cached HTML only; don't fetch pages")
     ap.add_argument("--max-age-h", type=float, default=20, help="re-fetch cached pages older than this")
-    ap.add_argument("--delay", type=float, default=1.0, help="seconds between page requests")
+    ap.add_argument("--delay", type=float, default=1.0, help="seconds between page requests, per worker")
+    ap.add_argument("--workers", type=int, default=3, help="parallel page fetchers (1 = sequential)")
     ap.add_argument("--max-geocode", type=int, help="cap new Nominatim lookups this run")
     ap.add_argument("--max-drop", type=float, default=0.10, help="sanity gate: allowed fractional drop")
     ap.add_argument("-v", "--verbose", action="store_true")
@@ -139,11 +140,11 @@ def main() -> None:
     else:
         client = PoliteClient(delay=args.delay)
         ids = listing_ids(client)
+        client.close()
         log.info("sitemap: %d listings", len(ids))
         if args.limit:
             ids = ids[: args.limit]
-        listings = fetch_all(client, ids, args.max_age_h)
-        client.close()
+        listings = fetch_all(ids, args.max_age_h, workers=args.workers, delay=args.delay)
 
     # 2. Parse
     props: list[dict[str, Any]] = []

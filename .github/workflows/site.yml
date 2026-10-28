@@ -1,6 +1,7 @@
 # Scrape oakhouse.jp, build the Astro site from the fresh data and deploy it to GitHub Pages.
-# Scraped data is never committed: it lives in the Pages deployment, and the small bits of
-# state worth keeping between runs (geocode cache, last successful counts) live in actions/cache.
+# Scraped listings are never committed: they live in the Pages deployment. Reference data that
+# rarely changes is committed (scraper/geocode.json, web/src/data/stations.json + lines.json);
+# the only run state kept between runs (last successful counts) lives in actions/cache.
 name: Scrape & deploy
 
 on:
@@ -39,9 +40,7 @@ jobs:
       - name: Restore scraper state
         uses: actions/cache@v6
         with:
-          path: |
-            scraper/.cache/geocode.json
-            scraper/.cache/last-good.json
+          path: scraper/.cache/last-good.json
           key: scraper-state-${{ github.run_id }}
           restore-keys: scraper-state-
 

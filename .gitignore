@@ -17,7 +17,7 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Scraper caches (raw HTML, geocode) — persisted in CI via actions/cache, never committed
+# Scraper caches (raw HTML, Overpass responses, last-good counts) — never committed
 scraper/.cache/
 
 # Generated site data (built fresh by CI; only station/line data is committed)

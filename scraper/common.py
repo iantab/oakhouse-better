@@ -77,9 +77,12 @@ def read_json(path: Path, default: Any = None) -> Any:
         return default
 
 
-def write_json(path: Path, data: Any, pretty: bool = False) -> None:
+def write_json(path: Path, data: Any, pretty: bool = False, sort_keys: bool = False) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(data, ensure_ascii=False, indent=2 if pretty else None, separators=None if pretty else (",", ":"))
+    text = json.dumps(data, ensure_ascii=False, indent=2 if pretty else None,
+                      separators=None if pretty else (",", ":"), sort_keys=sort_keys)
+    if pretty:
+        text += "\n"
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     tmp.replace(path)

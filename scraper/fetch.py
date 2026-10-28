@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from common import BASE_URL, HTML_CACHE, PoliteClient, log
@@ -39,20 +41,44 @@ def fetch_listing(client: PoliteClient, kind: str, pid: int, max_age_h: float) -
 
 
 def fetch_all(
-    client: PoliteClient, ids: list[tuple[str, int]], max_age_h: float
+    ids: list[tuple[str, int]], max_age_h: float, workers: int = 3, delay: float = 1.0
 ) -> list[tuple[str, int, Path]]:
-    """Fetch every listing, logging progress. Returns (kind, id, path) for listings that exist."""
-    out = []
+    """Fetch every listing with `workers` threads, logging progress.
+
+    Each worker has its own PoliteClient, so each keeps its own `delay` between requests
+    (at most `workers` requests per `delay` seconds overall). Returns (kind, id, path),
+    sorted by (kind, id), for listings that exist.
+    """
+    local = threading.local()
+    clients: list[PoliteClient] = []
+    lock = threading.Lock()
+    done = 0
     start = time.monotonic()
-    for i, (kind, pid) in enumerate(ids, 1):
+
+    def worker(kind: str, pid: int) -> tuple[str, int, Path] | None:
+        nonlocal done
+        client = getattr(local, "client", None)
+        if client is None:
+            client = local.client = PoliteClient(delay=delay)
+            with lock:
+                clients.append(client)
         try:
             path = fetch_listing(client, kind, pid, max_age_h)
         except Exception as exc:  # one bad page shouldn't sink the crawl
             log.error("%s/%d failed: %s", kind, pid, exc)
             path = cache_path(kind, pid) if cache_path(kind, pid).exists() else None
-        if path is not None:
-            out.append((kind, pid, path))
-        if i % 50 == 0 or i == len(ids):
-            elapsed = time.monotonic() - start
-            log.info("fetched %d/%d (%.0fs elapsed, ~%.0fs left)", i, len(ids), elapsed, elapsed / i * (len(ids) - i))
-    return out
+        with lock:
+            done += 1
+            if done % 50 == 0 or done == len(ids):
+                elapsed = time.monotonic() - start
+                log.info("fetched %d/%d (%.0fs elapsed, ~%.0fs left)", done, len(ids), elapsed,
+                         elapsed / done * (len(ids) - done))
+        return (kind, pid, path) if path is not None else None
+
+    try:
+        with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+            results = list(pool.map(lambda item: worker(*item), ids))
+    finally:
+        for client in clients:
+            client.close()
+    return sorted((r for r in results if r is not None), key=lambda r: (r[0], r[1]))

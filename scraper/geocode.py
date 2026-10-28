@@ -1,18 +1,20 @@
-"""Reverse-geocode property coordinates with Nominatim (English), cached forever.
+"""Reverse-geocode property coordinates with Nominatim (English).
 
 Nominatim's usage policy: at most 1 request/second and an identifying User-Agent.
-Properties don't move, so each (rounded) coordinate is looked up once and kept in
-scraper/.cache/geocode.json, which CI persists with actions/cache.
+Properties don't move, so results live in scraper/geocode.json, which is committed
+reference data (like the station files). Each run only looks up coordinates missing
+from it; in CI those few new lookups aren't saved back to git — run build.py locally
+and commit geocode.json to keep them.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from common import CACHE_DIR, TOOL_UA, PoliteClient, log, read_json, write_json
+from common import SCRAPER_DIR, TOOL_UA, PoliteClient, log, read_json, write_json
 
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse"
-CACHE_FILE = CACHE_DIR / "geocode.json"
+CACHE_FILE = SCRAPER_DIR / "geocode.json"
 
 
 def _key(lat: float, lng: float) -> str:
@@ -65,4 +67,5 @@ class Geocoder:
         return result
 
     def save(self) -> None:
-        write_json(CACHE_FILE, self.cache, pretty=True)
+        if self.new:  # leave the committed file untouched when nothing was added
+            write_json(CACHE_FILE, self.cache, pretty=True, sort_keys=True)

@@ -15,11 +15,13 @@ GitHub Actions (daily 03:00 JST, on push to master, or manual)
 ```
 
 - **No backend or database.** The results page filters `search-index.json` in the browser.
-- **Scraped data is not committed.** Between runs, `actions/cache` keeps the Nominatim geocode cache and the last
-  successful listing counts. If a scrape returns more than 10% fewer listings than last time, the job fails and the
-  previous deployment stays live.
-- **Station data is committed:** `web/src/data/stations.json` and `lines.json`. It comes from OpenStreetMap and is
-  refreshed by hand (see below).
+- **Scraped listings are not committed.** Between runs, `actions/cache` keeps only the last successful listing
+  counts. If a scrape returns more than 10% fewer listings than last time, the job fails and the previous
+  deployment stays live.
+- **Reference data is committed and refreshed by hand** (see below):
+  - `web/src/data/stations.json` + `lines.json`: stations and lines from OpenStreetMap.
+  - `scraper/geocode.json`: chōme + postcode per property, from Nominatim. The daily run looks up only properties
+    missing from it (a few seconds) but doesn't save them back to git.
 
 | Path | What |
 |---|---|
@@ -27,7 +29,7 @@ GitHub Actions (daily 03:00 JST, on push to master, or manual)
 | `scraper/parse.py` | HTML → property/room records (share-house tables and brokered-apartment cards) |
 | `scraper/amenities.py` | Maps Oakhouse's free-text facilities to filter keys (`washlet`, `bathtub`, `no_deposit`…) |
 | `scraper/stations.py` | Overpass (OSM) → `stations.json` + `lines.json` |
-| `scraper/geocode.py` | Nominatim reverse geocoding (chōme + postcode), cached |
+| `scraper/geocode.py` | Nominatim reverse geocoding (chōme + postcode) → `scraper/geocode.json` |
 | `web/` | Astro 7 static site |
 | `.github/workflows/site.yml` | Scrape → build → deploy |
 
@@ -47,18 +49,21 @@ cd scraper
 python -m venv .venv && .venv/Scripts/activate   # or: source .venv/bin/activate
 pip install -r requirements.txt
 python build.py --limit 20     # quick run on 20 listings
-python build.py                # full run, about 25 min; pages are cached in scraper/.cache/html
+python build.py                # full run, about 10 min; pages are cached in scraper/.cache/html
+python build.py --workers 1    # same, one page at a time (3 parallel fetchers by default, 1 s apart each)
 python build.py --offline      # re-parse cached pages only (after changing parse.py)
 ```
 
-### Refreshing station data
+### Refreshing reference data (stations & addresses)
 
-Run a few times a year, or when Oakhouse opens in a new region. It needs a prior `build.py` run for property
-coordinates. Then commit the two files:
+Run every so often, e.g. monthly, or when Oakhouse opens in a new region. `build.py` adds addresses for any new
+properties to `geocode.json` and writes the coordinates `stations.py` needs. Then commit the three files:
 
 ```sh
-cd scraper && python stations.py
-git add ../web/src/data/stations.json ../web/src/data/lines.json
+cd scraper
+python build.py        # looks up addresses only for properties not yet in geocode.json
+python stations.py     # re-uses cached Overpass responses; add --refresh to re-download
+git add geocode.json ../web/src/data/stations.json ../web/src/data/lines.json
 ```
 
 ## One-time GitHub setup
