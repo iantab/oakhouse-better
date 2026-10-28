@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro';
+import ConditionsFields from '../components/ConditionsFields.astro';
+import { getData } from '../lib/data';
+
+const base = import.meta.env.BASE_URL;
+const lineNames = Object.fromEntries(getData().lines.map((l) => [l.id, l.name]));
+---
+
+<Base title="Conditions">
+  <ol class="steps">
+    <li><a href={base}>Home</a></li>
+    <li><a id="back-link" href={`${base}search/area/`}>1. Location</a></li>
+    <li class="current">2. Conditions</li>
+    <li>3. Results</li>
+  </ol>
+  <h1>Narrow it down</h1>
+  <p class="muted">Searching: <strong id="location">Anywhere</strong> · <a id="change-link" href={`${base}search/area/`}>change</a></p>
+
+  <form class="panel" method="get" action={`${base}results/`} id="conditions-form" data-lines={JSON.stringify(lineNames)}>
+    <ConditionsFields />
+    <div class="sticky-submit">
+      <button class="btn big" type="submit"><span>Show <span id="match-count">matching</span> rooms</span></button>
+      <span class="muted small" id="match-detail"></span>
+    </div>
+  </form>
+</Base>
+
+<script>
+  import { describeLocation, formToParams, syncFormFromUrl } from '../lib/form';
+  import { loadIndex, parseQuery, search } from '../lib/filter';
+
+  const base = import.meta.env.BASE_URL;
+  const form = document.getElementById('conditions-form') as HTMLFormElement;
+  const params = new URLSearchParams(location.search);
+  const lines = new Map(Object.entries(JSON.parse(form.dataset.lines ?? '{}')) as [string, string][]);
+  syncFormFromUrl(form, params);
+
+  document.getElementById('location')!.textContent = describeLocation(params, { lines });
+  const pickerUrl = `${base}search/${params.has('line') || params.has('st') ? 'line' : 'area'}/`;
+  for (const id of ['back-link', 'change-link']) (document.getElementById(id) as HTMLAnchorElement).href = pickerUrl;
+
+  const count = document.getElementById('match-count')!;
+  const detail = document.getElementById('match-detail')!;
+  async function update() {
+    try {
+      const index = await loadIndex(base);
+      const { groups, unitCount } = search(index, parseQuery(formToParams(form)));
+      count.textContent = unitCount.toLocaleString('en-US');
+      detail.textContent = `in ${groups.length.toLocaleString('en-US')} propert${groups.length === 1 ? 'y' : 'ies'}`;
+    } catch {
+      count.textContent = 'matching';
+    }
+  }
+  form.addEventListener('change', update);
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    location.href = `${base}results/?${formToParams(form)}`;
+  });
+  update();
+</script>

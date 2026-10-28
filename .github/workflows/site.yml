@@ -1,0 +1,68 @@
+# Scrape oakhouse.jp, build the Astro site from the fresh data and deploy it to GitHub Pages.
+# Scraped data is never committed: it lives in the Pages deployment, and the small bits of
+# state worth keeping between runs (geocode cache, last successful counts) live in actions/cache.
+name: Scrape & deploy
+
+on:
+  schedule:
+    - cron: "0 18 * * *" # daily at 03:00 JST
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: scraper/requirements.txt
+
+      - run: pip install -r scraper/requirements.txt
+
+      # Caches are immutable, so save under a new key every run and restore the newest by prefix.
+      # Saved only when the job succeeds, so a failed scrape never replaces the last good state.
+      - name: Restore scraper state
+        uses: actions/cache@v6
+        with:
+          path: |
+            scraper/.cache/geocode.json
+            scraper/.cache/last-good.json
+          key: scraper-state-${{ github.run_id }}
+          restore-keys: scraper-state-
+
+      # Exits non-zero if the listing count drops >10% vs. the last good run; the job then stops
+      # and the previous deployment stays live.
+      - name: Scrape oakhouse.jp
+        working-directory: scraper
+        run: python build.py
+
+      - name: Build site
+        uses: withastro/action@v6
+        with:
+          path: ./web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

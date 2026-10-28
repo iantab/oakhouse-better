@@ -1,0 +1,2216 @@
+[
+  {
+    "id": "aonami-line",
+    "name": "Aonami Line",
+    "name_ja": "名古屋臨海高速鉄道 名古屋 - 金城ふ頭",
+    "ref": "AN",
+    "operator": "Nagoya Rinkai Rapid Transit",
+    "colour": "#00008B",
+    "type": "train"
+  },
+  {
+    "id": "arima-line",
+    "name": "Arima Line",
+    "name_ja": "有馬線",
+    "ref": null,
+    "operator": "神戸電鉄",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "asukayama-park-monorail",
+    "name": "Asukayama Park Monorail",
+    "name_ja": "飛鳥山公園モノレール",
+    "ref": null,
+    "operator": null,
+    "colour": null,
+    "type": "monorail"
+  },
+  {
+    "id": "blue-line",
+    "name": "Blue Line",
+    "name_ja": "横浜市営地下鉄ブルーライン",
+    "ref": "B",
+    "operator": "横浜市交通局",
+    "colour": "#005ba5",
+    "type": "subway"
+  },
+  {
+    "id": "chiba-urban-monorail-line-1",
+    "name": "Chiba Urban Monorail Line 1",
+    "name_ja": "千葉都市モノレール1号線",
+    "ref": "1号線",
+    "operator": "Chiba Urban Monorail Co Ltd",
+    "colour": "#23AC38",
+    "type": "monorail"
+  },
+  {
+    "id": "chiba-urban-monorail-line-2",
+    "name": "Chiba Urban Monorail Line 2",
+    "name_ja": "千葉都市モノレール2号線",
+    "ref": "2号線",
+    "operator": "Chiba Urban Monorail Co Ltd",
+    "colour": "#EA5413",
+    "type": "monorail"
+  },
+  {
+    "id": "chiyoda-joban-lines-through-service",
+    "name": "Chiyoda-Joban Lines Through-service",
+    "name_ja": "千代田線・常磐緩行線 直通運転",
+    "ref": "C;JL",
+    "operator": "Tokyo Metro;East Japan Railway Company",
+    "colour": "#00A650",
+    "type": "train"
+  },
+  {
+    "id": "chuo-sobu-line",
+    "name": "Chūō-Sōbu Line",
+    "name_ja": "中央・総武緩行線",
+    "ref": "JB",
+    "operator": "East Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "disney-resort-line",
+    "name": "Disney Resort Line",
+    "name_ja": "ディズニーリゾートライン",
+    "ref": "DL",
+    "operator": "舞浜リゾートライン",
+    "colour": "white",
+    "type": "monorail"
+  },
+  {
+    "id": "eizan-main-line",
+    "name": "Eizan Main Line",
+    "name_ja": "叡山電鉄叡山本線",
+    "ref": "E",
+    "operator": "Eizan Electric Railway",
+    "colour": "green",
+    "type": "train"
+  },
+  {
+    "id": "enoshima-electric-railway",
+    "name": "Enoshima Electric Railway",
+    "name_ja": "江ノ島電鉄",
+    "ref": "EN",
+    "operator": "江ノ島電鉄株式会社",
+    "colour": "darkgreen",
+    "type": "light_rail"
+  },
+  {
+    "id": "fukuoka-city-subway-hakozaki-line",
+    "name": "Fukuoka City Subway Hakozaki Line",
+    "name_ja": "福岡市地下鉄箱崎線",
+    "ref": "H",
+    "operator": "Fukuoka City Transportation Bureau",
+    "colour": "#0077CC",
+    "type": "subway"
+  },
+  {
+    "id": "fukuoka-city-subway-kuko-line",
+    "name": "Fukuoka City Subway Kūkō Line",
+    "name_ja": "福岡市地下鉄空港線",
+    "ref": "K",
+    "operator": "Fukuoka City Transportation Bureau",
+    "colour": "#FF4500",
+    "type": "subway"
+  },
+  {
+    "id": "fukuoka-city-subway-nanakuma-line",
+    "name": "Fukuoka City Subway Nanakuma Line",
+    "name_ja": "福岡市地下鉄七隈線",
+    "ref": "N",
+    "operator": "Fukuoka City Transportation Bureau",
+    "colour": "#008000",
+    "type": "subway"
+  },
+  {
+    "id": "green-line",
+    "name": "Green Line",
+    "name_ja": "横浜市営地下鉄グリーンライン",
+    "ref": "G",
+    "operator": "横浜市交通局",
+    "colour": "#048D58",
+    "type": "subway"
+  },
+  {
+    "id": "hankai-tramway-hankai-line",
+    "name": "Hankai Tramway Hankai Line",
+    "name_ja": "阪堺電気軌道阪堺線",
+    "ref": "HN",
+    "operator": "阪堺電車",
+    "colour": null,
+    "type": "tram"
+  },
+  {
+    "id": "hankyu-kobe-main-line",
+    "name": "Hankyu Kobe Main Line",
+    "name_ja": "阪急神戸本線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#0d6fb8",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-kyoto-main-line",
+    "name": "Hankyu Kyoto Main Line",
+    "name_ja": "阪急京都本線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#31b781",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-kyoto-main-senri-lines",
+    "name": "Hankyu Kyoto Main-Senri Lines",
+    "name_ja": "阪急京都本線・千里線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#21ab36",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-senri-line",
+    "name": "Hankyu Senri Line",
+    "name_ja": "阪急千里線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#21ab36",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-arashiyama-line",
+    "name": "Hankyū Arashiyama Line",
+    "name_ja": "阪急電鉄嵐山線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#31b781",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-imazu-line",
+    "name": "Hankyū Imazu Line",
+    "name_ja": "阪急電鉄今津線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#007ac4",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-itami-line",
+    "name": "Hankyū Itami Line",
+    "name_ja": "阪急電鉄伊丹線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#007ac4",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-kobe-main-line-hankyu-railway",
+    "name": "Hankyū Kobe Main Line",
+    "name_ja": "阪急電鉄神戸本線",
+    "ref": null,
+    "operator": "Hankyu Railway",
+    "colour": "#0000FF",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-kyoto-main-line-hankyu-railway",
+    "name": "Hankyū Kyoto Main Line",
+    "name_ja": "阪急電鉄京都本線",
+    "ref": null,
+    "operator": "Hankyu Railway",
+    "colour": "#32CD32",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-koyo-line",
+    "name": "Hankyū Kōyō Line",
+    "name_ja": "阪急甲陽線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#007ac4",
+    "type": "train"
+  },
+  {
+    "id": "hankyu-takarazuka-main-line",
+    "name": "Hankyū Takarazuka Main Line",
+    "name_ja": "阪急電鉄宝塚本線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#f26627",
+    "type": "train"
+  },
+  {
+    "id": "hanshin-kobe-kosoku-line",
+    "name": "Hanshin Kobe Kosoku Line",
+    "name_ja": "阪神電気鉄道神戸高速線 普通",
+    "ref": "HS",
+    "operator": "Hanshin Electric Railway",
+    "colour": "#0000FF",
+    "type": "train"
+  },
+  {
+    "id": "hanshin-main-line",
+    "name": "Hanshin Main Line",
+    "name_ja": "阪神電気鉄道本線 普通",
+    "ref": "HS",
+    "operator": "Hanshin Railway",
+    "colour": "orangered",
+    "type": "train"
+  },
+  {
+    "id": "hanshin-mukogawa-line",
+    "name": "Hanshin Mukogawa Line",
+    "name_ja": "阪神電気鉄道武庫川線 普通",
+    "ref": "HS",
+    "operator": "Hanshin Railway",
+    "colour": "orangered",
+    "type": "train"
+  },
+  {
+    "id": "hanshin-railway-hanshin-namba-line",
+    "name": "Hanshin Railway Hanshin Namba Line",
+    "name_ja": "阪神電気鉄道阪神なんば線",
+    "ref": "HS",
+    "operator": "Hanshin Railway",
+    "colour": "orangered",
+    "type": "train"
+  },
+  {
+    "id": "higashiyama-line",
+    "name": "Higashiyama Line",
+    "name_ja": "名古屋市営1号線東山線",
+    "ref": "H",
+    "operator": "Transportation Bureau City of Nagoya",
+    "colour": "#FFB700",
+    "type": "subway"
+  },
+  {
+    "id": "hokuso-line",
+    "name": "Hokusō Line",
+    "name_ja": "北総線",
+    "ref": "HS",
+    "operator": null,
+    "colour": "#00BFFF",
+    "type": "train"
+  },
+  {
+    "id": "ina-line-by-new-shuttle",
+    "name": "Ina Line by New Shuttle",
+    "name_ja": "埼玉新都市交通伊奈線",
+    "ref": "NS",
+    "operator": "Saitama New Urban Transit Co., Ltd.",
+    "colour": "#10A899",
+    "type": "light_rail"
+  },
+  {
+    "id": "jr-bantan-line",
+    "name": "JR Bantan Line",
+    "name_ja": "JR播但線",
+    "ref": "J",
+    "operator": "West Japan Railway Company",
+    "colour": "#a52f5d",
+    "type": "train"
+  },
+  {
+    "id": "jr-biwako-line",
+    "name": "JR Biwako Line",
+    "name_ja": "JR琵琶湖線",
+    "ref": "A",
+    "operator": null,
+    "colour": "#007AC2",
+    "type": "train"
+  },
+  {
+    "id": "jr-central-chuo-suburban-line",
+    "name": "JR Central Chuo Suburban Line",
+    "name_ja": "JR中央西線",
+    "ref": "JC",
+    "operator": "Central Japan Railway Company",
+    "colour": "#307097",
+    "type": "train"
+  },
+  {
+    "id": "jr-central-main-line",
+    "name": "JR Central Main Line",
+    "name_ja": "JR東海道本線",
+    "ref": "CA",
+    "operator": "JR Central",
+    "colour": "#F47921",
+    "type": "train"
+  },
+  {
+    "id": "jr-chuo-jc-section-line",
+    "name": "JR Chuo JC Section Line",
+    "name_ja": "JR中央線JC",
+    "ref": "JC",
+    "operator": "East Japan Railway Company",
+    "colour": "#F15620",
+    "type": "train"
+  },
+  {
+    "id": "jr-chuo-rapid-line-1957502",
+    "name": "JR Chuo Rapid Line",
+    "name_ja": "JR中央線快速",
+    "ref": "JR中央線快速 (JR Chuo Rapid Line)",
+    "operator": null,
+    "colour": "#f49824",
+    "type": "train"
+  },
+  {
+    "id": "jr-chuo-sobu-line",
+    "name": "JR Chuo-Sobu Line",
+    "name_ja": "JR中央・総武緩行線",
+    "ref": "JB",
+    "operator": "East Japan Railway Company",
+    "colour": "#FFD700",
+    "type": "train"
+  },
+  {
+    "id": "jr-chuo-main-line-jr-central",
+    "name": "JR Chūō Main Line (JR Central)",
+    "name_ja": "JR中央線",
+    "ref": "JC",
+    "operator": "Central Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-chuo-main-line-jr-east",
+    "name": "JR Chūō Main Line (JR East)",
+    "name_ja": "JR中央線",
+    "ref": "JC",
+    "operator": "East Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-chuo-rapid-line",
+    "name": "JR Chūō Rapid Line",
+    "name_ja": "JR中央線快速",
+    "ref": "JC",
+    "operator": "East Japan Railway Company",
+    "colour": "#F15620",
+    "type": "train"
+  },
+  {
+    "id": "jr-east-tokaido-line",
+    "name": "JR East Tōkaidō Line",
+    "name_ja": "JR東海道本線",
+    "ref": "JT",
+    "operator": null,
+    "colour": "#FFA500",
+    "type": "train"
+  },
+  {
+    "id": "jr-fukuchiyama-line",
+    "name": "JR Fukuchiyama Line",
+    "name_ja": "JR宝塚線・福知山線",
+    "ref": "G",
+    "operator": "West Japan Railway Company",
+    "colour": "#ff6600",
+    "type": "train"
+  },
+  {
+    "id": "jr-fukuhoku-yutaka-line",
+    "name": "JR Fukuhoku Yutaka Line",
+    "name_ja": "JR福北ゆたか線",
+    "ref": "JC",
+    "operator": "Kyushu Railway Company",
+    "colour": "#faaf18",
+    "type": "train"
+  },
+  {
+    "id": "jr-hanwa-line",
+    "name": "JR Hanwa Line",
+    "name_ja": "JR阪和線 普通",
+    "ref": "R",
+    "operator": "西日本旅客鉄道",
+    "colour": "#F79C1F",
+    "type": "train"
+  },
+  {
+    "id": "jr-itsukaichi-line",
+    "name": "JR Itsukaichi Line",
+    "name_ja": "JR五日市線",
+    "ref": "JC",
+    "operator": "East Japan Railway Company",
+    "colour": "#FE642E",
+    "type": "train"
+  },
+  {
+    "id": "jr-joban-line",
+    "name": "JR Joban Line",
+    "name_ja": "JR常磐線",
+    "ref": null,
+    "operator": "East Japan Railway Company",
+    "colour": "#0000FF",
+    "type": "train"
+  },
+  {
+    "id": "jr-kagoshima-line",
+    "name": "JR Kagoshima Line",
+    "name_ja": "JR鹿児島本線 普通",
+    "ref": null,
+    "operator": "九州旅客鉄道",
+    "colour": "#ee3d49",
+    "type": "train"
+  },
+  {
+    "id": "jr-katamachi-line",
+    "name": "JR Katamachi Line",
+    "name_ja": "JR片町線",
+    "ref": "H",
+    "operator": "West Japan Railway Company",
+    "colour": "#EE3689",
+    "type": "train"
+  },
+  {
+    "id": "jr-keihin-tohoku-negishi-line",
+    "name": "JR Keihin-Tohoku-Negishi Line",
+    "name_ja": "JR京浜東北線・根岸線",
+    "ref": "JK",
+    "operator": "East Japan Railway Company",
+    "colour": "#00BFFF",
+    "type": "train"
+  },
+  {
+    "id": "jr-keiyo-line",
+    "name": "JR Keiyo Line",
+    "name_ja": "JR京葉線",
+    "ref": "JE",
+    "operator": "East Japan Railway Company",
+    "colour": "#DC143C",
+    "type": "train"
+  },
+  {
+    "id": "jr-kobe-line",
+    "name": "JR Kobe Line",
+    "name_ja": "JR神戸線 普通",
+    "ref": "A",
+    "operator": null,
+    "colour": "#007AC2",
+    "type": "train"
+  },
+  {
+    "id": "jr-kosei-line",
+    "name": "JR Kosei Line",
+    "name_ja": "JR湖西線",
+    "ref": "B",
+    "operator": "West Japan Railway Company",
+    "colour": "#00BFFF",
+    "type": "train"
+  },
+  {
+    "id": "jr-kyoto-line",
+    "name": "JR Kyoto Line",
+    "name_ja": "JR京都線",
+    "ref": "A",
+    "operator": "West Japan Railway Company",
+    "colour": "#007AC2",
+    "type": "train"
+  },
+  {
+    "id": "jr-musashino-line",
+    "name": "JR Musashino Line",
+    "name_ja": "JR武蔵野線",
+    "ref": "JM",
+    "operator": "East Japan Railway Company",
+    "colour": "#FF4500",
+    "type": "train"
+  },
+  {
+    "id": "jr-nagasaki-main-line",
+    "name": "JR Nagasaki Main Line",
+    "name_ja": "JR長崎本線",
+    "ref": "JA",
+    "operator": "Kyushu Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-nambu-line",
+    "name": "JR Nambu Line",
+    "name_ja": "JR南武線",
+    "ref": "JN",
+    "operator": "JR East",
+    "colour": "#FFFF00",
+    "type": "train"
+  },
+  {
+    "id": "jr-nambu-line-hamakawasaki-branch",
+    "name": "JR Nambu Line Hamakawasaki Branch",
+    "name_ja": "南武支線",
+    "ref": "JN",
+    "operator": "東日本旅客鉄道",
+    "colour": "#FFD700",
+    "type": "train"
+  },
+  {
+    "id": "jr-nara-line",
+    "name": "JR Nara Line",
+    "name_ja": "JR奈良線",
+    "ref": "D",
+    "operator": "West Japan Railway Company",
+    "colour": "#BA7C31",
+    "type": "train"
+  },
+  {
+    "id": "jr-narita-line",
+    "name": "JR Narita Line",
+    "name_ja": "JR成田線",
+    "ref": null,
+    "operator": "東日本旅客鉄道",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-negishi-line",
+    "name": "JR Negishi Line",
+    "name_ja": "JR根岸線",
+    "ref": "JK",
+    "operator": "East Japan Railway Company",
+    "colour": "#00BFFF",
+    "type": "train"
+  },
+  {
+    "id": "jr-ome-line",
+    "name": "JR Ome Line",
+    "name_ja": "JR青梅線",
+    "ref": "JC",
+    "operator": "East Japan Railway Company",
+    "colour": "#FE642E",
+    "type": "train"
+  },
+  {
+    "id": "jr-osaka-higashi-line",
+    "name": "JR Osaka Higashi Line",
+    "name_ja": "JRおおさか東線",
+    "ref": "F",
+    "operator": "West Japan Railway Company",
+    "colour": "#447694",
+    "type": "train"
+  },
+  {
+    "id": "jr-sagami-line",
+    "name": "JR Sagami Line",
+    "name_ja": "JR相模線",
+    "ref": null,
+    "operator": "東日本旅客鉄道",
+    "colour": "#0F9793",
+    "type": "train"
+  },
+  {
+    "id": "jr-saikyo-line",
+    "name": "JR Saikyo Line",
+    "name_ja": "JR埼京線",
+    "ref": "JA",
+    "operator": "East Japan Railway Company",
+    "colour": "#2E8B57",
+    "type": "train"
+  },
+  {
+    "id": "jr-sakurajima-line",
+    "name": "JR Sakurajima Line",
+    "name_ja": "JR桜島線",
+    "ref": "P",
+    "operator": "West Japan Railway Company",
+    "colour": "#233F97",
+    "type": "train"
+  },
+  {
+    "id": "jr-sanyo-main-line-a",
+    "name": "JR Sanyō Main Line (A)",
+    "name_ja": "JR山陽本線",
+    "ref": "A",
+    "operator": null,
+    "colour": "#0071BE",
+    "type": "train"
+  },
+  {
+    "id": "jr-sobu-main-line",
+    "name": "JR Sobu Main Line",
+    "name_ja": "JR総武本線",
+    "ref": null,
+    "operator": "東日本旅客鉄道",
+    "colour": "#FFC20D",
+    "type": "train"
+  },
+  {
+    "id": "jr-sobu-rapid-line",
+    "name": "JR Sobu Rapid Line",
+    "name_ja": "JR総武快速線",
+    "ref": "JO",
+    "operator": "East Japan Railway Company",
+    "colour": "#000080",
+    "type": "train"
+  },
+  {
+    "id": "jr-sotobo-line",
+    "name": "JR Sotobo Line",
+    "name_ja": "JR外房線",
+    "ref": null,
+    "operator": "East Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-takarazuka-line",
+    "name": "JR Takarazuka Line",
+    "name_ja": "JR宝塚線",
+    "ref": "G",
+    "operator": "West Japan Railway Company",
+    "colour": "#FEC210",
+    "type": "train"
+  },
+  {
+    "id": "jr-tohoku-line",
+    "name": "JR Tohoku Line",
+    "name_ja": "JR東北本線",
+    "ref": "JR東北本線",
+    "operator": "East Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-tsurumi-line",
+    "name": "JR Tsurumi Line",
+    "name_ja": "JR鶴見線",
+    "ref": "JI",
+    "operator": null,
+    "colour": "yellow",
+    "type": "train"
+  },
+  {
+    "id": "jr-tokaido-main-line",
+    "name": "JR Tōkaidō Main Line",
+    "name_ja": "JR東海道本線",
+    "ref": null,
+    "operator": null,
+    "colour": "#FFA500",
+    "type": "train"
+  },
+  {
+    "id": "jr-tozai-line",
+    "name": "JR Tōzai Line",
+    "name_ja": "JR東西線",
+    "ref": "H",
+    "operator": "West Japan Railway Company",
+    "colour": "#FF1493",
+    "type": "train"
+  },
+  {
+    "id": "jr-uchibo-line",
+    "name": "JR Uchibo Line",
+    "name_ja": "JR内房線",
+    "ref": null,
+    "operator": "East Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-utsunomiya-line",
+    "name": "JR Utsunomiya Line",
+    "name_ja": "JR宇都宮線",
+    "ref": "JU",
+    "operator": "East Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-yamanote-line",
+    "name": "JR Yamanote Line",
+    "name_ja": "JR山手線",
+    "ref": "JY",
+    "operator": "East Japan Railway Company",
+    "colour": "#B1CB39",
+    "type": "train"
+  },
+  {
+    "id": "jr-yamatoji-line",
+    "name": "JR Yamatoji Line",
+    "name_ja": "JR大和路線 普通",
+    "ref": "Q",
+    "operator": "西日本旅客鉄道",
+    "colour": "#02AD73",
+    "type": "train"
+  },
+  {
+    "id": "jr-yokohama-line",
+    "name": "JR Yokohama Line",
+    "name_ja": "JR横浜線",
+    "ref": "JH",
+    "operator": "East Japan Railway Company",
+    "colour": "#9acd32",
+    "type": "train"
+  },
+  {
+    "id": "jr-yokohama-line-x",
+    "name": "JR Yokohama Line",
+    "name_ja": "JR横浜線",
+    "ref": "JH",
+    "operator": "東日本旅客鉄道",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-yokosuka-line",
+    "name": "JR Yokosuka Line",
+    "name_ja": "JR横須賀線",
+    "ref": "JO",
+    "operator": "East Japan Railway Company",
+    "colour": "#000080",
+    "type": "train"
+  },
+  {
+    "id": "jrhachiko-line",
+    "name": "JRHachiko Line",
+    "name_ja": "JR八高線",
+    "ref": null,
+    "operator": "東日本旅客鉄道",
+    "colour": "#A8A39D",
+    "type": "train"
+  },
+  {
+    "id": "jr",
+    "name": "JR中央線・青梅線　立川 => 西立川",
+    "name_ja": "JR中央線・青梅線　立川 => 西立川",
+    "ref": null,
+    "operator": "東日本旅客鉄道",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "jr-x",
+    "name": "JR鹿児島本線",
+    "name_ja": "JR鹿児島本線",
+    "ref": "JA",
+    "operator": "九州旅客鉄道",
+    "colour": "#ee3d49",
+    "type": "train"
+  },
+  {
+    "id": "joban-rapid-line",
+    "name": "Joban Rapid Line",
+    "name_ja": "常磐快速線",
+    "ref": null,
+    "operator": "東日本旅客鉄道",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "kagoshima-main-line-jb",
+    "name": "Kagoshima Main Line (JB)",
+    "name_ja": "JR鹿児島本線",
+    "ref": "JB",
+    "operator": "九州旅客鉄道",
+    "colour": "#ee3d49",
+    "type": "train"
+  },
+  {
+    "id": "kaigan-line",
+    "name": "Kaigan Line",
+    "name_ja": "Subway 神戸市営地下鉄海岸線",
+    "ref": "K",
+    "operator": "神戸市交通局",
+    "colour": "#267DCE",
+    "type": "subway"
+  },
+  {
+    "id": "kamiiida-line",
+    "name": "Kamiiida Line",
+    "name_ja": "名古屋市営上飯田線",
+    "ref": "K",
+    "operator": "名古屋市",
+    "colour": "#ea7ab2",
+    "type": "subway"
+  },
+  {
+    "id": "kamiiida-line-transportation-bureau-city-of-nagoya",
+    "name": "Kamiiida Line",
+    "name_ja": "名古屋市営上飯田線",
+    "ref": "K",
+    "operator": "Transportation Bureau City of Nagoya",
+    "colour": "#ea7ab2",
+    "type": "subway"
+  },
+  {
+    "id": "kanazawa-seaside-line",
+    "name": "Kanazawa Seaside Line",
+    "name_ja": "横浜シーサイドライン金沢シーサイドライン",
+    "ref": "SL",
+    "operator": "横浜シーサイドライン",
+    "colour": "#004EA2",
+    "type": "light_rail"
+  },
+  {
+    "id": "karasuma-line",
+    "name": "Karasuma Line",
+    "name_ja": "京都市営地下鉄烏丸線",
+    "ref": "K",
+    "operator": "京都市交通局",
+    "colour": "#3CB371",
+    "type": "subway"
+  },
+  {
+    "id": "karasuma-line-536800",
+    "name": "Karasuma Line",
+    "name_ja": "京都市営地下鉄烏丸線",
+    "ref": "K",
+    "operator": null,
+    "colour": "#3CB371",
+    "type": "subway"
+  },
+  {
+    "id": "kawagoe-line",
+    "name": "Kawagoe Line",
+    "name_ja": "川越線",
+    "ref": "K",
+    "operator": null,
+    "colour": "#00B48D",
+    "type": "train"
+  },
+  {
+    "id": "keifuku-arashiyama-line",
+    "name": "Keifuku Arashiyama Line",
+    "name_ja": "京福電気鉄道嵐山本線",
+    "ref": "A",
+    "operator": "Keifuku Electric Railroad",
+    "colour": "#a83939",
+    "type": "tram"
+  },
+  {
+    "id": "keifuku-kitano-line",
+    "name": "Keifuku Kitano Line",
+    "name_ja": "京福電気鉄道北野線",
+    "ref": "B",
+    "operator": "京福電気鉄道株式会社",
+    "colour": "#406681",
+    "type": "tram"
+  },
+  {
+    "id": "keifuku-kitano-line-x",
+    "name": "Keifuku Kitano Line",
+    "name_ja": "京福電気鉄道北野線",
+    "ref": "B",
+    "operator": "京福電気鉄道",
+    "colour": "#406681",
+    "type": "tram"
+  },
+  {
+    "id": "keihan-katano-line",
+    "name": "Keihan Katano Line",
+    "name_ja": "京阪電気鉄道交野線",
+    "ref": "KH",
+    "operator": "Keihan Electric Railway",
+    "colour": "#5BA094",
+    "type": "train"
+  },
+  {
+    "id": "keihan-uji-line",
+    "name": "Keihan Uji Line",
+    "name_ja": "京阪宇治線",
+    "ref": "KH",
+    "operator": "Keihan Electric Railway",
+    "colour": "#5BA094",
+    "type": "train"
+  },
+  {
+    "id": "keihan-uji-line-x",
+    "name": "Keihan Uji Line",
+    "name_ja": "京阪宇治線",
+    "ref": "KH",
+    "operator": "京阪電気鉄道",
+    "colour": "#5BA094",
+    "type": "train"
+  },
+  {
+    "id": "keikyu-main-line",
+    "name": "Keikyu Main Line",
+    "name_ja": "京急本線",
+    "ref": "KK",
+    "operator": "Keikyu Corporation",
+    "colour": "#00BFFF",
+    "type": "train"
+  },
+  {
+    "id": "keikyu-main-kurihama-line",
+    "name": "Keikyu Main・Kurihama Line",
+    "name_ja": "京急本線・久里浜線",
+    "ref": "KK",
+    "operator": "Keikyu Corporation",
+    "colour": "#00BFFF",
+    "type": "train"
+  },
+  {
+    "id": "keikyu-airport-line",
+    "name": "Keikyū Airport Line",
+    "name_ja": "京急空港線",
+    "ref": "KK",
+    "operator": "Keikyu Corporation",
+    "colour": "#00BFFF",
+    "type": "train"
+  },
+  {
+    "id": "keikyu-daishi-line",
+    "name": "Keikyū Daishi Line",
+    "name_ja": "京浜急行電鉄大師線",
+    "ref": "KK",
+    "operator": "Keikyu Corporation",
+    "colour": "DeepSkyBlue",
+    "type": "train"
+  },
+  {
+    "id": "keikyu-zushi-line",
+    "name": "Keikyū Zushi Line",
+    "name_ja": "京浜急行電鉄逗子線",
+    "ref": "KK",
+    "operator": "Keikyu Corporation",
+    "colour": "DeepSkyBlue",
+    "type": "train"
+  },
+  {
+    "id": "keio-inokashira-line",
+    "name": "Keio Inokashira Line",
+    "name_ja": "京王電鉄井の頭線",
+    "ref": "IN",
+    "operator": "Keio Corporation",
+    "colour": "#083476",
+    "type": "train"
+  },
+  {
+    "id": "keio-railway-keio-line",
+    "name": "Keio Railway Keio Line",
+    "name_ja": "京王電鉄京王線",
+    "ref": "KO",
+    "operator": "Keio Corporation",
+    "colour": "#E50B84",
+    "type": "train"
+  },
+  {
+    "id": "keio-railway-keio-new-line",
+    "name": "Keio Railway Keio New Line",
+    "name_ja": "京王電鉄京王新線",
+    "ref": "KO",
+    "operator": "京王電鉄",
+    "colour": "#E50B84",
+    "type": "train"
+  },
+  {
+    "id": "keio-railway-sagamihara-line",
+    "name": "Keio Railway Sagamihara Line",
+    "name_ja": "京王電鉄相模原線",
+    "ref": "KO",
+    "operator": "Keio Corporation",
+    "colour": "#E50B84",
+    "type": "train"
+  },
+  {
+    "id": "keio-railway-takao-line",
+    "name": "Keio Railway Takao Line",
+    "name_ja": "京王電鉄高尾線",
+    "ref": "KO",
+    "operator": "Keio Corporation",
+    "colour": "#E50B84",
+    "type": "train"
+  },
+  {
+    "id": "keio-zoo-line",
+    "name": "Keio Zoo Line",
+    "name_ja": "京王電鉄動物園線",
+    "ref": "KO",
+    "operator": "Keio Corporation",
+    "colour": "#E50B84",
+    "type": "train"
+  },
+  {
+    "id": "keisei-chiba-line",
+    "name": "Keisei Chiba Line",
+    "name_ja": "京成電鉄千葉線",
+    "ref": "KS",
+    "operator": "Keisei Electric Railway",
+    "colour": "#0000CD",
+    "type": "train"
+  },
+  {
+    "id": "keisei-chihara-line",
+    "name": "Keisei Chihara Line",
+    "name_ja": "京成電鉄千原線",
+    "ref": "KS",
+    "operator": "Keisei Electric Railway",
+    "colour": "#0000CD",
+    "type": "train"
+  },
+  {
+    "id": "keisei-kanamachi-line",
+    "name": "Keisei Kanamachi Line",
+    "name_ja": "京成電鉄金町線",
+    "ref": "KS",
+    "operator": "Keisei Electric Railway",
+    "colour": "#0000CD",
+    "type": "train"
+  },
+  {
+    "id": "keisei-main-line",
+    "name": "Keisei Main Line",
+    "name_ja": "京成本線",
+    "ref": "KS",
+    "operator": "Keisei Electric Railway",
+    "colour": "#005aaa",
+    "type": "train"
+  },
+  {
+    "id": "keisei-main-line-chiba-line",
+    "name": "Keisei Main Line/Chiba Line",
+    "name_ja": "京成本線・千葉線 普通",
+    "ref": "KS",
+    "operator": "Keisei Electric Railway",
+    "colour": "#014ea0",
+    "type": "train"
+  },
+  {
+    "id": "keisei-main-line-chiba-chihara-line",
+    "name": "Keisei Main Line/Chiba/Chihara Line",
+    "name_ja": "京成本線・千葉線・千原線 普通",
+    "ref": "KS",
+    "operator": "Keisei Electric Railway",
+    "colour": "#014ea0",
+    "type": "train"
+  },
+  {
+    "id": "keisei-matsudo-line",
+    "name": "Keisei Matsudo Line",
+    "name_ja": "京成松戸線",
+    "ref": "SL",
+    "operator": "京成電鉄",
+    "colour": "#E95098",
+    "type": "train"
+  },
+  {
+    "id": "keisei-oshiage-line",
+    "name": "Keisei Oshiage Line",
+    "name_ja": "京成押上線",
+    "ref": "KS",
+    "operator": "Keisei Electric Railway",
+    "colour": "#005aaa",
+    "type": "train"
+  },
+  {
+    "id": "keiyo-line",
+    "name": "Keiyo Line",
+    "name_ja": "京葉線",
+    "ref": null,
+    "operator": "東日本旅客鉄道",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "keio-keibajo-line",
+    "name": "Keiō Keibajō Line",
+    "name_ja": "京王競馬場線",
+    "ref": "KO",
+    "operator": "Keio Corporation",
+    "colour": "#E50B84",
+    "type": "train"
+  },
+  {
+    "id": "kintetsu-kyoto-line",
+    "name": "Kintetsu Kyoto Line",
+    "name_ja": "近畿日本鉄道京都線 普通",
+    "ref": "B",
+    "operator": "Kintetsu Railway",
+    "colour": "#FAB202",
+    "type": "train"
+  },
+  {
+    "id": "kintetsu-minami-osaka-line",
+    "name": "Kintetsu Minami-Osaka Line",
+    "name_ja": "近畿日本鉄道南大阪線 普通",
+    "ref": "F",
+    "operator": "Kintetsu Railway",
+    "colour": "#028E46",
+    "type": "train"
+  },
+  {
+    "id": "kintetsu-nagoya-line",
+    "name": "Kintetsu Nagoya Line",
+    "name_ja": "近鉄名古屋線 普通",
+    "ref": "E",
+    "operator": "Kintetsu Railway",
+    "colour": "#153F97",
+    "type": "train"
+  },
+  {
+    "id": "kintetsu-namba-line",
+    "name": "Kintetsu Namba Line",
+    "name_ja": "近畿日本鉄道難波線 普通",
+    "ref": "A",
+    "operator": "Kintetsu Railway",
+    "colour": "#d21644",
+    "type": "train"
+  },
+  {
+    "id": "kintetsu-nara-line",
+    "name": "Kintetsu Nara Line",
+    "name_ja": "近畿日本鉄道奈良線 普通",
+    "ref": "A",
+    "operator": "Kintetsu Railway",
+    "colour": "#d21644",
+    "type": "train"
+  },
+  {
+    "id": "kintetsu-osaka-line",
+    "name": "Kintetsu Osaka Line",
+    "name_ja": "近畿日本鉄道大阪線 普通",
+    "ref": "D",
+    "operator": "Kintetsu Corporation",
+    "colour": "#4694D1",
+    "type": "train"
+  },
+  {
+    "id": "kitakyu-nanboku-line",
+    "name": "KitaKyu Nanboku Line",
+    "name_ja": "北大阪急行電鉄南北線",
+    "ref": "M",
+    "operator": null,
+    "colour": null,
+    "type": "subway"
+  },
+  {
+    "id": "kobe-city-subway-seishin-yamate-line-hokushin-line",
+    "name": "Kobe City Subway Seishin-Yamate line / Hokushin line",
+    "name_ja": "Subway 神戸市営地下鉄西神・山手線/北神線",
+    "ref": "S",
+    "operator": "神戸市交通局",
+    "colour": "#00AE8E",
+    "type": "subway"
+  },
+  {
+    "id": "kobe-electric-railway-ao-line",
+    "name": "Kobe Electric Railway Ao Line",
+    "name_ja": "神戸電鉄粟生線",
+    "ref": "KB",
+    "operator": "Kobe Electric Railway",
+    "colour": "#D03",
+    "type": "train"
+  },
+  {
+    "id": "kobe-kosoku-tozai-line-north-section",
+    "name": "Kobe Kosoku Tozai Line (north section)",
+    "name_ja": "阪急電鉄神戸高速線",
+    "ref": "HK",
+    "operator": "Hankyu Railway",
+    "colour": "#007ac4",
+    "type": "train"
+  },
+  {
+    "id": "kominato-line",
+    "name": "Kominato Line",
+    "name_ja": "小湊鉄道線",
+    "ref": null,
+    "operator": "Kominato Railway",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "kurama-line",
+    "name": "Kurama Line",
+    "name_ja": "叡山電鉄鞍馬線",
+    "ref": "E",
+    "operator": "Eizan Electric Railway",
+    "colour": "#D91235",
+    "type": "train"
+  },
+  {
+    "id": "kyoto-subway-kintetsu-kyoto-line",
+    "name": "Kyoto Subway - Kintetsu Kyoto Line",
+    "name_ja": "京都地下鉄烏丸線・近鉄京都線",
+    "ref": "K;B",
+    "operator": "Kyoto Municipal Subway;Kintetsu Railway",
+    "colour": "#E7A61A",
+    "type": "train"
+  },
+  {
+    "id": "l-neas-fukutoshin-y-yurakucho-de-tokyo-metro-hano-bypass-lin",
+    "name": "Líneas Fukutoshin y Yūrakuchō de Tokyo Metro - Hano Bypass Line",
+    "name_ja": "東京地下鉄の直通運転 - 飯能線",
+    "ref": "SI",
+    "operator": "Seibu Railways;Tokyo Metro",
+    "colour": "#01AAAA",
+    "type": "train"
+  },
+  {
+    "id": "meijo-line",
+    "name": "Meijō Line",
+    "name_ja": "名古屋市営名城線",
+    "ref": "M",
+    "operator": "Transportation Bureau City of Nagoya",
+    "colour": "#B074D6",
+    "type": "subway"
+  },
+  {
+    "id": "meiko-line",
+    "name": "Meikō Line",
+    "name_ja": "名古屋市営名港線",
+    "ref": "E",
+    "operator": "Transportation Bureau City of Nagoya",
+    "colour": "#B074D6",
+    "type": "subway"
+  },
+  {
+    "id": "meitetsu-mikawa-line-mu",
+    "name": "Meitetsu Mikawa Line (MU)",
+    "name_ja": "名古屋鉄道三河線 (MU)",
+    "ref": "MU",
+    "operator": "Meitetsu",
+    "colour": "#654E9E",
+    "type": "train"
+  },
+  {
+    "id": "meitetsu-nagoya-main-line",
+    "name": "Meitetsu Nagoya Main Line",
+    "name_ja": "名古屋鉄道名古屋本線",
+    "ref": "NH",
+    "operator": "Meitetsu",
+    "colour": "#D12027",
+    "type": "train"
+  },
+  {
+    "id": "meitetsu-seto-line",
+    "name": "Meitetsu Seto Line",
+    "name_ja": "名古屋鉄道瀬戸線",
+    "ref": "ST",
+    "operator": "Meitetsu",
+    "colour": "#7D2483",
+    "type": "train"
+  },
+  {
+    "id": "meitetsu-tokoname-line",
+    "name": "Meitetsu Tokoname Line",
+    "name_ja": "名古屋鉄道常滑線",
+    "ref": "TA",
+    "operator": "Meitetsu",
+    "colour": "#2388C8",
+    "type": "train"
+  },
+  {
+    "id": "nagahori-tsurumi-ryokuchi",
+    "name": "Nagahori Tsurumi-Ryokuchi",
+    "name_ja": "大阪市高速電気軌道長堀鶴見緑地線",
+    "ref": "N",
+    "operator": "Osaka Municipal Transportation Bureau",
+    "colour": "#A9CC51",
+    "type": "subway"
+  },
+  {
+    "id": "nankai-airport-line",
+    "name": "Nankai Airport Line",
+    "name_ja": "南海電気鉄道空港線",
+    "ref": "S",
+    "operator": "Nankai Electric Railway",
+    "colour": "blue",
+    "type": "train"
+  },
+  {
+    "id": "nankai-airport-line-x",
+    "name": "Nankai Airport Line",
+    "name_ja": "南海電気鉄道空港線",
+    "ref": "S",
+    "operator": "南海電気鉄道",
+    "colour": "blue",
+    "type": "train"
+  },
+  {
+    "id": "nankai-koya-line",
+    "name": "Nankai Kōya Line",
+    "name_ja": "南海電気鉄道高野線",
+    "ref": "NK",
+    "operator": "Nankai Electric Railway",
+    "colour": "#009A41",
+    "type": "train"
+  },
+  {
+    "id": "nankai-main-line",
+    "name": "Nankai Main Line",
+    "name_ja": "南海南海本線",
+    "ref": "NK",
+    "operator": "Nankai Electric Railway",
+    "colour": "#0065AF",
+    "type": "train"
+  },
+  {
+    "id": "nankai-shiomibashi-line",
+    "name": "Nankai Shiomibashi Line",
+    "name_ja": "南海電気鉄道汐見橋線 普通",
+    "ref": "NK",
+    "operator": "南海電気鉄道",
+    "colour": "#009A41",
+    "type": "train"
+  },
+  {
+    "id": "nanko-port-town-line",
+    "name": "Nankō Port Town Line",
+    "name_ja": "南港ポートタウン線",
+    "ref": "P",
+    "operator": "Osaka Metro",
+    "colour": "#00A0DE",
+    "type": "light_rail"
+  },
+  {
+    "id": "nishitetsu-tenjin-omuta-line",
+    "name": "Nishitetsu Tenjin Omuta Line",
+    "name_ja": "西日本鉄道天神大牟田線",
+    "ref": "T",
+    "operator": "西日本鉄道",
+    "colour": "#0059a6",
+    "type": "train"
+  },
+  {
+    "id": "noseden-myoken-line",
+    "name": "Noseden Myōken Line",
+    "name_ja": "能勢電鉄妙見線",
+    "ref": "NS",
+    "operator": null,
+    "colour": "#451c1d",
+    "type": "train"
+  },
+  {
+    "id": "odakyu-electric-railway-tama-line",
+    "name": "Odakyu Electric Railway Tama Line",
+    "name_ja": "小田急電鉄多摩線",
+    "ref": "OT",
+    "operator": "Odakyu Electric Railway",
+    "colour": "#0D82C7",
+    "type": "train"
+  },
+  {
+    "id": "odakyu-enoshima-line",
+    "name": "Odakyu Enoshima Line",
+    "name_ja": "小田急江ノ島線",
+    "ref": "OE",
+    "operator": "Odakyu Electric Railway",
+    "colour": "#0D82C7",
+    "type": "train"
+  },
+  {
+    "id": "odakyu-odawara-enoshima-lines",
+    "name": "Odakyu Odawara & Enoshima Lines",
+    "name_ja": "小田急小田原線・江ノ島線",
+    "ref": "OH;OE",
+    "operator": "Odakyu Electric Railway",
+    "colour": "#0D82C7",
+    "type": "train"
+  },
+  {
+    "id": "odakyu-odawara-line",
+    "name": "Odakyū Odawara Line",
+    "name_ja": "小田急小田原線",
+    "ref": "OH",
+    "operator": "Odakyu Electric Railway",
+    "colour": "#0D82C7",
+    "type": "train"
+  },
+  {
+    "id": "osaka-loop-line-inner",
+    "name": "Osaka Loop Line (inner)",
+    "name_ja": "JR大阪環状線",
+    "ref": "O",
+    "operator": "West Japan Railway Company",
+    "colour": "#E80000",
+    "type": "train"
+  },
+  {
+    "id": "osaka-loop-line-outer",
+    "name": "Osaka Loop Line (outer)",
+    "name_ja": "JR大阪環状線",
+    "ref": "O",
+    "operator": "West Japan Railway Company",
+    "colour": "#E80000",
+    "type": "train"
+  },
+  {
+    "id": "osaka-metro-chuo-line",
+    "name": "Osaka Metro Chuo Line",
+    "name_ja": "Osaka Metro中央線",
+    "ref": "C",
+    "operator": "Osaka Metro",
+    "colour": "#019A66",
+    "type": "subway"
+  },
+  {
+    "id": "osaka-metro-imazatosuji-line",
+    "name": "Osaka Metro Imazatosuji Line",
+    "name_ja": "大阪市高速電気軌道今里筋線",
+    "ref": "I",
+    "operator": "Osaka Metro Co., Ltd.",
+    "colour": "#EE7B1A",
+    "type": "subway"
+  },
+  {
+    "id": "osaka-metro-midosuji-line",
+    "name": "Osaka Metro Midosuji Line",
+    "name_ja": "Osaka Metro御堂筋線",
+    "ref": "M",
+    "operator": "Osaka Metro Co., Ltd.",
+    "colour": "#E5171F",
+    "type": "subway"
+  },
+  {
+    "id": "osaka-metro-tanimachi-line",
+    "name": "Osaka Metro Tanimachi Line",
+    "name_ja": "大阪市高速電気軌道谷町線",
+    "ref": "T",
+    "operator": "Osaka Metro Co., Ltd.",
+    "colour": "#522886",
+    "type": "subway"
+  },
+  {
+    "id": "osaka-monorail-kokusai-bunka-koen-toshi-monorail-line",
+    "name": "Osaka Monorail Kokusai Bunka Koen Toshi Monorail Line",
+    "name_ja": "大阪モノレール国際文化公園都市モノレール線",
+    "ref": "OM",
+    "operator": "Osaka Monorail",
+    "colour": "#2e4fb5",
+    "type": "monorail"
+  },
+  {
+    "id": "osaka-monorail-main-line",
+    "name": "Osaka Monorail Main Line",
+    "name_ja": "大阪モノレール本線",
+    "ref": "OM",
+    "operator": "Osaka Monorail",
+    "colour": "#2e4fb5",
+    "type": "monorail"
+  },
+  {
+    "id": "osaka-municipal-subway-sakaisuji-line",
+    "name": "Osaka Municipal Subway Sakaisuji Line",
+    "name_ja": "大阪市高速電気軌道堺筋線",
+    "ref": "K",
+    "operator": "Osaka Municipal Transportation Bureau",
+    "colour": "#814721",
+    "type": "subway"
+  },
+  {
+    "id": "osaka-municipal-subway-sennichimae-line",
+    "name": "Osaka Municipal Subway Sennichimae Line",
+    "name_ja": "大阪市高速電気軌道千日前線",
+    "ref": "S",
+    "operator": "Osaka Municipal Transportation Bureau",
+    "colour": "#E44D93",
+    "type": "subway"
+  },
+  {
+    "id": "osaka-municipal-subway-yotsubashi-line",
+    "name": "Osaka Municipal Subway Yotsubashi Line",
+    "name_ja": "大阪市高速電気軌道四つ橋線",
+    "ref": "Y",
+    "operator": "Osaka Metro Co., Ltd.",
+    "colour": "#0078BE",
+    "type": "subway"
+  },
+  {
+    "id": "rinkai-line",
+    "name": "Rinkai Line",
+    "name_ja": "りんかい線",
+    "ref": "R",
+    "operator": "東京臨海高速鉄道",
+    "colour": "#00389E",
+    "type": "train"
+  },
+  {
+    "id": "s-train-weekdays",
+    "name": "S-Train (Weekdays)",
+    "name_ja": "S-Train (Weekdays)",
+    "ref": "S",
+    "operator": "Seibu Railway Company, Ltd.",
+    "colour": null,
+    "type": "subway"
+  },
+  {
+    "id": "sagamo-line-kioto-sonobe",
+    "name": "Sagamo Line: Kioto - Sonobe",
+    "name_ja": "嵯峨野線",
+    "ref": "E",
+    "operator": "JR West",
+    "colour": "#7785c2",
+    "type": "train"
+  },
+  {
+    "id": "sagano-scenic-line",
+    "name": "Sagano Scenic Line",
+    "name_ja": "嵯峨野観光鉄道嵯峨野観光線",
+    "ref": null,
+    "operator": "West Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "sakura-dori-line",
+    "name": "Sakura Dōri Line",
+    "name_ja": "名古屋市営6号線桜通線",
+    "ref": "S",
+    "operator": "Transportation Bureau City of Nagoya",
+    "colour": "#C92F44",
+    "type": "subway"
+  },
+  {
+    "id": "sanyo-electric-railway-aboshi-line",
+    "name": "Sanyo Electric Railway Aboshi Line",
+    "name_ja": "山陽電気鉄道網干線 普通",
+    "ref": "SY",
+    "operator": "Sanyo Electric Railway",
+    "colour": "#FA2B08",
+    "type": "train"
+  },
+  {
+    "id": "sanyo-electric-railway-main-line",
+    "name": "Sanyo Electric Railway Main Line",
+    "name_ja": "山陽電気鉄道本線 普通",
+    "ref": "SY",
+    "operator": "Sanyo Electric Railway",
+    "colour": "#FA2B08",
+    "type": "train"
+  },
+  {
+    "id": "sasaguri-line",
+    "name": "Sasaguri Line",
+    "name_ja": "JR篠栗線",
+    "ref": null,
+    "operator": null,
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "seibu-haijima-line",
+    "name": "Seibu Haijima Line",
+    "name_ja": "西武拝島線",
+    "ref": "SS",
+    "operator": "西武鉄道",
+    "colour": "#00A6BF",
+    "type": "train"
+  },
+  {
+    "id": "seibu-ikebukuro-line",
+    "name": "Seibu Ikebukuro Line",
+    "name_ja": "西武池袋線",
+    "ref": "SI",
+    "operator": null,
+    "colour": "#ED772D",
+    "type": "train"
+  },
+  {
+    "id": "seibu-kokubunji-line",
+    "name": "Seibu Kokubunji Line",
+    "name_ja": "西武国分寺線",
+    "ref": "SK",
+    "operator": null,
+    "colour": "#33CC66",
+    "type": "train"
+  },
+  {
+    "id": "seibu-sayama-line",
+    "name": "Seibu Sayama Line",
+    "name_ja": "西武鉄道狭山線",
+    "ref": "SI",
+    "operator": null,
+    "colour": "#ED772D",
+    "type": "train"
+  },
+  {
+    "id": "seibu-seibu-en-line",
+    "name": "Seibu Seibu-en Line",
+    "name_ja": "西武園線",
+    "ref": "SK",
+    "operator": "西武鉄道",
+    "colour": "#33CC66",
+    "type": "train"
+  },
+  {
+    "id": "seibu-shinjuku-line",
+    "name": "Seibu Shinjuku Line",
+    "name_ja": "西武新宿線",
+    "ref": "SS",
+    "operator": "西武鉄道",
+    "colour": "#00A6BF",
+    "type": "train"
+  },
+  {
+    "id": "seibu-tamagawa-line",
+    "name": "Seibu Tamagawa Line",
+    "name_ja": "西武多摩川線",
+    "ref": "SW",
+    "operator": "西武鉄道",
+    "colour": "#EF810F",
+    "type": "train"
+  },
+  {
+    "id": "seibu-tamako-line",
+    "name": "Seibu Tamako Line",
+    "name_ja": "西武多摩湖線",
+    "ref": "ST",
+    "operator": null,
+    "colour": "#FAAA27",
+    "type": "train"
+  },
+  {
+    "id": "seibu-toshima-line",
+    "name": "Seibu Toshima Line",
+    "name_ja": "西武豊島線",
+    "ref": "SI",
+    "operator": null,
+    "colour": "#ED772D",
+    "type": "train"
+  },
+  {
+    "id": "seibu-yamaguchi-line",
+    "name": "Seibu Yamaguchi Line",
+    "name_ja": "西武山口線",
+    "ref": "SY",
+    "operator": "Seibu Railway Company, Ltd.",
+    "colour": "#EF473D",
+    "type": "light_rail"
+  },
+  {
+    "id": "seibu-yurakucho-line",
+    "name": "Seibu Yurakucho Line",
+    "name_ja": "西武有楽町線",
+    "ref": "SI",
+    "operator": null,
+    "colour": "#ED772D",
+    "type": "train"
+  },
+  {
+    "id": "seibu-yurakucho-line-eastbound",
+    "name": "Seibu Yurakucho Line (eastbound)",
+    "name_ja": "東京地下鉄の直通運転 - 西武有楽町線",
+    "ref": "SI",
+    "operator": null,
+    "colour": "#ED772D",
+    "type": "subway"
+  },
+  {
+    "id": "seibu-yurakucho-line-westbound",
+    "name": "Seibu Yurakucho Line (westbound)",
+    "name_ja": "東京地下鉄の直通運転 - 西武有楽町線",
+    "ref": "SI",
+    "operator": null,
+    "colour": "#ED772D",
+    "type": "subway"
+  },
+  {
+    "id": "shonan-monorail",
+    "name": "Shonan Monorail",
+    "name_ja": "湘南モノレール",
+    "ref": "SMR",
+    "operator": "湘南モノレール株式会社",
+    "colour": "brown",
+    "type": "monorail"
+  },
+  {
+    "id": "shonan-shinjuku-line",
+    "name": "Shonan-Shinjuku Line",
+    "name_ja": "湘南新宿ライン",
+    "ref": "JS",
+    "operator": "東日本旅客鉄道",
+    "colour": "red",
+    "type": "train"
+  },
+  {
+    "id": "sotestu-shin-yokohama-line",
+    "name": "Sotestu Shin-Yokohama Line",
+    "name_ja": "相鉄新横浜線",
+    "ref": "SO",
+    "operator": "Sotetsu",
+    "colour": "#0c1e56",
+    "type": "train"
+  },
+  {
+    "id": "sobu-nagareyama-electric-railway",
+    "name": "Sōbu Nagareyama Electric Railway",
+    "name_ja": "総武流山電鉄",
+    "ref": "RN",
+    "operator": null,
+    "colour": "#FF6600",
+    "type": "train"
+  },
+  {
+    "id": "tobu-skytree-line",
+    "name": "TOBU SKYTREE Line",
+    "name_ja": "東武スカイツリーライン",
+    "ref": "TS",
+    "operator": "Tobu Railway",
+    "colour": "#0f6cc3",
+    "type": "train"
+  },
+  {
+    "id": "takasaki-line",
+    "name": "Takasaki Line",
+    "name_ja": "JR高崎線",
+    "ref": "JU",
+    "operator": "East Japan Railway Company",
+    "colour": "#f68b1e",
+    "type": "train"
+  },
+  {
+    "id": "tama-monorail-line",
+    "name": "Tama Monorail Line",
+    "name_ja": "多摩都市モノレール線",
+    "ref": "TT",
+    "operator": "Tokyo Tama Intercity Monorail Co., Ltd.",
+    "colour": "#22625E",
+    "type": "monorail"
+  },
+  {
+    "id": "tobu-kameido-line",
+    "name": "Tobu Kameido Line",
+    "name_ja": "東武鉄道亀戸線",
+    "ref": "TS",
+    "operator": "Tobu Railway",
+    "colour": "blue",
+    "type": "train"
+  },
+  {
+    "id": "tobu-urban-park-line",
+    "name": "Tobu Urban Park Line",
+    "name_ja": "東武アーバンパークライン",
+    "ref": "TD",
+    "operator": "Tobu Railway",
+    "colour": "#00BFFF",
+    "type": "train"
+  },
+  {
+    "id": "toden-arakawa-line",
+    "name": "Toden Arakawa Line",
+    "name_ja": "都電荒川線",
+    "ref": "SA",
+    "operator": "東京都交通局",
+    "colour": "#D85B81",
+    "type": "tram"
+  },
+  {
+    "id": "toei-asakusa-line",
+    "name": "Toei Asakusa Line",
+    "name_ja": "都営浅草線",
+    "ref": "A",
+    "operator": "Tokyo Metropolitan Bureau of Transportation",
+    "colour": "#E85298",
+    "type": "subway"
+  },
+  {
+    "id": "toei-mita-line",
+    "name": "Toei Mita Line",
+    "name_ja": "都営三田線",
+    "ref": "I",
+    "operator": "Tokyo Metropolitan Bureau of Transportation",
+    "colour": "#0079C2",
+    "type": "subway"
+  },
+  {
+    "id": "toei-shinjuku-line",
+    "name": "Toei Shinjuku Line",
+    "name_ja": "都営新宿線",
+    "ref": "S",
+    "operator": "Tokyo Metropolitan Bureau of Transportation",
+    "colour": "#6CBB5A",
+    "type": "subway"
+  },
+  {
+    "id": "toei-oedo-line",
+    "name": "Toei Ōedo Line",
+    "name_ja": "都営大江戸線",
+    "ref": "E",
+    "operator": "Tokyo Metropolitan Bureau of Transportation",
+    "colour": "#B6007A",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-chuo-bypass-line",
+    "name": "Tokyo Metro - Chuo bypass line",
+    "name_ja": "東京地下鉄の直通運転 - 中央線",
+    "ref": "JB",
+    "operator": "East Japan Railway Company;Tokyo Metro",
+    "colour": "#7ec0ee",
+    "type": "train"
+  },
+  {
+    "id": "tokyo-metro-denentoshi-bypass-line",
+    "name": "Tokyo Metro - Denentoshi bypass line",
+    "name_ja": "東京メトロ半蔵門線 - 東急田園都市線直通運転",
+    "ref": "DT;Z",
+    "operator": "Tokyu Railways;Tokyo Metro",
+    "colour": "#937CB9",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-mukogaoka-yuen-bypass-line",
+    "name": "Tokyo Metro - Mukōgaoka-Yuen Bypass Line",
+    "name_ja": "東京地下鉄の直通運転 - 向ヶ丘遊園バイパス線",
+    "ref": "OT",
+    "operator": "Odakyu;Tokyo Metro",
+    "colour": "#00a650",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-skytree-bypass-line-hanzomon",
+    "name": "Tokyo Metro - Skytree Bypass Line (Hanzomon)",
+    "name_ja": "東京地下鉄の直通運転 - スカイツリーライン",
+    "ref": "TS",
+    "operator": "東武鉄道;東京メトロ",
+    "colour": "#937CB9",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-skytree-bypass-line-hibiya",
+    "name": "Tokyo Metro - Skytree Bypass Line (Hibiya)",
+    "name_ja": "東京地下鉄の直通運転 - スカイツリーライン",
+    "ref": "TS",
+    "operator": "東武鉄道;東京メトロ",
+    "colour": "#8BA2AE",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-tobu-bypass-line",
+    "name": "Tokyo Metro - Tobu bypass line",
+    "name_ja": "東京地下鉄の直通運転 - 東上線",
+    "ref": "TJ",
+    "operator": "東武鉄道;東京メトロ",
+    "colour": "#01AAAA",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-toyoko-bypass-line",
+    "name": "Tokyo Metro - Toyoko bypass line",
+    "name_ja": "東京地下鉄の直通運転 - 東横線",
+    "ref": "DT",
+    "operator": "Tokyu Corporation;Tokyo Metro",
+    "colour": "#01AAAA",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-chiyoda-line",
+    "name": "Tokyo Metro Chiyoda Line",
+    "name_ja": "東京メトロ千代田線",
+    "ref": "C",
+    "operator": "Tokyo Metro",
+    "colour": "#00A650",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-fukutoshin-line",
+    "name": "Tokyo Metro Fukutoshin Line",
+    "name_ja": "Tokyo Metro Fukutoshin Line",
+    "ref": "F",
+    "operator": "Tokyo Metro",
+    "colour": "#9C5E31",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-ginza-line",
+    "name": "Tokyo Metro Ginza Line",
+    "name_ja": "東京メトロ銀座線",
+    "ref": "G",
+    "operator": "東京地下鉄",
+    "colour": "#FF9500",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-hanzomon-line",
+    "name": "Tokyo Metro Hanzomon Line",
+    "name_ja": "東京メトロ半蔵門線",
+    "ref": "Z",
+    "operator": "Tokyo Metro",
+    "colour": "#8F76D6",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-hibiya-line",
+    "name": "Tokyo Metro Hibiya Line",
+    "name_ja": "東京メトロ日比谷線",
+    "ref": "H",
+    "operator": "東京地下鉄",
+    "colour": "#B5B5AC",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-marunouchi-line",
+    "name": "Tokyo Metro Marunouchi Line",
+    "name_ja": "東京メトロ 丸ノ内線",
+    "ref": "M",
+    "operator": "Tokyo Metro",
+    "colour": "#F62E36",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-namboku-line",
+    "name": "Tokyo Metro Namboku Line",
+    "name_ja": "東京メトロ南北線",
+    "ref": "N",
+    "operator": "Tokyo Metro",
+    "colour": "#00AC9B",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-tozai-line",
+    "name": "Tokyo Metro Tōzai Line",
+    "name_ja": "東京メトロ東西線",
+    "ref": "T",
+    "operator": "Tokyo Metro",
+    "colour": "#009BBF",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-metro-yurakucho-line",
+    "name": "Tokyo Metro Yūrakuchō Line",
+    "name_ja": "東京メトロ有楽町線",
+    "ref": "Y",
+    "operator": "Tokyo Metro",
+    "colour": "#C1A470",
+    "type": "subway"
+  },
+  {
+    "id": "tokyo-monorail",
+    "name": "Tokyo Monorail",
+    "name_ja": "東京モノレール羽田空港線",
+    "ref": "MO",
+    "operator": "Tokyo Monorail",
+    "colour": "#003685",
+    "type": "monorail"
+  },
+  {
+    "id": "tokyo-subway-meguro-bypass-line",
+    "name": "Tokyo subway - Meguro bypass line",
+    "name_ja": "東京地下鉄-目黒思考線",
+    "ref": "MG",
+    "operator": "Tokyu Corporation;Tokyo Metro;Toei",
+    "colour": "#8BA2AE",
+    "type": "subway"
+  },
+  {
+    "id": "tokyu-ikegami-line",
+    "name": "Tokyu Ikegami Line",
+    "name_ja": "東急池上線",
+    "ref": "IK",
+    "operator": "Tokyu Railways",
+    "colour": "#ee86a7",
+    "type": "train"
+  },
+  {
+    "id": "tokyu-oimachi-line",
+    "name": "Tokyu Oimachi Line",
+    "name_ja": "Tokyu Oimachi Line",
+    "ref": "OM",
+    "operator": "Tokyu Railways",
+    "colour": "#f18c43",
+    "type": "train"
+  },
+  {
+    "id": "tokyu-setagaya-line",
+    "name": "Tokyu Setagaya Line",
+    "name_ja": "東急電鉄世田谷線",
+    "ref": "SG",
+    "operator": "東急電鉄",
+    "colour": "#fcc70d",
+    "type": "light_rail"
+  },
+  {
+    "id": "tokyu-shin-yokohama-line",
+    "name": "Tokyu Shin-Yokohama Line",
+    "name_ja": "東急新横浜線",
+    "ref": "SH",
+    "operator": "Tokyu Railways",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "tokyu-denentoshi-line",
+    "name": "Tokyu-Denentoshi Line",
+    "name_ja": "東急田園都市線",
+    "ref": "DT",
+    "operator": "Tokyu Railways",
+    "colour": "#20a288",
+    "type": "train"
+  },
+  {
+    "id": "tokyu-meguro-line",
+    "name": "Tokyu-Meguro Line",
+    "name_ja": "東急目黒線",
+    "ref": "MG",
+    "operator": "Tokyu Railways",
+    "colour": "#009cd2",
+    "type": "train"
+  },
+  {
+    "id": "tokyu-toyoko-line",
+    "name": "Tokyu-Toyoko Line",
+    "name_ja": "東急東横線",
+    "ref": "TY",
+    "operator": "Tokyu Railways",
+    "colour": "#DA0442",
+    "type": "train"
+  },
+  {
+    "id": "tsurumai-line",
+    "name": "Tsurumai Line",
+    "name_ja": "名古屋市営3号線鶴舞線",
+    "ref": "T",
+    "operator": "Transportation Bureau City of Nagoya",
+    "colour": "#009BBF",
+    "type": "subway"
+  },
+  {
+    "id": "tobu-daishi-line",
+    "name": "Tōbu Daishi Line",
+    "name_ja": "東武大師線",
+    "ref": "TS",
+    "operator": "Tobu Railway",
+    "colour": "blue",
+    "type": "train"
+  },
+  {
+    "id": "tobu-tojo-line",
+    "name": "Tōbu Tōjō Line",
+    "name_ja": "東武東上線",
+    "ref": "TJ",
+    "operator": "Tobu Railway",
+    "colour": "#004DA3",
+    "type": "train"
+  },
+  {
+    "id": "tokyu-tamagawa-line",
+    "name": "Tōkyū Tamagawa Line",
+    "name_ja": "東急多摩川線",
+    "ref": "TM",
+    "operator": "Tokyu Railways",
+    "colour": "#ae0378",
+    "type": "train"
+  },
+  {
+    "id": "tozai-line",
+    "name": "Tōzai Line",
+    "name_ja": "京都市営地下鉄東西線",
+    "ref": "T",
+    "operator": "京都市交通局",
+    "colour": "#FF4500",
+    "type": "subway"
+  },
+  {
+    "id": "ueno-tokyo-line",
+    "name": "Ueno-Tokyo Line",
+    "name_ja": "上野東京ライン",
+    "ref": "JU",
+    "operator": "East Japan Railway Company",
+    "colour": "#91278F",
+    "type": "train"
+  },
+  {
+    "id": "ueno-tokyo-line-down",
+    "name": "Ueno-Tokyo Line (down)",
+    "name_ja": "上野東京ライン",
+    "ref": null,
+    "operator": "East Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "ueno-tokyo-line-up",
+    "name": "Ueno-Tokyo Line (up)",
+    "name_ja": "上野東京ライン",
+    "ref": null,
+    "operator": "East Japan Railway Company",
+    "colour": null,
+    "type": "train"
+  },
+  {
+    "id": "yamaman-yukarigaoka-line",
+    "name": "Yamaman Yukarigaoka Line",
+    "name_ja": "山万ユーカリが丘線",
+    "ref": "山万",
+    "operator": "山万株式会社",
+    "colour": "#006400",
+    "type": "monorail"
+  },
+  {
+    "id": "yokohama-minatomirai-line",
+    "name": "Yokohama Minatomirai Line",
+    "name_ja": "横浜高速鉄道みなとみらい21線",
+    "ref": "MM",
+    "operator": "Yokohama Minatomirai Railway Company",
+    "colour": "#C61094",
+    "type": "subway"
+  },
+  {
+    "id": "yokohama-minatomirai-railway-kodomonokuni-line",
+    "name": "Yokohama Minatomirai Railway Kodomonokuni Line",
+    "name_ja": "東急こどもの国線",
+    "ref": "KD",
+    "operator": "Tokyu Railways",
+    "colour": "#0068b7",
+    "type": "train"
+  },
+  {
+    "id": "yokosuka-sobu-line",
+    "name": "Yokosuka-Sobu Line",
+    "name_ja": "横須賀・総武快速線",
+    "ref": "JO",
+    "operator": "East Japan Railway Company",
+    "colour": "#000080",
+    "type": "train"
+  },
+  {
+    "id": "yurakucho-ikebukuro-line",
+    "name": "Yurakucho-Ikebukuro Line",
+    "name_ja": "西武有楽町・池袋線",
+    "ref": "SI",
+    "operator": "Seibu Railways;Tokyo Metro",
+    "colour": "#ED772D",
+    "type": "train"
+  },
+  {
+    "id": "yurakucho-ikebukuro-line-eastbound",
+    "name": "Yurakucho-Ikebukuro Line (eastbound)",
+    "name_ja": "東京地下鉄の直通運転 - 西武池袋線",
+    "ref": "SI",
+    "operator": "Seibu Railways;Tokyo Metro",
+    "colour": "#ED772D",
+    "type": "subway"
+  },
+  {
+    "id": "yurakucho-ikebukuro-line-westbound",
+    "name": "Yurakucho-Ikebukuro Line (westbound)",
+    "name_ja": "東京地下鉄の直通運転 - 西武池袋線",
+    "ref": "SI",
+    "operator": "Seibu Railways;Tokyo Metro",
+    "colour": "#ED772D",
+    "type": "subway"
+  },
+  {
+    "id": "yurikamome",
+    "name": "Yurikamome",
+    "name_ja": "ゆりかもめ",
+    "ref": "U",
+    "operator": "Yurikamome Inc.",
+    "colour": "#1662B8",
+    "type": "light_rail"
+  },
+  {
+    "id": "21267161",
+    "name": "小田急江ノ島線",
+    "name_ja": "小田急江ノ島線",
+    "ref": "OE",
+    "operator": "小田急電鉄",
+    "colour": "#2288CC",
+    "type": "train"
+  },
+  {
+    "id": "5756068",
+    "name": "新京成線",
+    "name_ja": "新京成線",
+    "ref": "新京成線(Shin Keisei Line)",
+    "operator": "新京成電鉄",
+    "colour": null,
+    "type": "train"
+  }
+]

@@ -1,0 +1,58 @@
+---
+import Base from '../layouts/Base.astro';
+import { getData } from '../lib/data';
+
+const base = import.meta.env.BASE_URL;
+const { meta, areas } = getData();
+const fmt = (n: number) => n.toLocaleString('en-US');
+---
+
+<Base>
+  <section class="hero">
+    <h1>Find an Oakhouse room</h1>
+    <p>
+      Every share house, social residence and apartment listed by Oakhouse, searchable the way it should be:
+      pick where you want to live, then narrow it down by price, room and building.
+    </p>
+  </section>
+
+  <div class="tiles">
+    <a class="tile" href={`${base}search/area/`}>
+      <div class="icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+      </div>
+      <h2>Search by area</h2>
+      <p>Choose a prefecture, then the wards and cities you like.</p>
+    </a>
+    <a class="tile" href={`${base}search/line/`}>
+      <div class="icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M9 21l-2-4M15 21l2-4"/><circle cx="9" cy="14" r=".5"/><circle cx="15" cy="14" r=".5"/></svg>
+      </div>
+      <h2>Search by line &amp; station</h2>
+      <p>Pick train lines and stations, then set how far you'll walk.</p>
+    </a>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><strong>{fmt(meta.properties)}</strong><span>properties</span></div>
+    <div class="stat"><strong>{fmt(meta.units)}</strong><span>rooms &amp; units</span></div>
+    <div class="stat"><strong>{fmt(meta.available)}</strong><span>available now or soon</span></div>
+  </div>
+
+  {
+    areas.length > 0 && (
+      <section class="panel" style="margin-top:32px">
+        <h2>Jump to a prefecture</h2>
+        <ul class="chips">
+          {areas.map((a) => (
+            <li>
+              <a class="chip" href={`${base}conditions/?area=${a.slug}`}>
+                {a.name} <span class="muted">{fmt(a.units)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>

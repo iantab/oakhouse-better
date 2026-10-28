@@ -1,0 +1,88 @@
+---
+// Filter fields shared by /conditions/ and the /results/ sidebar. Values are prefilled from the
+// URL by syncFormFromUrl() in lib/form.ts; area/station/line picks are carried as hidden inputs.
+import { getData } from '../lib/data';
+
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+const { amenities } = getData();
+const groups = Object.entries(amenities.groups).map(([key, label]) => ({
+  key,
+  label,
+  items: amenities.items.filter((a) => a.group === key),
+}));
+const rents = [30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 120000, 150000, 200000, 300000];
+const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
+---
+
+<div data-carry hidden></div>
+
+<fieldset>
+  <legend>Monthly cost <span class="muted small">(rent + maintenance)</span></legend>
+  <div class="row">
+    <select name="rmin" aria-label="Minimum monthly cost">
+      <option value="">No minimum</option>
+      {rents.map((r) => <option value={r}>{k(r)}</option>)}
+    </select>
+    <span class="muted">to</span>
+    <select name="rmax" aria-label="Maximum monthly cost">
+      <option value="">No maximum</option>
+      {rents.map((r) => <option value={r}>{k(r)}</option>)}
+    </select>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Type</legend>
+  <div class="checks">
+    <label class="check"><input type="checkbox" name="type" value="share" /> Share house</label>
+    <label class="check"><input type="checkbox" name="type" value="social" /> Social residence</label>
+    <label class="check"><input type="checkbox" name="type" value="apartment" /> Apartment</label>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Walk to station</legend>
+  <select name="walk" aria-label="Maximum walk to station">
+    <option value="">Any</option>
+    {[5, 7, 10, 15, 20].map((m) => <option value={m}>{m} min or less</option>)}
+  </select>
+</fieldset>
+
+<fieldset>
+  <legend>Availability</legend>
+  <div class="checks">
+    <label class="check"><input type="radio" name="status" value="open" checked /> Available now or soon</label>
+    <label class="check"><input type="radio" name="status" value="all" /> Include full rooms</label>
+  </div>
+</fieldset>
+
+{
+  groups.map((g) =>
+    compact ? (
+      <details class="group">
+        <summary>{g.label}</summary>
+        <div class="checks" style="padding:0 0 12px 4px">
+          {g.items.map((a) => (
+            <label class="check">
+              <input type="checkbox" name="am" value={a.key} /> {a.label}
+            </label>
+          ))}
+        </div>
+      </details>
+    ) : (
+      <fieldset>
+        <legend>{g.label}</legend>
+        <div class="checks">
+          {g.items.map((a) => (
+            <label class="check">
+              <input type="checkbox" name="am" value={a.key} /> {a.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    ),
+  )
+}

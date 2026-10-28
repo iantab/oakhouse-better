@@ -1,0 +1,88 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getData } from '../../lib/data';
+
+const base = import.meta.env.BASE_URL;
+const { areas } = getData();
+const fmt = (n: number) => n.toLocaleString('en-US');
+---
+
+<Base title="Search by area">
+  <ol class="steps">
+    <li><a href={base}>Home</a></li>
+    <li class="current">1. Choose areas</li>
+    <li>2. Conditions</li>
+    <li>3. Results</li>
+  </ol>
+  <h1>Where do you want to live?</h1>
+  <p class="muted">Tick a whole prefecture or region, or open it to pick individual wards and cities. Numbers are rooms listed.</p>
+
+  <form class="panel" method="get" action={`${base}conditions/`} id="area-form">
+    {
+      areas.map((pref, i) => (
+        <details class="group" open={i === 0}>
+          <summary>
+            <label class="check">
+              <input type="checkbox" name="area" value={pref.slug} data-level="0" />
+              {pref.name} <span class="count">{fmt(pref.units)}</span>
+            </label>
+          </summary>
+          <div class="body">
+            {pref.children.map((region) => (
+              <fieldset>
+                <legend>
+                  <label class="check">
+                    <input type="checkbox" name="area" value={`${pref.slug}/${region.slug}`} data-level="1" />
+                    {region.name} <span class="count">{fmt(region.units)}</span>
+                  </label>
+                </legend>
+                {region.children.length > 0 && (
+                  <div class="checks">
+                    {region.children.map((ward) => (
+                      <label class="check">
+                        <input type="checkbox" name="area" value={`${pref.slug}/${region.slug}/${ward.slug}`} data-level="2" />
+                        {ward.name} <span class="count">{fmt(ward.units)}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+            ))}
+          </div>
+        </details>
+      ))
+    }
+    {areas.length === 0 && <p class="muted">No listing data yet. Run the scraper or <code>npm run data:pull</code>.</p>}
+    <div class="sticky-submit">
+      <button class="btn" type="submit">Next: set conditions</button>
+      <span class="muted small" id="area-summary">No areas selected (searches everywhere)</span>
+    </div>
+  </form>
+</Base>
+
+<script>
+  const form = document.getElementById('area-form') as HTMLFormElement;
+  const summary = document.getElementById('area-summary')!;
+  const boxes = () => [...form.querySelectorAll<HTMLInputElement>('input[name="area"]')];
+
+  form.addEventListener('change', (e) => {
+    const box = e.target as HTMLInputElement;
+    if (box.name !== 'area') return;
+    // Ticking a parent selects its children; ticking a child clears the parent (the parent would match everything anyway).
+    for (const other of boxes()) {
+      if (other !== box && other.value.startsWith(box.value + '/')) other.checked = box.checked;
+      if (box.checked && box.value.startsWith(other.value + '/')) other.checked = false;
+    }
+    const picked = boxes().filter((b) => b.checked);
+    summary.textContent = picked.length ? `${picked.length} area${picked.length > 1 ? 's' : ''} selected` : 'No areas selected (searches everywhere)';
+  });
+
+  // Only submit the most general selections: a ticked parent makes its ticked children redundant.
+  form.addEventListener('submit', () => {
+    const picked = boxes().filter((b) => b.checked);
+    for (const b of picked) {
+      if (picked.some((p) => p !== b && b.value.startsWith(p.value + '/'))) b.disabled = true;
+    }
+  });
+  window.addEventListener('pageshow', () => boxes().forEach((b) => (b.disabled = false)));
+</script>

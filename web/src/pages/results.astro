@@ -1,0 +1,184 @@
+---
+import Base from '../layouts/Base.astro';
+import ConditionsFields from '../components/ConditionsFields.astro';
+import { getData } from '../lib/data';
+
+const base = import.meta.env.BASE_URL;
+const { lines, amenities } = getData();
+const lineNames = Object.fromEntries(lines.map((l) => [l.id, l.name]));
+const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.label]));
+---
+
+<Base title="Results">
+  <ol class="steps">
+    <li><a href={base}>Home</a></li>
+    <li><a id="loc-link" href={`${base}search/area/`}>1. Location</a></li>
+    <li><a id="cond-link" href={`${base}conditions/`}>2. Conditions</a></li>
+    <li class="current">3. Results</li>
+  </ol>
+
+  <div class="results-layout">
+    <aside id="filters">
+      <form class="panel" id="filter-form" data-lines={JSON.stringify(lineNames)}>
+        <p style="margin-top:0" class="small">
+          <span class="muted">Location:</span> <strong id="location">Anywhere</strong>{' '}
+          <a id="change-link" href={`${base}search/area/`}>change</a>
+        </p>
+        <ConditionsFields compact />
+        <button class="btn" type="submit" style="width:100%">Update results</button>
+      </form>
+    </aside>
+
+    <section aria-live="polite">
+      <div class="results-bar">
+        <div>
+          <h1 style="margin:0" id="headline">Loading listings…</h1>
+          <div class="muted small" id="subline"></div>
+        </div>
+        <div class="row">
+          <button class="btn secondary filter-toggle" type="button" id="filter-toggle" aria-controls="filters" aria-expanded="false">Filters</button>
+          <label class="small muted" for="sort">Sort</label>
+          <select id="sort">
+            <option value="price">Lowest price</option>
+            <option value="walk">Shortest walk</option>
+            <option value="available">Available soonest</option>
+            <option value="size">Largest room</option>
+          </select>
+        </div>
+      </div>
+      <div id="results" data-amenities={JSON.stringify(amenityLabels)}></div>
+      <nav class="pager" id="pager" aria-label="Pages"></nav>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { describeLocation, formToParams, syncFormFromUrl } from '../lib/form';
+  import { esc, loadIndex, PAGE_SIZE, parseQuery, search, yen, type Group, type IndexUnit } from '../lib/filter';
+
+  const base = import.meta.env.BASE_URL;
+  const form = document.getElementById('filter-form') as HTMLFormElement;
+  const results = document.getElementById('results')!;
+  const pager = document.getElementById('pager')!;
+  const sortSel = document.getElementById('sort') as HTMLSelectElement;
+  const lines = new Map(Object.entries(JSON.parse(form.dataset.lines ?? '{}')) as [string, string][]);
+  const amenityLabels: Record<string, string> = JSON.parse(results.dataset.amenities ?? '{}');
+  const CATEGORY: Record<string, string> = { SHAREHOUSE: 'Share house', 'SOCIAL RESIDENCE': 'Social residence', APARTMENT: 'Apartment' };
+  const STATUS = { a: ['available', 'Available'], s: ['soon', 'Soon'], f: ['full', 'Full'] } as const;
+  const UNITS_SHOWN = 5;
+
+  const toggle = document.getElementById('filter-toggle')!;
+  toggle.addEventListener('click', () => {
+    const open = document.getElementById('filters')!.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
+  function unitRow(u: IndexUnit) {
+    const [cls, label] = STATUS[u.s];
+    const when = u.s === 's' && u.d ? `<div class="muted small">from ${esc(u.d)}</div>` : '';
+    return `<tr class="${u.s === 'f' ? 'is-full' : ''}">
+      <td><span class="badge ${cls}">${label}</span>${when}</td>
+      <td>${esc(u.n)}</td>
+      <td class="num"><strong>${yen(u.t ?? u.r)}</strong>${u.t != null && u.r != null && u.t !== u.r ? `<div class="muted small">rent ${yen(u.r)}</div>` : ''}</td>
+      <td class="num">${u.sz != null ? `${u.sz}㎡` : '—'}</td>
+      <td class="num">${u.f != null ? `${u.f}F` : '—'}</td>
+      <td class="opt">${esc(u.rt ?? '')}</td>
+    </tr>`;
+  }
+
+  function card(g: Group) {
+    const p = g.prop;
+    const href = `${base}${p.k === 'h' ? 'house' : 'apartment'}/${p.id}/`;
+    const st = p.st.slice(0, 3).map(([name, walk]) => `${esc(name)}${walk != null ? ` ${walk} min` : ''}`).join(' · ');
+    const shown = g.units.slice(0, UNITS_SHOWN);
+    const more = g.units.length - shown.length;
+    return `<article class="prop-card">
+      <a class="thumb" href="${href}" aria-hidden="true" tabindex="-1" style="${p.img ? `background-image:url('${esc(p.img)}')` : ''}"></a>
+      <div class="body">
+        <div class="kind">${esc(CATEGORY[p.c] ?? p.c)}${p.w ? ` · ${esc(p.w)}` : ''}</div>
+        <h3><a href="${href}">${esc(p.n)}</a></h3>
+        <div class="meta">${st ? `🚉 ${st}` : ''}</div>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Status</th><th>Room</th><th class="num">Monthly</th><th class="num">Size</th><th class="num">Floor</th><th class="opt">Type</th></tr></thead>
+          <tbody>${shown.map((u) => unitRow(u)).join('')}</tbody>
+        </table></div>
+        ${more > 0 ? `<div class="more-units"><a href="${href}">+ ${more} more matching room${more > 1 ? 's' : ''}</a></div>` : ''}
+      </div>
+    </article>`;
+  }
+
+  function render(params: URLSearchParams, index: Awaited<ReturnType<typeof loadIndex>>) {
+    const q = parseQuery(params);
+    const { groups, unitCount } = search(index, q);
+    const pages = Math.max(1, Math.ceil(groups.length / PAGE_SIZE));
+    const page = Math.min(q.page, pages);
+    const slice = groups.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+    document.getElementById('headline')!.textContent =
+      `${unitCount.toLocaleString('en-US')} room${unitCount === 1 ? '' : 's'} in ${groups.length.toLocaleString('en-US')} propert${groups.length === 1 ? 'y' : 'ies'}`;
+    const chips = q.am.map((k) => amenityLabels[k] ?? k);
+    document.getElementById('subline')!.textContent = [
+      q.status === 'open' ? 'Available now or soon' : 'Including full rooms',
+      ...(q.rmax ? [`up to ${yen(q.rmax)}`] : []),
+      ...(q.walk ? [`≤ ${q.walk} min walk`] : []),
+      ...chips,
+    ].join(' · ');
+
+    results.innerHTML = slice.length
+      ? slice.map(card).join('')
+      : `<div class="panel empty"><h2>No rooms match</h2><p class="muted">Try widening the price range, removing a few must-haves, or including full rooms.</p></div>`;
+
+    pager.innerHTML =
+      pages > 1
+        ? Array.from({ length: pages }, (_, i) => i + 1)
+            .filter((n) => n === 1 || n === pages || Math.abs(n - page) <= 2)
+            .map((n, i, arr) => `${i > 0 && n - arr[i - 1] > 1 ? '<span class="muted">…</span>' : ''}<button class="btn secondary" data-page="${n}" ${n === page ? 'aria-current="page"' : ''}>${n}</button>`)
+            .join('')
+        : '';
+  }
+
+  function sync(params: URLSearchParams) {
+    syncFormFromUrl(form, params);
+    sortSel.value = params.get('sort') ?? 'price';
+    document.getElementById('location')!.textContent = describeLocation(params, { lines });
+    const picker = `${base}search/${params.has('line') || params.has('st') ? 'line' : 'area'}/`;
+    (document.getElementById('loc-link') as HTMLAnchorElement).href = picker;
+    (document.getElementById('change-link') as HTMLAnchorElement).href = picker;
+    (document.getElementById('cond-link') as HTMLAnchorElement).href = `${base}conditions/?${params}`;
+  }
+
+  async function go(params: URLSearchParams, push: boolean) {
+    if (push) history.pushState(null, '', `?${params}`);
+    sync(params);
+    try {
+      render(params, await loadIndex(base));
+    } catch (err) {
+      document.getElementById('headline')!.textContent = 'Could not load listings';
+      results.innerHTML = `<div class="panel empty"><p class="muted">${esc(err)}</p></div>`;
+    }
+  }
+
+  function paramsFromForm(page = 1) {
+    const params = formToParams(form);
+    if (sortSel.value !== 'price') params.set('sort', sortSel.value);
+    if (page > 1) params.set('page', String(page));
+    return params;
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    go(paramsFromForm(), true);
+    document.getElementById('filters')!.classList.remove('open');
+    window.scrollTo({ top: 0 });
+  });
+  form.addEventListener('change', () => go(paramsFromForm(), true));
+  sortSel.addEventListener('change', () => go(paramsFromForm(), true));
+  pager.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-page]');
+    if (!btn) return;
+    go(paramsFromForm(Number(btn.dataset.page)), true);
+    window.scrollTo({ top: 0 });
+  });
+  window.addEventListener('popstate', () => go(new URLSearchParams(location.search), false));
+  go(new URLSearchParams(location.search), false);
+</script>

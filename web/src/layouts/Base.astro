@@ -1,0 +1,50 @@
+---
+import '../styles/global.css';
+import { getData } from '../lib/data';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title, description = 'Search every Oakhouse share house, social residence and apartment by area or train line.' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const { meta } = getData();
+const updated = meta.updated
+  ? new Date(meta.updated).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tokyo' }) + ' JST'
+  : 'not yet';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title ? `${title} · Oakhouse Search` : 'Oakhouse Search'}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href={base}><span class="brand-mark" aria-hidden="true">⌂</span>Oakhouse Search</a>
+        <nav class="site-nav" aria-label="Main">
+          <a href={`${base}search/area/`}>By area</a>
+          <a href={`${base}search/line/`}>By line &amp; station</a>
+          <a href={`${base}results/`}>All listings</a>
+        </nav>
+      </div>
+    </header>
+    <main class="wrap">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>
+          An unofficial search for listings from <a href="https://www.oakhouse.jp/eng/">oakhouse.jp</a>. Prices and
+          vacancies change; always confirm on the official page before applying.
+        </p>
+        <p>Data updated {updated}. Station data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.</p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -17,8 +17,14 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Scraper raw HTML cache (re-creatable; keep geocode_cache.json tracked)
+# Scraper caches (raw HTML, geocode) — persisted in CI via actions/cache, never committed
 scraper/.cache/
+
+# Generated site data (built fresh by CI; only station/line data is committed)
+web/src/data/*
+!web/src/data/stations.json
+!web/src/data/lines.json
+web/public/data/
 
 # Tooling
 .playwright-mcp/

@@ -1,0 +1,238 @@
+---
+import Base from '../../layouts/Base.astro';
+import { categoryLabel, getData, yen } from '../../lib/data';
+import type { Property, Room } from '../../lib/types';
+
+export function getStaticPaths() {
+  return getData().properties.map((p) => ({
+    params: { kind: p.kind, id: String(p.id) },
+    props: { p },
+  }));
+}
+
+const { p } = Astro.props as { p: Property };
+const base = import.meta.env.BASE_URL;
+const { amenities, lines } = getData();
+const amenityLabel = new Map(amenities.items.map((a) => [a.key, a]));
+const lineName = new Map(lines.map((l) => [l.id, l]));
+
+const STATUS: Record<Room['status'], string> = { available: 'Available', soon: 'Soon', full: 'Full' };
+const statusRank = { available: 0, soon: 1, full: 2 } as const;
+const rooms = [...p.rooms].sort(
+  (a, b) => statusRank[a.status] - statusRank[b.status] || (a.monthly_total ?? a.rent ?? 0) - (b.monthly_total ?? b.rent ?? 0),
+);
+const open = rooms.filter((r) => r.status !== 'full');
+const prices = rooms.map((r) => r.monthly_total ?? r.rent).filter((n): n is number => n != null);
+
+const g = p.geo;
+const address = g?.chome
+  ? [g.chome, p.ward ?? g.ward, p.prefecture ?? g.prefecture].filter(Boolean).join(', ') + (g.postcode ? ` ${g.postcode}` : '')
+  : p.address;
+
+const propertyChips = p.amenities.map((k) => amenityLabel.get(k)).filter((a) => a != null);
+const roomKeys = (r: Room) => r.amenities.filter((k) => amenityLabel.get(k)?.group === 'room');
+// Features every room shares are listed once above the table; each row shows only what differs.
+const commonKeys = rooms.length
+  ? roomKeys(rooms[0]).filter((k) => rooms.every((r) => r.amenities.includes(k)))
+  : [];
+const roomChips = (r: Room) =>
+  roomKeys(r).filter((k) => !commonKeys.includes(k)).map((k) => amenityLabel.get(k)!);
+
+const photos = p.photos.length >= 3 ? p.photos : [...p.photos, ...rooms.flatMap((r) => r.photos.slice(0, 1).map((src) => ({ src, caption: `Room ${r.number}` })))];
+
+const mapUrl =
+  p.lat != null && p.lng != null
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${p.lng - 0.008},${p.lat - 0.005},${p.lng + 0.008},${p.lat + 0.005}&layer=mapnik&marker=${p.lat},${p.lng}`
+    : null;
+const areaHref = (depth: number) => `${base}conditions/?area=${p.area_path.slice(0, depth + 1).join('/')}`;
+const areaNames = [p.prefecture, p.region, p.ward];
+// Skip a breadcrumb level that repeats its parent's name ("Saitama › Saitama")
+const crumbs = p.area_path
+  .map((_, i) => ({ name: areaNames[i], href: areaHref(i) }))
+  .filter((c, i, all) => c.name && (i === 0 || c.name !== all[i - 1].name));
+const fees = (r: Room) =>
+  Object.entries(r.fees ?? {}).filter(([k]) => /Key money|Security deposit|Brokerage|Estimated initial cost/.test(k));
+---
+
+<Base title={p.name} description={`${categoryLabel(p.category)} in ${p.ward ?? p.prefecture ?? 'Japan'}: ${p.rooms.length} rooms, from ${yen(Math.min(...prices))}/month.`}>
+  <ol class="steps">
+    <li><a href={base}>Home</a></li>
+    {crumbs.map((c) => <li><a href={c.href}>{c.name}</a></li>)}
+    <li class="current">{p.name}</li>
+  </ol>
+
+  <div class="detail-head">
+    <div>
+      <div class="kind">{categoryLabel(p.category)}</div>
+      <h1>{p.name}</h1>
+      <p class="muted" style="margin:0">{address}</p>
+    </div>
+    <div style="text-align:right">
+      <div class="small muted">Monthly, incl. maintenance</div>
+      <div style="font-size:1.4rem;font-weight:700">{prices.length ? `${yen(Math.min(...prices))}${Math.max(...prices) !== Math.min(...prices) ? ` – ${yen(Math.max(...prices))}` : ''}` : '—'}</div>
+      <div class="small"><strong>{open.length}</strong> of {p.rooms.length} room{p.rooms.length === 1 ? '' : 's'} available or soon</div>
+    </div>
+  </div>
+
+  {
+    photos.length > 0 && (
+      <div class="gallery">
+        {photos.slice(0, 12).map((ph) => (
+          <figure>
+            <img src={ph.src} alt={ph.caption || p.name} loading="lazy" referrerpolicy="no-referrer" />
+            {ph.caption && <figcaption>{ph.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    )
+  }
+
+  <div class="detail-grid">
+    <div>
+      <section class="panel">
+        <h2>Rooms</h2>
+        {commonKeys.length > 0 && (
+          <div style="margin-bottom:12px">
+            <div class="small muted" style="margin-bottom:6px">{rooms.length > 1 ? 'Every room has' : 'Room features'}</div>
+            <ul class="chips">{commonKeys.map((k) => <li class="chip on">{amenityLabel.get(k)!.label}</li>)}</ul>
+          </div>
+        )}
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th><th>Room</th><th>Type</th><th class="num">Size</th><th class="num">Floor</th>
+                <th class="num">Rent</th><th class="num">Maint.</th><th class="num">Monthly</th><th class="features">Also has</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                rooms.map((r) => (
+                  <tr class={r.status === 'full' ? 'is-full' : undefined}>
+                    <td>
+                      <span class={`badge ${r.status}`}>{STATUS[r.status]}</span>
+                      {r.available_from && <div class="small muted">from {r.available_from}</div>}
+                    </td>
+                    <td>
+                      <strong>{r.number}</strong>
+                      {r.photos.length > 0 && (
+                        <div class="room-photos">
+                          {r.photos.slice(0, 1).map((src) => <img src={src} alt={`Room ${r.number}`} loading="lazy" referrerpolicy="no-referrer" />)}
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      {r.room_type}
+                      {r.floor_plan && <div class="small muted">{r.floor_plan}</div>}
+                      {r.gender !== 'any' && <div class="small"><strong>{r.gender === 'women' ? 'Women only' : 'Men only'}</strong></div>}
+                    </td>
+                    <td class="num">{r.size_m2 != null ? `${r.size_m2}㎡` : '—'}</td>
+                    <td class="num">{r.floor != null ? `${r.floor}F` : '—'}</td>
+                    <td class="num">{yen(r.rent)}</td>
+                    <td class="num">{yen(r.maintenance)}</td>
+                    <td class="num"><strong>{yen(r.monthly_total ?? r.rent)}</strong></td>
+                    <td class="features">
+                      <ul class="chips">{roomChips(r).map((a) => <li class="chip">{a.label}</li>)}</ul>
+                      {fees(r).length > 0 && (
+                        <div class="small muted" style="margin-top:4px">{fees(r).map(([k, v]) => `${k}: ${v.replace(/※.*$/, '').trim()}`).join(' · ')}</div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+        {rooms.some((r) => r.contract_fee) && (
+          <p class="small muted">One-time contract fee: {[...new Set(rooms.map((r) => r.contract_fee).filter(Boolean))].map((n) => yen(n)).join(' / ')}.</p>
+        )}
+      </section>
+
+      {p.description && (
+        <section class="panel">
+          <h2>About this property</h2>
+          <p style="margin:0">{p.description}</p>
+        </section>
+      )}
+
+      <section class="panel">
+        <h2>Shared facilities</h2>
+        {Object.keys(p.shared_facilities).length === 0 && <p class="muted">None listed.</p>}
+        <dl class="facts">
+          {Object.entries(p.shared_facilities).map(([cat, items]) => (
+            <>
+              <dt>{cat}</dt>
+              <dd>{items.map((i) => i.label).join(', ')}</dd>
+            </>
+          ))}
+        </dl>
+      </section>
+    </div>
+
+    <div>
+      <section class="panel">
+        <a class="btn" style="width:100%" href={p.url} target="_blank" rel="noopener">View &amp; apply on oakhouse.jp ↗</a>
+        <p class="small muted" style="margin:8px 0 0">Last updated by Oakhouse: {p.updated || 'unknown'}</p>
+      </section>
+
+      <section class="panel">
+        <h2>Getting there</h2>
+        {mapUrl && <iframe class="map" src={mapUrl} title={`Map of ${p.name}`} loading="lazy" />}
+        {
+          p.stations.length > 0 ? (
+            <table style="margin-top:10px">
+              <thead><tr><th>Station</th><th class="num">Walk*</th></tr></thead>
+              <tbody>
+                {p.stations.slice(0, 6).map((s) => (
+                  <tr>
+                    <td>
+                      {s.name}
+                      <div class="small muted">{s.lines.map((id) => lineName.get(id)?.name ?? id).join(', ')}</div>
+                    </td>
+                    <td class="num">{s.walk_min} min<div class="small muted">{s.distance_m} m</div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : null
+        }
+        {p.stations.length > 0 && <p class="small muted">*Estimated from straight-line distance (80 m/min, +25% for streets).</p>}
+        {
+          p.oakhouse_stations.length > 0 && (
+            <details class="small" open={p.stations.length === 0}>
+              <summary>Oakhouse's station list</summary>
+              <ul>
+                {p.oakhouse_stations.map((s) => (
+                  <li>{s.station} ({s.line}){s.walk_min != null && ` – ${s.walk_min} min walk`}</li>
+                ))}
+              </ul>
+            </details>
+          )
+        }
+        {p.terminal && <p class="small">{p.terminal}</p>}
+      </section>
+
+      {propertyChips.length > 0 && (
+        <section class="panel">
+          <h2>Building &amp; contract</h2>
+          <ul class="chips">{propertyChips.map((a) => <li class="chip on">{a!.label}</li>)}</ul>
+          {p.discounts.length > 0 && <p class="small muted">Discounts: {p.discounts.join(', ')}</p>}
+        </section>
+      )}
+
+      {Object.keys(p.building).length > 0 && (
+        <section class="panel">
+          <h2>Building info</h2>
+          <dl class="facts stacked">
+            {Object.entries(p.building).filter(([, v]) => v).map(([k, v]) => (
+              <>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </>
+            ))}
+          </dl>
+        </section>
+      )}
+    </div>
+  </div>
+</Base>

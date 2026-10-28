@@ -1,0 +1,111 @@
+---
+import Base from '../../layouts/Base.astro';
+import { linesWithListings } from '../../lib/data';
+
+const base = import.meta.env.BASE_URL;
+const lines = linesWithListings(20);
+const byOperator = new Map<string, typeof lines>();
+for (const l of lines) {
+  const op = l.operator ?? 'Other';
+  byOperator.set(op, [...(byOperator.get(op) ?? []), l]);
+}
+const operators = [...byOperator.entries()].sort((a, b) => b[1].length - a[1].length);
+const fmt = (n: number) => n.toLocaleString('en-US');
+---
+
+<Base title="Search by line & station">
+  <ol class="steps">
+    <li><a href={base}>Home</a></li>
+    <li class="current">1. Choose lines &amp; stations</li>
+    <li>2. Conditions</li>
+    <li>3. Results</li>
+  </ol>
+  <h1>Which line or station?</h1>
+  <p class="muted">
+    Tick a whole line or open it to choose stations. Only stations with an Oakhouse listing within a 20-minute walk
+    are shown; numbers are rooms nearby.
+  </p>
+
+  <form class="panel" method="get" action={`${base}conditions/`} id="line-form">
+    <p class="row" style="margin-top:0">
+      <label for="line-filter" class="small muted">Filter lines</label>
+      <input id="line-filter" type="search" placeholder="e.g. Yamanote, Chuo, Tokyu" style="flex:1;min-width:200px;font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" />
+    </p>
+    {
+      operators.map(([operator, opLines]) => (
+        <section class="operator" style="margin-top:18px">
+          <h2 class="small muted" style="text-transform:uppercase;letter-spacing:.06em">{operator}</h2>
+          {opLines.map((line) => (
+            <details class="group" data-name={`${line.name} ${line.name_ja ?? ''} ${line.ref ?? ''}`.toLowerCase()}>
+              <summary>
+                <span class="line-swatch" style={line.colour ? `background:${line.colour}` : undefined} />
+                <label class="check">
+                  <input type="checkbox" name="line" value={line.id} />
+                  {line.name}
+                  {line.ref && <span class="chip">{line.ref}</span>}
+                  <span class="count">{line.stations.length} stations</span>
+                </label>
+              </summary>
+              <div class="body">
+                <div class="checks">
+                  {line.stations.map((s) => (
+                    <label class="check">
+                      <input type="checkbox" name="st" value={s.ids.join('.')} data-line={line.id} />
+                      {s.name} <span class="count">{fmt(s.units)}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </details>
+          ))}
+        </section>
+      ))
+    }
+    {lines.length === 0 && <p class="muted">No station data yet. Run <code>scraper/stations.py</code> and the scraper.</p>}
+    <div class="sticky-submit">
+      <button class="btn" type="submit">Next: set conditions</button>
+      <span class="muted small" id="line-summary">Nothing selected</span>
+    </div>
+  </form>
+</Base>
+
+<script>
+  const form = document.getElementById('line-form') as HTMLFormElement;
+  const summary = document.getElementById('line-summary')!;
+  const filter = document.getElementById('line-filter') as HTMLInputElement;
+
+  form.addEventListener('change', (e) => {
+    const box = e.target as HTMLInputElement;
+    if (box.name === 'line') {
+      // A whole line replaces its individual stations
+      form.querySelectorAll<HTMLInputElement>(`input[name="st"][data-line="${box.value}"]`).forEach((s) => (s.checked = false));
+    } else if (box.name === 'st' && box.checked) {
+      const line = form.querySelector<HTMLInputElement>(`input[name="line"][value="${box.dataset.line}"]`);
+      if (line) line.checked = false;
+    }
+    const nLines = form.querySelectorAll('input[name="line"]:checked').length;
+    const nSt = new Set([...form.querySelectorAll<HTMLInputElement>('input[name="st"]:checked')].map((s) => s.value)).size;
+    const parts = [nLines && `${nLines} line${nLines > 1 ? 's' : ''}`, nSt && `${nSt} station${nSt > 1 ? 's' : ''}`].filter(Boolean);
+    summary.textContent = parts.length ? parts.join(', ') + ' selected' : 'Nothing selected';
+  });
+
+  // The same station can appear under several lines; send it once.
+  form.addEventListener('submit', () => {
+    const seen = new Set<string>();
+    form.querySelectorAll<HTMLInputElement>('input[name="st"]:checked').forEach((s) => {
+      if (seen.has(s.value)) s.disabled = true;
+      seen.add(s.value);
+    });
+  });
+  window.addEventListener('pageshow', () => form.querySelectorAll<HTMLInputElement>('input').forEach((b) => (b.disabled = false)));
+
+  filter.addEventListener('input', () => {
+    const q = filter.value.trim().toLowerCase();
+    form.querySelectorAll<HTMLDetailsElement>('details.group').forEach((d) => {
+      d.hidden = !!q && !(d.dataset.name ?? '').includes(q);
+    });
+    form.querySelectorAll<HTMLElement>('section.operator').forEach((sec) => {
+      sec.hidden = ![...sec.querySelectorAll<HTMLDetailsElement>('details.group')].some((d) => !d.hidden);
+    });
+  });
+</script>
