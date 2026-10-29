@@ -192,7 +192,7 @@ def main() -> None:
         unit_counts[p["id"]] = len(p["rooms"])
         p["amenities"] = sorted(building | contract)
         p["structure"] = am.structure(p)
-        if p["kind"] == "apartment" and not am.is_standard_lease(p):
+        if p["kind"] == "apartment" and am.is_oakhouse_lease(p):
             p["category"] = "OAKHOUSE APARTMENT"  # month-to-month, flat contract fee
         cover = next((ph["src"] for ph in p["photos"]), None) or next(
             (r["photos"][0] for r in p["rooms"] if r["photos"]), None)
