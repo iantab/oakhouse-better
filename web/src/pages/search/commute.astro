@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
 import { COMMUTE_CHOICES, DEFAULT_COMMUTE } from '../../lib/commute';
 
 const base = import.meta.env.BASE_URL;
@@ -12,67 +13,79 @@ const TRANSFERS = [
 ---
 
 <Base title="Search by commute time">
-  <ol class="steps">
-    <li><a href={base}>Home</a></li>
-    <li class="current">1. Destination &amp; commute</li>
-    <li>2. Conditions</li>
-    <li>3. Results</li>
-  </ol>
-  <h1>Where do you commute to?</h1>
-  <p class="muted">
-    Pick the station you travel to every day and how long you're happy to ride. We'll find rooms near stations
-    that get you there in time.
-  </p>
+  <Breadcrumb
+    items={[
+      { label: 'Home', href: base },
+      { label: '1. Destination & commute', current: true },
+      { label: '2. Conditions' },
+      { label: '3. Results' },
+    ]}
+  />
 
-  <form class="panel" method="get" action={`${base}conditions/`} id="commute-form">
-    <fieldset>
-      <legend><label for="dest-input">Destination station</label></legend>
-      <div class="combo">
-        <input
-          id="dest-input"
-          type="search"
-          autocomplete="off"
-          placeholder="e.g. Shinjuku, Otemachi, 渋谷"
-          role="combobox"
-          aria-expanded="false"
-          aria-controls="dest-list"
-          aria-autocomplete="list"
-          disabled
-        />
-        <ul id="dest-list" class="combo-list" role="listbox" hidden></ul>
+  <form class="card form-card" method="get" action={`${base}conditions/`} id="commute-form">
+    <header>
+      <h1>Where do you commute to?</h1>
+      <p>
+        Pick the station you travel to every day and how long you're happy to ride. We'll find rooms near stations
+        that get you there in time.
+      </p>
+    </header>
+    <section class="flex flex-col gap-6">
+      <div class="field max-w-md">
+        <label for="dest-input">Destination station</label>
+        <div class="combobox w-full">
+          <input
+            id="dest-input"
+            type="text"
+            autocomplete="off"
+            placeholder="e.g. Shinjuku, Otemachi, 渋谷"
+            role="combobox"
+            aria-expanded="false"
+            aria-controls="dest-list"
+            aria-autocomplete="list"
+            disabled
+          />
+          <div data-popover aria-hidden="true" class="w-full" id="dest-popover">
+            <ul role="listbox" id="dest-list"></ul>
+          </div>
+        </div>
+        <input type="hidden" name="to" id="dest-ids" />
+        <p class="text-muted-foreground" id="dest-hint">Loading stations…</p>
       </div>
-      <input type="hidden" name="to" id="dest-ids" />
-      <p class="small muted mt-1" id="dest-hint">Loading stations…</p>
-    </fieldset>
 
-    <fieldset>
-      <legend><label for="ct">Maximum time on the train</label></legend>
-      <select name="ct" id="ct">
-        {COMMUTE_CHOICES.map((m) => <option value={m} selected={m === DEFAULT_COMMUTE}>{m} min</option>)}
-      </select>
-    </fieldset>
-
-    <fieldset>
-      <legend>Transfers</legend>
-      <div class="segmented">
-        {TRANSFERS.map(([value, label], i) => (
-          <label>
-            <input type="radio" name="xf" value={value} checked={i === 0} />
-            <span>{label}</span>
-          </label>
-        ))}
+      <div class="field max-w-md">
+        <label for="ct">Maximum time on the train</label>
+        <select name="ct" id="ct" class="w-fit">
+          {COMMUTE_CHOICES.map((m) => <option value={m} selected={m === DEFAULT_COMMUTE}>{m} min</option>)}
+        </select>
       </div>
-    </fieldset>
 
-    <p class="small muted m-0">
-      * Times are estimated from map data, not timetables, and don't include waiting for the first train or the walk
-      to the station (you can limit that on the next step).
-    </p>
+      <fieldset class="fieldset">
+        <legend class="text-sm">Transfers</legend>
+        <div class="button-group" role="radiogroup" aria-label="Transfers">
+          {TRANSFERS.map(([value, label], i) => (
+            <label class="btn segment" data-variant="outline">
+              <input class="sr-only" type="radio" name="xf" value={value} checked={i === 0} />
+              {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
-    <div class="sticky-submit">
+      <div class="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+        <h2>Estimates only</h2>
+        <section>
+          Times are estimated from map data, not timetables, and don't include waiting for the first train or the walk
+          to the station (you can limit that on the next step).
+        </section>
+      </div>
+    </section>
+
+    <footer class="sticky-submit border-t">
       <button class="btn" type="submit" id="commute-submit" disabled>Next: set conditions</button>
-      <span class="muted small" id="commute-summary">Pick a destination</span>
-    </div>
+      <span class="text-sm text-muted-foreground" id="commute-summary">Pick a destination</span>
+    </footer>
   </form>
 </Base>
 
@@ -85,6 +98,7 @@ const TRANSFERS = [
   const form = document.getElementById('commute-form') as HTMLFormElement;
   const input = document.getElementById('dest-input') as HTMLInputElement;
   const list = document.getElementById('dest-list')!;
+  const popover = document.getElementById('dest-popover')!;
   const ids = document.getElementById('dest-ids') as HTMLInputElement;
   const hint = document.getElementById('dest-hint')!;
   const submit = document.getElementById('commute-submit') as HTMLButtonElement;
@@ -116,13 +130,13 @@ const TRANSFERS = [
 
   function renderList() {
     list.innerHTML = shown
-      .map((p, i) => `<li role="option" id="dest-opt-${i}" data-i="${i}" aria-selected="${i === active}">
-          <strong>${esc(p.name)}</strong>${p.nameJa && p.nameJa !== p.name ? ` <span class="muted">${esc(p.nameJa)}</span>` : ''}
-          <div class="small muted">${esc(linesHint(p))}</div>
+      .map((p, i) => `<li role="option" id="dest-opt-${i}" data-i="${i}" data-value="${i}" aria-selected="${i === active}"${i === active ? ' class="active"' : ''}>
+          <div><span class="font-medium">${esc(p.name)}</span>${p.nameJa && p.nameJa !== p.name ? ` <span class="text-muted-foreground">${esc(p.nameJa)}</span>` : ''}
+          <div class="text-xs text-muted-foreground">${esc(linesHint(p))}</div></div>
         </li>`)
       .join('');
     const open = shown.length > 0;
-    list.hidden = !open;
+    popover.setAttribute('aria-hidden', String(!open));
     input.setAttribute('aria-expanded', String(open));
     if (active >= 0) input.setAttribute('aria-activedescendant', `dest-opt-${active}`);
     else input.removeAttribute('aria-activedescendant');

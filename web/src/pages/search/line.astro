@@ -1,5 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import Chevron from '../../components/Chevron.astro';
 import { linesWithListings } from '../../lib/data';
 
 const base = import.meta.env.BASE_URL;
@@ -14,58 +16,67 @@ const fmt = (n: number) => n.toLocaleString('en-US');
 ---
 
 <Base title="Search by line & station">
-  <ol class="steps">
-    <li><a href={base}>Home</a></li>
-    <li class="current">1. Choose lines &amp; stations</li>
-    <li>2. Conditions</li>
-    <li>3. Results</li>
-  </ol>
-  <h1>Which line or station?</h1>
-  <p class="muted">
-    Tick a whole line or open it to choose stations. Only stations with an Oakhouse listing within a 20-minute walk
-    are shown; numbers are rooms nearby.
-  </p>
+  <Breadcrumb
+    items={[
+      { label: 'Home', href: base },
+      { label: '1. Choose lines & stations', current: true },
+      { label: '2. Conditions' },
+      { label: '3. Results' },
+    ]}
+  />
 
-  <form class="panel" method="get" action={`${base}conditions/`} id="line-form">
-    <p class="row mt-0">
-      <label for="line-filter" class="small muted">Filter lines</label>
-      <input id="line-filter" class="grow" type="search" placeholder="e.g. Yamanote, Chuo, Tokyu" />
-    </p>
-    {
-      operators.map(([operator, opLines]) => (
-        <section class="operator">
-          <h2 class="eyebrow">{operator}</h2>
-          {opLines.map((line) => (
-            <details class="group" data-name={`${line.name} ${line.name_ja ?? ''} ${line.ref ?? ''}`.toLowerCase()}>
-              <summary>
-                <span class="line-swatch" style={line.colour ? `background:${line.colour}` : undefined} />
-                <label class="check">
-                  <input type="checkbox" name="line" value={line.id} />
-                  {line.name}
-                  {line.ref && <span class="chip">{line.ref}</span>}
-                  <span class="count">{line.stations.length} stations</span>
-                </label>
-              </summary>
-              <div class="body">
-                <div class="checks">
-                  {line.stations.map((s) => (
-                    <label class="check">
-                      <input type="checkbox" name="st" value={s.ids.join('.')} data-line={line.id} />
-                      {s.name} <span class="count">{fmt(s.units)}</span>
+  <form class="card form-card" method="get" action={`${base}conditions/`} id="line-form">
+    <header>
+      <h1>Which line or station?</h1>
+      <p>
+        Tick a whole line or open it to choose stations. Only stations with an Oakhouse listing within a 20-minute walk
+        are shown; numbers are rooms nearby.
+      </p>
+    </header>
+    <section class="flex flex-col gap-6">
+      <div class="field max-w-md">
+        <label for="line-filter">Filter lines</label>
+        <input id="line-filter" type="search" placeholder="e.g. Yamanote, Chuo, Tokyu" />
+      </div>
+      {
+        operators.map(([operator, opLines]) => (
+          <section class="operator">
+            <h2 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{operator}</h2>
+            <div class="accordion">
+              {opLines.map((line) => (
+                <details data-name={`${line.name} ${line.name_ja ?? ''} ${line.ref ?? ''}`.toLowerCase()}>
+                  <summary>
+                    <label class="label">
+                      <span class="line-swatch" style={line.colour ? `background:${line.colour}` : undefined} />
+                      <input class="input" type="checkbox" name="line" value={line.id} />
+                      {line.name}
+                      {line.ref && <span class="badge" data-variant="outline">{line.ref}</span>}
+                      <span class="count">{line.stations.length} stations</span>
                     </label>
-                  ))}
-                </div>
-              </div>
-            </details>
-          ))}
-        </section>
-      ))
-    }
-    {lines.length === 0 && <p class="muted">No station data yet. Run <code>scraper/stations.py</code> and the scraper.</p>}
-    <div class="sticky-submit">
+                    <Chevron />
+                  </summary>
+                  <section class="ps-6">
+                    <div class="checks">
+                      {line.stations.map((s) => (
+                        <label class="label font-normal">
+                          <input class="input" type="checkbox" name="st" value={s.ids.join('.')} data-line={line.id} />
+                          {s.name} <span class="count">{fmt(s.units)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+                </details>
+              ))}
+            </div>
+          </section>
+        ))
+      }
+      {lines.length === 0 && <p class="text-muted-foreground">No station data yet. Run <code>scraper/stations.py</code> and the scraper.</p>}
+    </section>
+    <footer class="sticky-submit border-t">
       <button class="btn" type="submit">Next: set conditions</button>
-      <span class="muted small" id="line-summary">Nothing selected</span>
-    </div>
+      <span class="text-sm text-muted-foreground" id="line-summary">Nothing selected</span>
+    </footer>
   </form>
 </Base>
 
@@ -101,11 +112,11 @@ const fmt = (n: number) => n.toLocaleString('en-US');
 
   filter.addEventListener('input', () => {
     const q = filter.value.trim().toLowerCase();
-    form.querySelectorAll<HTMLDetailsElement>('details.group').forEach((d) => {
+    form.querySelectorAll<HTMLDetailsElement>('.accordion > details').forEach((d) => {
       d.hidden = !!q && !(d.dataset.name ?? '').includes(q);
     });
     form.querySelectorAll<HTMLElement>('section.operator').forEach((sec) => {
-      sec.hidden = ![...sec.querySelectorAll<HTMLDetailsElement>('details.group')].some((d) => !d.hidden);
+      sec.hidden = ![...sec.querySelectorAll<HTMLDetailsElement>('.accordion > details')].some((d) => !d.hidden);
     });
   });
 </script>

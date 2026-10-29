@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
 import ConditionsFields from '../components/ConditionsFields.astro';
 import { getData } from '../lib/data';
 
@@ -8,21 +9,27 @@ const lineNames = Object.fromEntries(getData().lines.map((l) => [l.id, l.name]))
 ---
 
 <Base title="Conditions">
-  <ol class="steps">
-    <li><a href={base}>Home</a></li>
-    <li><a id="back-link" href={`${base}search/area/`}>1. Location</a></li>
-    <li class="current">2. Conditions</li>
-    <li>3. Results</li>
-  </ol>
-  <h1>Narrow it down</h1>
-  <p class="muted">Searching: <strong id="location">Anywhere</strong> · <a id="change-link" href={`${base}search/area/`}>change</a></p>
+  <Breadcrumb
+    items={[
+      { label: 'Home', href: base },
+      { label: '1. Location', href: `${base}search/area/`, id: 'back-link' },
+      { label: '2. Conditions', current: true },
+      { label: '3. Results' },
+    ]}
+  />
 
-  <form class="panel" method="get" action={`${base}results/`} id="conditions-form" data-lines={JSON.stringify(lineNames)}>
-    <ConditionsFields />
-    <div class="sticky-submit">
-      <button class="btn big" type="submit"><span>Show <span id="match-count">matching</span> rooms</span></button>
-      <span class="muted small" id="match-detail"></span>
-    </div>
+  <form class="card form-card" method="get" action={`${base}results/`} id="conditions-form" data-lines={JSON.stringify(lineNames)}>
+    <header>
+      <h1>Narrow it down</h1>
+      <p>Searching: <strong class="text-foreground" id="location">Anywhere</strong> · <a class="link" id="change-link" href={`${base}search/area/`}>change</a></p>
+    </header>
+    <section>
+      <ConditionsFields />
+    </section>
+    <footer class="sticky-submit border-t">
+      <button class="btn" data-size="lg" type="submit"><span>Show <span id="match-count">matching</span> rooms</span></button>
+      <span class="text-sm text-muted-foreground" id="match-detail"></span>
+    </footer>
   </form>
 </Base>
 

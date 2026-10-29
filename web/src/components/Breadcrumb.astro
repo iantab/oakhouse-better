@@ -1,0 +1,34 @@
+---
+// Basecoat breadcrumb. Items after the `current` one are upcoming steps, shown dimmed.
+// `id` lets page scripts retarget a link.
+interface Props {
+  items: { label: string; href?: string; id?: string; current?: boolean }[];
+}
+const { items } = Astro.props;
+const currentAt = items.findIndex((item) => item.current);
+---
+
+<nav class="breadcrumb mb-6" aria-label="Breadcrumb">
+  <ol>
+    {
+      items.map((item, i) => (
+        <>
+          {i > 0 && (
+            <li aria-hidden="true">
+              <svg data-rtl-flip xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+            </li>
+          )}
+          <li class={currentAt >= 0 && i > currentAt ? 'opacity-60' : undefined}>
+            {item.current ? (
+              <span aria-current="page">{item.label}</span>
+            ) : item.href ? (
+              <a id={item.id} href={item.href}>{item.label}</a>
+            ) : (
+              <span>{item.label}</span>
+            )}
+          </li>
+        </>
+      ))
+    }
+  </ol>
+</nav>

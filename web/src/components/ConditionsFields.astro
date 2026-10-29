@@ -2,6 +2,7 @@
 // Filter fields shared by /conditions/ and the /results/ sidebar. Values are prefilled from the
 // URL by syncFormFromUrl() in lib/form.ts; area/station/line picks are carried as hidden inputs.
 import { getData } from '../lib/data';
+import Chevron from './Chevron.astro';
 
 interface Props {
   compact?: boolean;
@@ -22,86 +23,99 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
 
 <div data-carry hidden></div>
 
-<fieldset>
-  <legend>Monthly cost <span class="muted small">(rent + maintenance)</span></legend>
-  <div class="row">
-    <select name="rmin" aria-label="Minimum monthly cost">
-      <option value="">No minimum</option>
-      {rents.map((r) => <option value={r}>{k(r)}</option>)}
+<div class="flex flex-col gap-6">
+  <fieldset class="fieldset">
+    <legend>Monthly cost <span class="font-normal text-muted-foreground">(rent + maintenance)</span></legend>
+    <div class="flex flex-wrap items-center gap-2">
+      <select class="select" name="rmin" aria-label="Minimum monthly cost">
+        <option value="">No minimum</option>
+        {rents.map((r) => <option value={r}>{k(r)}</option>)}
+      </select>
+      <span class="text-sm text-muted-foreground">to</span>
+      <select class="select" name="rmax" aria-label="Maximum monthly cost">
+        <option value="">No maximum</option>
+        {rents.map((r) => <option value={r}>{k(r)}</option>)}
+      </select>
+    </div>
+    <div class="checks">
+      {costToggles.map((a) => (
+        <label class="label"><input class="input" type="checkbox" name="am" value={a!.key} /> {a!.label}</label>
+      ))}
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Type</legend>
+    <div class="checks">
+      <label class="label"><input class="input" type="checkbox" name="type" value="share" /> Share house</label>
+      <label class="label"><input class="input" type="checkbox" name="type" value="social" /> Social residence</label>
+      <label class="label"><input class="input" type="checkbox" name="type" value="oakapt" /> Oakhouse apartment</label>
+      <label class="label"><input class="input" type="checkbox" name="type" value="apartment" /> Apartment</label>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Building structure</legend>
+    <div class="checks">
+      <label class="label"><input class="input" type="checkbox" name="struct" value="wood" /> Wood</label>
+      <label class="label"><input class="input" type="checkbox" name="struct" value="steel" /> Steel frame</label>
+      <label class="label"><input class="input" type="checkbox" name="struct" value="rc" /> Concrete (RC/SRC)</label>
+      <label class="label"><input class="input" type="checkbox" name="struct" value="none" /> Not stated</label>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Walk to station</legend>
+    <select class="select w-fit" name="walk" aria-label="Maximum walk to station">
+      <option value="">Any</option>
+      {[5, 7, 10, 15, 20].map((m) => <option value={m}>{m} min or less</option>)}
     </select>
-    <span class="muted">to</span>
-    <select name="rmax" aria-label="Maximum monthly cost">
-      <option value="">No maximum</option>
-      {rents.map((r) => <option value={r}>{k(r)}</option>)}
-    </select>
-    {costToggles.map((a) => (
-      <label class="check"><input type="checkbox" name="am" value={a!.key} /> {a!.label}</label>
-    ))}
-  </div>
-</fieldset>
+  </fieldset>
 
-<fieldset>
-  <legend>Type</legend>
-  <div class="checks">
-    <label class="check"><input type="checkbox" name="type" value="share" /> Share house</label>
-    <label class="check"><input type="checkbox" name="type" value="social" /> Social residence</label>
-    <label class="check"><input type="checkbox" name="type" value="oakapt" /> Oakhouse apartment</label>
-    <label class="check"><input type="checkbox" name="type" value="apartment" /> Apartment</label>
-  </div>
-</fieldset>
+  <fieldset class="fieldset">
+    <legend>Availability</legend>
+    {/* Available + Soon is the default (DEFAULT_AVAIL in lib/filter.ts); the URL omits it */}
+    <div class="flex flex-wrap gap-x-6 gap-y-3">
+      <label class="label"><input class="input" type="checkbox" name="avail" value="a" checked /> Available</label>
+      <label class="label"><input class="input" type="checkbox" name="avail" value="s" checked /> Soon</label>
+      <label class="label"><input class="input" type="checkbox" name="avail" value="f" /> Full</label>
+    </div>
+  </fieldset>
 
-<fieldset>
-  <legend>Building structure</legend>
-  <div class="checks">
-    <label class="check"><input type="checkbox" name="struct" value="wood" /> Wood</label>
-    <label class="check"><input type="checkbox" name="struct" value="steel" /> Steel frame</label>
-    <label class="check"><input type="checkbox" name="struct" value="rc" /> Concrete (RC/SRC)</label>
-    <label class="check"><input type="checkbox" name="struct" value="none" /> Not stated</label>
-  </div>
-</fieldset>
-
-<fieldset>
-  <legend>Walk to station</legend>
-  <select name="walk" aria-label="Maximum walk to station">
-    <option value="">Any</option>
-    {[5, 7, 10, 15, 20].map((m) => <option value={m}>{m} min or less</option>)}
-  </select>
-</fieldset>
-
-<fieldset>
-  <legend>Availability</legend>
-  {/* Available + Soon is the default (DEFAULT_AVAIL in lib/filter.ts); the URL omits it */}
-  <div class="row">
-    <label class="check"><input type="checkbox" name="avail" value="a" checked /> Available</label>
-    <label class="check"><input type="checkbox" name="avail" value="s" checked /> Soon</label>
-    <label class="check"><input type="checkbox" name="avail" value="f" /> Full</label>
-  </div>
-</fieldset>
-
-{
-  groups.map((g) =>
+  {
     compact ? (
-      <details class="group">
-        <summary>{g.label}</summary>
-        <div class="checks group-checks">
-          {g.items.map((a) => (
-            <label class="check">
-              <input type="checkbox" name="am" value={a.key} /> {a.label}
-            </label>
-          ))}
-        </div>
-      </details>
+      <section class="accordion">
+        {groups.map((g) => (
+          <details>
+            <summary>
+              {g.label}
+              <Chevron />
+            </summary>
+            <section>
+              <div class="checks">
+                {g.items.map((a) => (
+                  <label class="label">
+                    <input class="input" type="checkbox" name="am" value={a.key} /> {a.label}
+                  </label>
+                ))}
+              </div>
+            </section>
+          </details>
+        ))}
+      </section>
     ) : (
-      <fieldset>
-        <legend>{g.label}</legend>
-        <div class="checks">
-          {g.items.map((a) => (
-            <label class="check">
-              <input type="checkbox" name="am" value={a.key} /> {a.label}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-    ),
-  )
-}
+      groups.map((g) => (
+        <fieldset class="fieldset">
+          <legend>{g.label}</legend>
+          <div class="checks">
+            {g.items.map((a) => (
+              <label class="label">
+                <input class="input" type="checkbox" name="am" value={a.key} /> {a.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ))
+    )
+  }
+</div>

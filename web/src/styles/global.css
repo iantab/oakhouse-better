@@ -1,310 +1,134 @@
-/* Light/dark tokens: light-dark() picks a side from color-scheme, which follows the OS
-   unless the header toggle stored a choice (html[data-theme]). */
-:root {
-  color-scheme: light dark;
-  --bg: light-dark(#f6f5f1, #141816);
-  --surface: light-dark(#ffffff, #1c211f);
-  --surface-2: light-dark(#f0efe9, #232927);
-  --text: light-dark(#1d2321, #e8ebe9);
-  --muted: light-dark(#5f6763, #a3aba7);
-  --line: light-dark(#dfddd5, #2f3633);
-  --line-strong: light-dark(#c9c6bb, #414a46);
-  --accent: light-dark(#1f6b4f, #4fb88c);
-  --accent-ink: light-dark(#ffffff, #0c1612);
-  --accent-soft: light-dark(#e3efe8, #1e3329);
-  --available: light-dark(#c2410c, #fb923c);
-  --available-soft: light-dark(#fdeee4, #3a2316);
-  --soon: light-dark(#a16207, #facc15);
-  --soon-soft: light-dark(#fbf3dc, #38301a);
-  --full: light-dark(#7b817e, #8b938f);
-  --radius: 10px;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
-  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.06), 0 8px 20px rgb(0 0 0 / 0.07);
-  --ease: 0.15s ease;
-  --font: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-}
-:root[data-theme='light'] { color-scheme: light; }
-:root[data-theme='dark'] { color-scheme: dark; }
+/* Tailwind + Basecoat (shadcn/ui components as plain classes: card, btn, badge, breadcrumb, accordion,
+   field, combobox, table, alert, empty…). theme.css only sets our green brand colour.
+   What's left below is page layout and the few things Basecoat has no component for. */
+@import 'tailwindcss';
+@import 'basecoat-css';
+@import './theme.css';
 
-*, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font: 15px/1.55 var(--font);
-  font-feature-settings: 'cv11', 'ss01';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-img { max-width: 100%; display: block; }
-a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
-h1, h2, h3 { line-height: 1.25; margin: 0 0 0.5em; letter-spacing: -0.01em; }
-h1 { font-size: 1.6rem; letter-spacing: -0.02em; }
-h2 { font-size: 1.2rem; }
-h3 { font-size: 1rem; }
-
-.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
-
-/* Spacing helpers for one-off tweaks */
-.m-0 { margin: 0; }
-.mt-0 { margin-top: 0; }
-.mt-1 { margin-top: 6px; }
-.mt-2 { margin-top: 10px; }
-.mb-1 { margin-bottom: 6px; }
-.mb-2 { margin-bottom: 12px; }
-
-/* Header / footer */
-.site-header { background: var(--surface); border-bottom: 1px solid var(--line); }
-.site-header .wrap { display: flex; align-items: center; gap: 24px; min-height: 56px; }
-.brand { font-weight: 700; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; letter-spacing: -0.01em; }
-.brand-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; color: var(--accent-ink); font-size: 14px; }
-.site-nav { display: flex; gap: 18px; font-size: 0.93rem; }
-.site-nav a { color: var(--muted); text-decoration: none; transition: color var(--ease); }
-.site-nav a:hover { color: var(--text); }
-.theme-toggle {
-  margin-left: auto; flex: none; width: 36px; height: 36px; border-radius: 50%;
-  display: grid; place-items: center; cursor: pointer; padding: 0;
-  background: var(--surface-2); color: var(--text); border: 1px solid var(--line);
-  transition: border-color var(--ease), color var(--ease);
-}
-.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
-.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* Show the icon for the theme you'd switch TO: moon while light, sun while dark */
-.theme-toggle .sun { display: none; }
-:root[data-theme='dark'] .theme-toggle .sun { display: block; }
-:root[data-theme='dark'] .theme-toggle .moon { display: none; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .theme-toggle .sun { display: block; }
-  :root:not([data-theme='light']) .theme-toggle .moon { display: none; }
-}
-.site-footer { margin-top: 64px; border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: 0.85rem; }
-.site-footer p { margin: 4px 0; }
-
-main { padding: 24px 0; }
-
-/* Breadcrumb / steps */
-.steps { display: flex; gap: 6px; flex-wrap: wrap; list-style: none; padding: 0; margin: 0 0 20px; font-size: 0.85rem; color: var(--muted); }
-.steps li { display: flex; align-items: center; gap: 6px; }
-.steps li + li::before { content: '›'; color: var(--muted); opacity: 0.6; }
-.steps .current { color: var(--text); font-weight: 600; }
-
-/* Cards & panels */
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-.panel + .panel { margin-top: 16px; }
-.muted { color: var(--muted); }
-.small { font-size: 0.85rem; }
-.eyebrow, .kind { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-.eyebrow { color: var(--muted); }
-.kind { color: var(--accent); }
-
-/* Buttons */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;
-  border-radius: 8px; padding: 10px 18px; border: 1px solid transparent;
-  background: var(--accent); color: var(--accent-ink);
-  transition: filter var(--ease), border-color var(--ease), background-color var(--ease), transform var(--ease);
-}
-.btn:hover { filter: brightness(1.07); }
-.btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; transform: none; }
-.btn.secondary { background: var(--surface); color: var(--text); border-color: var(--line); }
-.btn.secondary:hover { filter: none; border-color: var(--accent); }
-.btn.big { padding: 14px 28px; font-size: 1.05rem; }
-.btn.block { width: 100%; }
-.btn:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* Forms */
-fieldset { border: 0; padding: 0; margin: 0 0 20px; min-width: 0; }
-legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
-.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 16px; }
-.check { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; }
-.check input { width: 17px; height: 17px; accent-color: var(--accent); flex: none; }
-.check .count { color: var(--muted); font-size: 0.82rem; }
-select, input[type='number'], input[type='search'], input[type='text'] {
-  font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line);
-  background: var(--surface); color: var(--text);
-  transition: border-color var(--ease), box-shadow var(--ease);
-}
-select:hover, input[type='number']:hover, input[type='search']:hover, input[type='text']:hover { border-color: var(--line-strong); }
-select:focus, input[type='number']:focus, input[type='search']:focus, input[type='text']:focus {
-  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); outline: none;
-}
-.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.row .grow { flex: 1; min-width: 200px; }
-/* Station type-ahead (commute destination) */
-.combo { position: relative; max-width: 480px; }
-.combo input { width: 100%; }
-.combo-list {
-  position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow-lift);
-  max-height: 320px; overflow-y: auto;
-}
-.combo-list li { padding: 8px 10px; border-radius: 6px; cursor: pointer; }
-.combo-list li[aria-selected='true'], .combo-list li:hover { background: var(--accent-soft); }
-
-/* Segmented radio group (commute transfers) */
-.segmented { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
-.segmented label { position: relative; cursor: pointer; }
-.segmented label + label { border-left: 1px solid var(--line); }
-.segmented input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-.segmented span { display: block; padding: 8px 16px; font-weight: 500; transition: background-color var(--ease), color var(--ease); }
-.segmented label:hover span { background: var(--surface-2); }
-.segmented input:checked + span { background: var(--accent); color: var(--accent-ink); }
-.segmented input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
-
-.sticky-submit {
-  position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--line);
-  margin: 20px -20px -20px; padding: 14px 20px; display: flex; gap: 12px; align-items: center;
-  border-radius: 0 0 var(--radius) var(--radius);
+@layer base {
+  body { @apply font-sans antialiased; }
 }
 
-/* Chips & badges */
-.chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
-.chip { font-size: 0.8rem; padding: 2px 9px; border-radius: 999px; background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
-a.chip { text-decoration: none; display: inline-block; transition: border-color var(--ease), background-color var(--ease); }
-a.chip:hover { border-color: var(--accent); background: var(--accent-soft); }
-.chip.on { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
-.badge { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
-.badge.available { background: var(--available-soft); color: var(--available); }
-.badge.soon { background: var(--soon-soft); color: var(--soon); }
-.badge.full { background: var(--surface-2); color: var(--full); }
+@layer components {
+  .wrap { @apply mx-auto w-full max-w-6xl px-4; }
 
-/* Tables */
-.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
-th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { font-size: 0.78rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
-td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-tbody tr { transition: background-color var(--ease); }
-tbody tr:hover { background: var(--surface-2); }
-tr.is-full td { color: var(--muted); }
+  /* Inline text link (shadcn typography style) */
+  .link { @apply font-medium text-foreground underline underline-offset-4 hover:text-primary; }
 
-/* Search method tiles (home) */
-.hero { padding: 40px 0 8px; }
-.hero h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); letter-spacing: -0.03em; margin-bottom: 0.4em; }
-.hero p { font-size: 1.08rem; color: var(--muted); max-width: 60ch; margin: 0; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 28px; }
-.tile {
-  display: block; text-decoration: none; color: inherit;
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 24px; box-shadow: var(--shadow); transition: border-color var(--ease), transform var(--ease), box-shadow var(--ease);
-}
-.tile:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-lift); }
-.tile .icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; margin-bottom: 14px; }
-.tile h2 { margin-bottom: 4px; }
-.tile p { margin: 0; color: var(--muted); }
-.stats { display: flex; gap: 40px; flex-wrap: wrap; margin-top: 32px; }
-.stat strong { display: block; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
-.stat span { color: var(--muted); font-size: 0.85rem; }
-.prefectures { margin-top: 32px; }
+  /* Page titles that sit in a card header */
+  .card > header > h1 { @apply text-2xl leading-tight font-semibold tracking-tight; }
 
-/* Accordions (area / line pickers) */
-details.group { border-bottom: 1px solid var(--line); }
-details.group > summary {
-  list-style: none; cursor: pointer; padding: 12px 4px; display: flex; align-items: center; gap: 10px; font-weight: 600;
-}
-details.group > summary::-webkit-details-marker { display: none; }
-details.group > summary::before { content: '+'; width: 18px; color: var(--muted); font-weight: 400; }
-details.group[open] > summary::before { content: '−'; }
-details.group > .body { padding: 0 4px 16px 32px; }
-.group-checks { padding: 0 0 12px 4px; }
-/* Tokyo 23-ward groups (Central/North/…) inside the area picker */
-.ward-group { margin: 4px 0 14px; padding-left: 26px; }
-.ward-group-title { font-weight: 600; font-size: 0.92rem; }
-.ward-group .checks { padding-left: 26px; }
-.operator { margin-top: 18px; }
-.line-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; background: var(--muted); }
+  /* Small uppercase label above a title ("SHARE HOUSE · NAKANO") */
+  .kind, .card > header > .kind { @apply text-xs font-semibold tracking-wide text-primary uppercase; }
 
-/* Results */
-.results-layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 24px; align-items: start; }
-.results-layout aside { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
-.results-layout aside .panel { padding: 16px; }
-.results-layout aside .checks { grid-template-columns: 1fr; }
-.results-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-.prop-card {
-  display: grid; grid-template-columns: 200px minmax(0, 1fr); background: var(--surface); border: 1px solid var(--line);
-  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
-  transition: border-color var(--ease), box-shadow var(--ease);
-}
-.prop-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-lift); }
-.prop-card + .prop-card { margin-top: 14px; }
-.prop-card .thumb { position: relative; background: var(--surface-2); min-height: 150px; overflow: hidden; }
-.prop-card .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
-.prop-card:hover .thumb img { transform: scale(1.03); }
-.prop-card .body { padding: 14px 16px; min-width: 0; }
-.prop-card h3 { margin: 2px 0 4px; font-size: 1.05rem; }
-.prop-card h3 a { color: var(--text); text-decoration: none; }
-.prop-card h3 a:hover { color: var(--accent); }
-.prop-card .meta { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-.meta-icon { flex: none; color: var(--accent); }
-.prop-card .meta.commute { color: var(--text); margin-top: 2px; }
-.prop-card table { margin-top: 10px; font-size: 0.85rem; }
-.prop-card td, .prop-card th { padding: 6px 8px; }
-.more-units { font-size: 0.85rem; margin-top: 6px; }
-.pager { display: flex; gap: 6px; justify-content: center; align-items: center; margin-top: 24px; flex-wrap: wrap; }
-.pager button { min-width: 38px; padding: 8px 12px; }
-.pager button[aria-current='page'] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.empty { text-align: center; padding: 48px 16px; }
-.filter-toggle { display: none; }
+  /* Header */
+  .theme-toggle .sun, .dark .theme-toggle .moon { display: none; }
+  .dark .theme-toggle .sun { display: block; }
 
-/* Detail page */
-.detail-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
-.price-box { text-align: right; }
-.price-box .price { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.gallery {
-  display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 16px 0; padding-bottom: 8px;
-  scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent;
-}
-.gallery figure { margin: 0; flex: 0 0 auto; scroll-snap-align: start; }
-.gallery img { height: 260px; width: auto; max-width: none; border-radius: var(--radius); background: var(--surface-2); object-fit: cover; }
-.gallery figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
-.detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
-.facts { display: grid; grid-template-columns: minmax(6em, max-content) 1fr; gap: 6px 16px; margin: 0; font-size: 0.92rem; }
-.facts dt { color: var(--muted); max-width: 13em; }
-.facts dd { margin: 0; }
-.facts.stacked { grid-template-columns: 1fr; gap: 0; }
-.facts.stacked dt { font-size: 0.8rem; max-width: none; }
-.facts.stacked dd { margin-bottom: 8px; }
-th.features, td.features { min-width: 200px; }
-/* Rooms table header stays visible while scrolling long tables. Sticky only works inside
-   the nearest scroll box, so long tables scroll within a capped height. */
-.rooms-panel .table-scroll { max-height: 70vh; overflow-y: auto; }
-.rooms-panel thead th { position: sticky; top: 0; z-index: 1; background: var(--surface); }
-.rooms-panel tbody tr:hover { background: var(--surface-2); }
-
-/* Detail page: Soon/Full toggles. Pure CSS so Full rooms are hidden from first paint. */
-.room-toggles { display: flex; align-items: center; gap: 4px 16px; flex-wrap: wrap; margin-bottom: 8px; }
-.room-toggles .room-count { margin-left: auto; }
-.rooms-panel:has(#show-full:not(:checked)) tr[data-status='full'],
-.rooms-panel:has(#show-soon:not(:checked)) tr[data-status='soon'] { display: none; }
-.rooms-empty { margin: 12px 0 0; }
-.map { width: 100%; height: 260px; border: 0; border-radius: 8px; }
-.room-photos { display: flex; gap: 4px; margin-top: 4px; }
-.room-photos img { width: 56px; height: 42px; object-fit: cover; border-radius: 4px; }
-
-@media (max-width: 860px) {
-  .results-layout, .detail-grid { grid-template-columns: minmax(0, 1fr); }
-  .results-layout aside { position: static; max-height: none; display: none; }
-  .results-layout aside.open { display: block; }
-  .filter-toggle { display: inline-flex; }
-  .prop-card { grid-template-columns: 1fr; }
-  .prop-card .thumb { min-height: 160px; }
-  .prop-card .opt { display: none; }
-  /* Nav drops to its own scrollable row under the brand */
-  .site-header .wrap { flex-wrap: wrap; gap: 0 16px; }
-  .site-nav {
-    order: 3; flex: 1 0 100%; gap: 20px; overflow-x: auto; white-space: nowrap;
-    padding: 0 0 10px; scrollbar-width: none;
+  /* Checkbox lists */
+  .checks { @apply grid gap-x-4 gap-y-3; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .count { @apply text-xs font-normal text-muted-foreground tabular-nums; }
+  /* Basecoat's checkbox has no indeterminate look; the area picker's parent boxes need one */
+  .input[type='checkbox']:indeterminate { @apply border-primary bg-primary; }
+  .input[type='checkbox']:indeterminate::after {
+    content: ''; position: absolute; left: 3px; right: 3px; top: calc(50% - 1px); height: 2px;
+    border-radius: 1px; background: var(--primary-foreground);
   }
-  .site-nav::-webkit-scrollbar { display: none; }
-  h1 { font-size: 1.35rem; }
-  .price-box { text-align: left; }
-  .gallery img { height: 200px; }
-}
+  /* Station suggestions carry a second line (served lines) that should wrap, not clip */
+  .combobox [role='option'] { @apply whitespace-normal; }
+  .line-swatch { @apply size-2.5 shrink-0 rounded-sm bg-muted-foreground; }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: none !important; }
-  .tile:hover, .btn:active, .prop-card:hover .thumb img { transform: none; }
+  /* Radio buttons drawn as a Basecoat button group (commute transfers) */
+  .segment { @apply cursor-pointer; }
+  .segment:has(:checked) { @apply border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground; }
+  .segment:has(:focus-visible) { @apply relative z-10 ring-[3px] ring-ring/50; }
+
+  /* Form cards keep their submit footer in view. Sticky needs the card not to clip (Basecoat cards
+     are overflow-hidden), and the footer carries the card's bottom padding so it stays opaque. */
+  .form-card { @apply overflow-visible pb-0; }
+  .sticky-submit { @apply sticky bottom-0 z-10 gap-3 rounded-b-xl bg-card pb-6; }
+
+  /* Room status badges */
+  .badge.status-available { background: var(--available-soft); color: var(--available); }
+  .badge.status-soon { background: var(--soon-soft); color: var(--soon); }
+  .badge.status-full { @apply bg-muted text-muted-foreground; }
+
+  /* Tables: numbers right-aligned, long text allowed to wrap */
+  .table th { @apply text-xs text-muted-foreground; }
+  .table td { @apply align-top whitespace-normal; }
+  .table :is(td, th).num { @apply text-right whitespace-nowrap tabular-nums; }
+  .table tr.is-full td { @apply text-muted-foreground; }
+
+  /* Home: search method tiles */
+  .tile { @apply transition-shadow hover:shadow-md hover:ring-primary/40; }
+  .tile-icon { @apply mb-3 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary; }
+
+  /* Results */
+  .results-layout { @apply grid items-start gap-6; grid-template-columns: 300px minmax(0, 1fr); }
+  /* 1px padding so the scroll box doesn't clip the card's ring */
+  .results-layout aside { @apply sticky top-4 overflow-auto p-px; max-height: calc(100vh - 2rem); }
+  .results-layout aside .checks { grid-template-columns: 1fr; }
+  .filter-toggle { display: none; }
+  /* Property card: photo on the left spanning the card's header/section/footer */
+  .prop-card { @apply grid gap-0 py-0; grid-template-columns: 200px minmax(0, 1fr); grid-template-rows: auto 1fr auto; }
+  .prop-card > * { grid-column: 2; }
+  .prop-card > header { @apply pt-4 pb-3; }
+  .prop-card > :last-child { @apply pb-4; }
+  .prop-card > .thumb { @apply relative min-h-40 overflow-hidden bg-muted; grid-column: 1; grid-row: 1 / -1; }
+  .prop-card > .thumb img { @apply absolute inset-0 size-full object-cover transition-transform duration-300; }
+  .prop-card:hover > .thumb img { @apply scale-[1.03]; }
+  .prop-card h3 a { @apply hover:text-primary; }
+  .prop-card .meta { @apply flex items-center gap-1.5 text-muted-foreground; }
+  .prop-card .meta svg { @apply shrink-0 text-primary; }
+  .prop-card .table { @apply text-xs; }
+
+  /* Detail page */
+  .price-box { @apply text-right; }
+  .gallery {
+    @apply my-6 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2;
+    scrollbar-width: thin;
+  }
+  .gallery figure { @apply shrink-0 snap-start; }
+  .gallery img { @apply h-64 w-auto max-w-none rounded-lg bg-muted object-cover; }
+  .gallery figcaption { @apply mt-1 text-xs text-muted-foreground; }
+  .detail-grid { @apply grid items-start gap-4; grid-template-columns: minmax(0, 1fr) 340px; }
+  .facts { @apply grid gap-x-4 gap-y-2 text-sm; grid-template-columns: minmax(6em, max-content) 1fr; }
+  .facts dt { @apply max-w-52 text-muted-foreground; }
+  .facts.stacked { @apply grid-cols-1 gap-y-0; }
+  .facts.stacked dt { @apply max-w-none text-xs; }
+  .facts.stacked dd { @apply mb-2; }
+  .table .features { min-width: 200px; }
+  /* Rooms table header stays visible while scrolling: sticky only works inside the nearest scroll
+     box, so long tables scroll within a capped height. */
+  .rooms-scroll { @apply overflow-y-auto; max-height: 70vh; }
+  .rooms-scroll thead th { @apply sticky top-0 z-[1] bg-card; }
+  /* Soon/Full toggles: pure CSS so Full rooms are hidden from first paint */
+  .rooms-panel:has(#show-full:not(:checked)) tr[data-status='full'],
+  .rooms-panel:has(#show-soon:not(:checked)) tr[data-status='soon'] { display: none; }
+  .map { @apply h-64 w-full rounded-md border-0; }
+  .room-photos { @apply mt-1 flex gap-1; }
+  .room-photos img { @apply h-10.5 w-14 rounded-sm object-cover; }
+
+  @media (max-width: 860px) {
+    .results-layout, .detail-grid { grid-template-columns: minmax(0, 1fr); }
+    .results-layout aside { @apply static hidden max-h-none; }
+    .results-layout aside.open { display: block; }
+    .filter-toggle { display: inline-flex; }
+    .prop-card { grid-template-columns: minmax(0, 1fr); }
+    .prop-card { grid-template-rows: none; }
+    .prop-card > .thumb { grid-row: auto; }
+    .prop-card > * { grid-column: 1; }
+    .prop-card .opt { display: none; }
+    /* Nav drops to its own scrollable row under the brand */
+    .site-header .wrap { @apply flex-wrap gap-x-4 gap-y-0; }
+    .site-nav { @apply order-3 -mx-2 basis-full overflow-x-auto pb-2 whitespace-nowrap; scrollbar-width: none; }
+    .site-nav::-webkit-scrollbar { display: none; }
+    .price-box { @apply text-left; }
+    .gallery img { @apply h-48; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+    .prop-card:hover > .thumb img { transform: none; }
+  }
 }

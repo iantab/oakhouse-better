@@ -1,5 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import Chevron from '../../components/Chevron.astro';
 import { getData } from '../../lib/data';
 import { groupTokyo } from '../../lib/tokyo';
 
@@ -9,115 +11,124 @@ const fmt = (n: number) => n.toLocaleString('en-US');
 ---
 
 <Base title="Search by area">
-  <ol class="steps">
-    <li><a href={base}>Home</a></li>
-    <li class="current">1. Choose areas</li>
-    <li>2. Conditions</li>
-    <li>3. Results</li>
-  </ol>
-  <h1>Where do you want to live?</h1>
-  <p class="muted">Tick a whole prefecture or region, or open it to pick individual wards and cities. Numbers are rooms listed.</p>
+  <Breadcrumb
+    items={[
+      { label: 'Home', href: base },
+      { label: '1. Choose areas', current: true },
+      { label: '2. Conditions' },
+      { label: '3. Results' },
+    ]}
+  />
 
   {/*
     Checkboxes named "area" are submitted (prefecture / region / ward paths). Boxes with data-children
     are name-less "select all" helpers (Tokyo 23-ward groups). Parent and helper states are derived
     from the wards by the script below.
   */}
-  <form class="panel" method="get" action={`${base}conditions/`} id="area-form">
-    {
-      areas.map((pref, i) => (
-        <details class="group" open={i === 0}>
-          <summary>
-            <label class="check">
-              <input type="checkbox" name="area" value={pref.slug} />
-              {pref.name} <span class="count">{fmt(pref.units)}</span>
-            </label>
-          </summary>
-          <div class="body">
-            {pref.slug === 'tokyo' ? (
-              (() => {
-                const { wards23, rest } = groupTokyo(pref);
-                const paths = (ws: { path: string }[]) => ws.map((w) => w.path).join(' ');
-                return (
-                  <>
-                    {wards23.groups.length > 0 && (
-                      <fieldset>
-                        <legend>
-                          <label class="check">
-                            <input type="checkbox" data-children={paths(wards23.groups.flatMap((g) => g.wards))} />
-                            Tokyo 23 wards <span class="count">{fmt(wards23.units)}</span>
-                          </label>
-                        </legend>
-                        {wards23.groups.map((g) => (
-                          <div class="ward-group">
-                            <label class="check ward-group-title">
-                              <input type="checkbox" data-children={paths(g.wards)} />
-                              {g.name} <span class="count">{fmt(g.units)}</span>
-                            </label>
-                            <div class="checks">
-                              {g.wards.map((w) => (
-                                <label class="check">
-                                  <input type="checkbox" name="area" value={w.path} />
+  <form class="card form-card" method="get" action={`${base}conditions/`} id="area-form">
+    <header>
+      <h1>Where do you want to live?</h1>
+      <p>Tick a whole prefecture or region, or open it to pick individual wards and cities. Numbers are rooms listed.</p>
+    </header>
+    <section>
+      <div class="accordion">
+        {
+          areas.map((pref, i) => (
+            <details open={i === 0}>
+              <summary>
+                <label class="label">
+                  <input class="input" type="checkbox" name="area" value={pref.slug} />
+                  {pref.name} <span class="count">{fmt(pref.units)}</span>
+                </label>
+                <Chevron />
+              </summary>
+              <section class="flex flex-col gap-6 ps-6">
+                {pref.slug === 'tokyo' ? (
+                  (() => {
+                    const { wards23, rest } = groupTokyo(pref);
+                    const paths = (ws: { path: string }[]) => ws.map((w) => w.path).join(' ');
+                    return (
+                      <>
+                        {wards23.groups.length > 0 && (
+                          <fieldset class="fieldset">
+                            <legend>
+                              <label class="label">
+                                <input class="input" type="checkbox" data-children={paths(wards23.groups.flatMap((g) => g.wards))} />
+                                Tokyo 23 wards <span class="count">{fmt(wards23.units)}</span>
+                              </label>
+                            </legend>
+                            {wards23.groups.map((g) => (
+                              <div class="flex flex-col gap-3 ps-6">
+                                <label class="label">
+                                  <input class="input" type="checkbox" data-children={paths(g.wards)} />
+                                  {g.name} <span class="count">{fmt(g.units)}</span>
+                                </label>
+                                <div class="checks ps-6">
+                                  {g.wards.map((w) => (
+                                    <label class="label font-normal">
+                                      <input class="input" type="checkbox" name="area" value={w.path} />
+                                      {w.name} <span class="count">{fmt(w.units)}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </fieldset>
+                        )}
+                        {rest.wards.length > 0 && (
+                          <fieldset class="fieldset">
+                            <legend>
+                              <label class="label">
+                                <input class="input" type="checkbox" data-children={paths(rest.wards)} />
+                                Rest of Tokyo (Tama area) <span class="count">{fmt(rest.units)}</span>
+                              </label>
+                            </legend>
+                            <div class="checks ps-6">
+                              {rest.wards.map((w) => (
+                                <label class="label font-normal">
+                                  <input class="input" type="checkbox" name="area" value={w.path} />
                                   {w.name} <span class="count">{fmt(w.units)}</span>
                                 </label>
                               ))}
                             </div>
-                          </div>
-                        ))}
-                      </fieldset>
-                    )}
-                    {rest.wards.length > 0 && (
-                      <fieldset>
-                        <legend>
-                          <label class="check">
-                            <input type="checkbox" data-children={paths(rest.wards)} />
-                            Rest of Tokyo (Tama area) <span class="count">{fmt(rest.units)}</span>
-                          </label>
-                        </legend>
-                        <div class="checks">
-                          {rest.wards.map((w) => (
-                            <label class="check">
-                              <input type="checkbox" name="area" value={w.path} />
-                              {w.name} <span class="count">{fmt(w.units)}</span>
+                          </fieldset>
+                        )}
+                      </>
+                    );
+                  })()
+                ) : (
+                  pref.children.map((region) => (
+                    <fieldset class="fieldset">
+                      <legend>
+                        <label class="label">
+                          <input class="input" type="checkbox" name="area" value={`${pref.slug}/${region.slug}`} />
+                          {region.name} <span class="count">{fmt(region.units)}</span>
+                        </label>
+                      </legend>
+                      {region.children.length > 0 && (
+                        <div class="checks ps-6">
+                          {region.children.map((ward) => (
+                            <label class="label font-normal">
+                              <input class="input" type="checkbox" name="area" value={`${pref.slug}/${region.slug}/${ward.slug}`} />
+                              {ward.name} <span class="count">{fmt(ward.units)}</span>
                             </label>
                           ))}
                         </div>
-                      </fieldset>
-                    )}
-                  </>
-                );
-              })()
-            ) : (
-              pref.children.map((region) => (
-                <fieldset>
-                  <legend>
-                    <label class="check">
-                      <input type="checkbox" name="area" value={`${pref.slug}/${region.slug}`} />
-                      {region.name} <span class="count">{fmt(region.units)}</span>
-                    </label>
-                  </legend>
-                  {region.children.length > 0 && (
-                    <div class="checks">
-                      {region.children.map((ward) => (
-                        <label class="check">
-                          <input type="checkbox" name="area" value={`${pref.slug}/${region.slug}/${ward.slug}`} />
-                          {ward.name} <span class="count">{fmt(ward.units)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </fieldset>
-              ))
-            )}
-          </div>
-        </details>
-      ))
-    }
-    {areas.length === 0 && <p class="muted">No listing data yet. Run the scraper or <code>npm run data:pull</code>.</p>}
-    <div class="sticky-submit">
+                      )}
+                    </fieldset>
+                  ))
+                )}
+              </section>
+            </details>
+          ))
+        }
+      </div>
+      {areas.length === 0 && <p class="text-muted-foreground">No listing data yet. Run the scraper or <code>npm run data:pull</code>.</p>}
+    </section>
+    <footer class="sticky-submit border-t">
       <button class="btn" type="submit">Next: set conditions</button>
-      <span class="muted small" id="area-summary">No areas selected (searches everywhere)</span>
-    </div>
+      <span class="text-sm text-muted-foreground" id="area-summary">No areas selected (searches everywhere)</span>
+    </footer>
   </form>
 </Base>
 

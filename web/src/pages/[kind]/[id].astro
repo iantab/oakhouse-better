@@ -1,5 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import Chevron from '../../components/Chevron.astro';
 import { categoryLabel, getData, yen } from '../../lib/data';
 import type { Property, Room } from '../../lib/types';
 
@@ -58,22 +60,18 @@ const fees = (r: Room) =>
 ---
 
 <Base title={p.name} description={`${categoryLabel(p.category)} in ${p.ward ?? p.prefecture ?? 'Japan'}: ${p.rooms.length} rooms, from ${yen(Math.min(...prices))}/month.`}>
-  <ol class="steps">
-    <li><a href={base}>Home</a></li>
-    {crumbs.map((c) => <li><a href={c.href}>{c.name}</a></li>)}
-    <li class="current">{p.name}</li>
-  </ol>
+  <Breadcrumb items={[{ label: 'Home', href: base }, ...crumbs.map((c) => ({ label: c.name!, href: c.href })), { label: p.name, current: true }]} />
 
-  <div class="detail-head">
+  <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <div class="kind">{categoryLabel(p.category)}</div>
-      <h1>{p.name}</h1>
-      <p class="muted m-0">{address}</p>
+      <p class="kind">{categoryLabel(p.category)}</p>
+      <h1 class="text-3xl font-bold tracking-tight">{p.name}</h1>
+      <p class="mt-1 text-muted-foreground">{address}</p>
     </div>
     <div class="price-box">
-      <div class="small muted">Monthly, incl. maintenance</div>
-      <div class="price">{prices.length ? `${yen(Math.min(...prices))}${Math.max(...prices) !== Math.min(...prices) ? ` – ${yen(Math.max(...prices))}` : ''}` : '—'}</div>
-      <div class="small"><strong>{open.length}</strong> of {p.rooms.length} room{p.rooms.length === 1 ? '' : 's'} available or soon</div>
+      <p class="text-sm text-muted-foreground">Monthly, incl. maintenance</p>
+      <p class="text-2xl font-bold tracking-tight tabular-nums">{prices.length ? `${yen(Math.min(...prices))}${Math.max(...prices) !== Math.min(...prices) ? ` – ${yen(Math.max(...prices))}` : ''}` : '—'}</p>
+      <p class="text-sm"><strong>{open.length}</strong> of {p.rooms.length} room{p.rooms.length === 1 ? '' : 's'} available or soon</p>
     </div>
   </div>
 
@@ -91,172 +89,195 @@ const fees = (r: Room) =>
   }
 
   <div class="detail-grid">
-    <div>
-      <section class="panel rooms-panel">
-        <h2>Rooms</h2>
-        {commonKeys.length > 0 && (
-          <div class="mb-2">
-            <div class="small muted mb-1">{rooms.length > 1 ? 'Every room has' : 'Room features'}</div>
-            <ul class="chips">{commonKeys.map((k) => <li class="chip on">{amenityLabel.get(k)!.label}</li>)}</ul>
+    <div class="flex min-w-0 flex-col gap-4">
+      <section class="card rooms-panel">
+        <header>
+          <h2>Rooms</h2>
+          {commonKeys.length > 0 && <p>{rooms.length > 1 ? 'Every room has:' : 'Room features:'}</p>}
+        </header>
+        <section class="flex flex-col gap-4">
+          {commonKeys.length > 0 && (
+            <ul class="flex flex-wrap gap-1.5">{commonKeys.map((k) => <li class="badge" data-variant="secondary">{amenityLabel.get(k)!.label}</li>)}</ul>
+          )}
+          {/* Hiding is CSS-only (.rooms-panel:has(...) in global.css); the script below just updates the count. */}
+          {(soonCount > 0 || fullCount > 0) && (
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span class="text-sm text-muted-foreground">Show:</span>
+              {soonCount > 0 && (
+                <label class="label"><input class="input" type="checkbox" id="show-soon" checked /> Soon <span class="count">({soonCount})</span></label>
+              )}
+              {fullCount > 0 && (
+                <label class="label"><input class="input" type="checkbox" id="show-full" /> Full <span class="count">({fullCount})</span></label>
+              )}
+              <span class="room-count ms-auto text-sm text-muted-foreground" data-total={rooms.length}></span>
+            </div>
+          )}
+          <div class="table-container rooms-scroll">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Status</th><th>Room</th><th>Type</th><th class="num">Size</th><th class="num">Floor</th>
+                  <th class="num">Rent</th><th class="num">Maint.</th><th class="num">Monthly</th><th class="features">Also has</th>
+                </tr>
+              </thead>
+              <tbody>
+                {
+                  rooms.map((r) => (
+                    <tr class={r.status === 'full' ? 'is-full' : undefined} data-status={r.status}>
+                      <td>
+                        <span class={`badge status-${r.status}`}>{STATUS[r.status]}</span>
+                        {r.available_from && <div class="text-xs whitespace-nowrap text-muted-foreground">from {r.available_from}</div>}
+                      </td>
+                      <td>
+                        <strong>{r.number}</strong>
+                        {r.photos.length > 0 && (
+                          <div class="room-photos">
+                            {r.photos.slice(0, 1).map((src) => <img src={src} alt={`Room ${r.number}`} loading="lazy" referrerpolicy="no-referrer" />)}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        {r.room_type}
+                        {r.floor_plan && <div class="text-xs text-muted-foreground">{r.floor_plan}</div>}
+                        {r.gender !== 'any' && <div class="text-xs font-medium">{r.gender === 'women' ? 'Women only' : 'Men only'}</div>}
+                      </td>
+                      <td class="num">{r.size_m2 != null ? `${r.size_m2}㎡` : '—'}</td>
+                      <td class="num">{r.floor != null ? `${r.floor}F` : '—'}</td>
+                      <td class="num">{yen(r.rent)}</td>
+                      <td class="num">{yen(r.maintenance)}</td>
+                      <td class="num"><strong>{yen(r.monthly_total ?? r.rent)}</strong></td>
+                      <td class="features">
+                        <ul class="flex flex-wrap gap-1">{roomChips(r).map((a) => <li class="badge" data-variant="outline">{a.label}</li>)}</ul>
+                        {fees(r).length > 0 && (
+                          <div class="mt-1.5 text-xs text-muted-foreground">{fees(r).map(([k, v]) => `${k}: ${v.replace(/※.*$/, '').trim()}`).join(' · ')}</div>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
           </div>
-        )}
-        {/* Hiding is CSS-only (.rooms-panel:has(...) in global.css); the script below just updates the count. */}
-        {(soonCount > 0 || fullCount > 0) && (
-          <div class="room-toggles">
-            <span class="small muted">Show:</span>
-            {soonCount > 0 && (
-              <label class="check"><input type="checkbox" id="show-soon" checked /> Soon <span class="count">({soonCount})</span></label>
-            )}
-            {fullCount > 0 && (
-              <label class="check"><input type="checkbox" id="show-full" /> Full <span class="count">({fullCount})</span></label>
-            )}
-            <span class="small muted room-count" data-total={rooms.length}></span>
-          </div>
-        )}
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Status</th><th>Room</th><th>Type</th><th class="num">Size</th><th class="num">Floor</th>
-                <th class="num">Rent</th><th class="num">Maint.</th><th class="num">Monthly</th><th class="features">Also has</th>
-              </tr>
-            </thead>
-            <tbody>
-              {
-                rooms.map((r) => (
-                  <tr class={r.status === 'full' ? 'is-full' : undefined} data-status={r.status}>
-                    <td>
-                      <span class={`badge ${r.status}`}>{STATUS[r.status]}</span>
-                      {r.available_from && <div class="small muted">from {r.available_from}</div>}
-                    </td>
-                    <td>
-                      <strong>{r.number}</strong>
-                      {r.photos.length > 0 && (
-                        <div class="room-photos">
-                          {r.photos.slice(0, 1).map((src) => <img src={src} alt={`Room ${r.number}`} loading="lazy" referrerpolicy="no-referrer" />)}
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      {r.room_type}
-                      {r.floor_plan && <div class="small muted">{r.floor_plan}</div>}
-                      {r.gender !== 'any' && <div class="small"><strong>{r.gender === 'women' ? 'Women only' : 'Men only'}</strong></div>}
-                    </td>
-                    <td class="num">{r.size_m2 != null ? `${r.size_m2}㎡` : '—'}</td>
-                    <td class="num">{r.floor != null ? `${r.floor}F` : '—'}</td>
-                    <td class="num">{yen(r.rent)}</td>
-                    <td class="num">{yen(r.maintenance)}</td>
-                    <td class="num"><strong>{yen(r.monthly_total ?? r.rent)}</strong></td>
-                    <td class="features">
-                      <ul class="chips">{roomChips(r).map((a) => <li class="chip">{a.label}</li>)}</ul>
-                      {fees(r).length > 0 && (
-                        <div class="small muted mt-1">{fees(r).map(([k, v]) => `${k}: ${v.replace(/※.*$/, '').trim()}`).join(' · ')}</div>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              }
-            </tbody>
-          </table>
-        </div>
-        <p class="rooms-empty muted" hidden>
-          {open.length === 0
-            ? <>All rooms here are full right now. Tick <strong>Full</strong> above to see them.</>
-            : <>No rooms are available right now. Tick <strong>Soon</strong> above to see upcoming rooms.</>}
-        </p>
+          <p class="rooms-empty text-muted-foreground" hidden>
+            {open.length === 0
+              ? <>All rooms here are full right now. Tick <strong>Full</strong> above to see them.</>
+              : <>No rooms are available right now. Tick <strong>Soon</strong> above to see upcoming rooms.</>}
+          </p>
+        </section>
         {rooms.some((r) => r.contract_fee) && (
-          <p class="small muted">One-time contract fee: {[...new Set(rooms.map((r) => r.contract_fee).filter(Boolean))].map((n) => yen(n)).join(' / ')}.</p>
+          <footer>
+            <p class="text-muted-foreground">One-time contract fee: {[...new Set(rooms.map((r) => r.contract_fee).filter(Boolean))].map((n) => yen(n)).join(' / ')}.</p>
+          </footer>
         )}
       </section>
 
       {p.description && (
-        <section class="panel">
-          <h2>About this property</h2>
-          <p class="m-0">{p.description}</p>
+        <section class="card">
+          <header><h2>About this property</h2></header>
+          <section><p class="leading-relaxed">{p.description}</p></section>
         </section>
       )}
 
-      <section class="panel">
-        <h2>Shared facilities</h2>
-        {Object.keys(p.shared_facilities).length === 0 && <p class="muted">None listed.</p>}
-        <dl class="facts">
-          {Object.entries(p.shared_facilities).map(([cat, items]) => (
-            <>
-              <dt>{cat}</dt>
-              <dd>{items.map((i) => i.label).join(', ')}</dd>
-            </>
-          ))}
-        </dl>
+      <section class="card">
+        <header><h2>Shared facilities</h2></header>
+        <section>
+          {Object.keys(p.shared_facilities).length === 0 && <p class="text-muted-foreground">None listed.</p>}
+          <dl class="facts">
+            {Object.entries(p.shared_facilities).map(([cat, items]) => (
+              <>
+                <dt>{cat}</dt>
+                <dd>{items.map((i) => i.label).join(', ')}</dd>
+              </>
+            ))}
+          </dl>
+        </section>
       </section>
     </div>
 
-    <div>
-      <section class="panel">
-        <a class="btn block" href={p.url} target="_blank" rel="noopener">View &amp; apply on oakhouse.jp ↗</a>
-        <p class="small muted m-0 mt-2">Last updated by Oakhouse: {p.updated || 'unknown'}</p>
+    <div class="flex min-w-0 flex-col gap-4">
+      <section class="card">
+        <section class="flex flex-col gap-3">
+          <a class="btn w-full" data-size="lg" href={p.url} target="_blank" rel="noopener">View &amp; apply on oakhouse.jp ↗</a>
+          <p class="text-xs text-muted-foreground">Last updated by Oakhouse: {p.updated || 'unknown'}</p>
+        </section>
       </section>
 
-      <section class="panel">
-        <h2>Getting there</h2>
-        {mapUrl && <iframe class="map" src={mapUrl} title={`Map of ${p.name}`} loading="lazy" referrerpolicy="no-referrer-when-downgrade" />}
-        {googleMapsUrl && (
-          <p class="small m-0 mt-1">
-            <a href={googleMapsUrl} target="_blank" rel="noopener">Open in Google Maps ↗</a>
-          </p>
-        )}
-        {
-          p.stations.length > 0 ? (
-            <table class="mt-2">
-              <thead><tr><th>Station</th><th class="num">Walk*</th></tr></thead>
-              <tbody>
-                {p.stations.slice(0, 6).map((s) => (
-                  <tr>
-                    <td>
-                      {s.name}
-                      <div class="small muted">{s.lines.map((id) => lineName.get(id)?.name ?? id).join(', ')}</div>
-                    </td>
-                    <td class="num">{s.walk_min} min<div class="small muted">{s.distance_m} m</div></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : null
-        }
-        {p.stations.length > 0 && <p class="small muted">*Estimated from straight-line distance (80 m/min, +25% for streets).</p>}
-        {
-          p.oakhouse_stations.length > 0 && (
-            <details class="small" open={p.stations.length === 0}>
-              <summary>Oakhouse's station list</summary>
-              <ul>
-                {p.oakhouse_stations.map((s) => (
-                  <li>{s.station} ({s.line}){s.walk_min != null && ` – ${s.walk_min} min walk`}</li>
-                ))}
-              </ul>
-            </details>
-          )
-        }
-        {p.terminal && <p class="small">{p.terminal}</p>}
+      <section class="card">
+        <header>
+          <h2>Getting there</h2>
+          {p.terminal && <p>{p.terminal}</p>}
+        </header>
+        <section class="flex flex-col gap-4">
+          {mapUrl && <iframe class="map" src={mapUrl} title={`Map of ${p.name}`} loading="lazy" referrerpolicy="no-referrer-when-downgrade" />}
+          {googleMapsUrl && (
+            <a class="btn" data-variant="outline" data-size="sm" href={googleMapsUrl} target="_blank" rel="noopener">Open in Google Maps ↗</a>
+          )}
+          {
+            p.stations.length > 0 ? (
+              <table class="table">
+                <thead><tr><th>Station</th><th class="num">Walk*</th></tr></thead>
+                <tbody>
+                  {p.stations.slice(0, 6).map((s) => (
+                    <tr>
+                      <td>
+                        {s.name}
+                        <div class="text-xs text-muted-foreground">{s.lines.map((id) => lineName.get(id)?.name ?? id).join(', ')}</div>
+                      </td>
+                      <td class="num">{s.walk_min} min<div class="text-xs text-muted-foreground">{s.distance_m} m</div></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : null
+          }
+          {p.stations.length > 0 && <p class="text-xs text-muted-foreground">*Estimated from straight-line distance (80 m/min, +25% for streets).</p>}
+          {
+            p.oakhouse_stations.length > 0 && (
+              <div class="accordion">
+                <details open={p.stations.length === 0}>
+                  <summary>
+                    Oakhouse's station list
+                    <Chevron />
+                  </summary>
+                  <section>
+                    <ul class="list-disc space-y-1 ps-5">
+                      {p.oakhouse_stations.map((s) => (
+                        <li>{s.station} ({s.line}){s.walk_min != null && ` – ${s.walk_min} min walk`}</li>
+                      ))}
+                    </ul>
+                  </section>
+                </details>
+              </div>
+            )
+          }
+        </section>
       </section>
 
       {propertyChips.length > 0 && (
-        <section class="panel">
-          <h2>Building &amp; contract</h2>
-          <ul class="chips">{propertyChips.map((a) => <li class="chip on">{a!.label}</li>)}</ul>
-          {p.discounts.length > 0 && <p class="small muted">Discounts: {p.discounts.join(', ')}</p>}
+        <section class="card">
+          <header>
+            <h2>Building &amp; contract</h2>
+            {p.discounts.length > 0 && <p>Discounts: {p.discounts.join(', ')}</p>}
+          </header>
+          <section>
+            <ul class="flex flex-wrap gap-1.5">{propertyChips.map((a) => <li class="badge" data-variant="secondary">{a!.label}</li>)}</ul>
+          </section>
         </section>
       )}
 
       {Object.keys(p.building).length > 0 && (
-        <section class="panel">
-          <h2>Building info</h2>
-          <dl class="facts stacked">
-            {Object.entries(p.building).filter(([, v]) => v).map(([k, v]) => (
-              <>
-                <dt>{k}</dt>
-                <dd>{v}</dd>
-              </>
-            ))}
-          </dl>
+        <section class="card">
+          <header><h2>Building info</h2></header>
+          <section>
+            <dl class="facts stacked">
+              {Object.entries(p.building).filter(([, v]) => v).map(([k, v]) => (
+                <>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </>
+              ))}
+            </dl>
+          </section>
         </section>
       )}
     </div>

@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
 import ConditionsFields from '../components/ConditionsFields.astro';
 import { getData } from '../lib/data';
 
@@ -10,35 +11,41 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 ---
 
 <Base title="Results">
-  <ol class="steps">
-    <li><a href={base}>Home</a></li>
-    <li><a id="loc-link" href={`${base}search/area/`}>1. Location</a></li>
-    <li><a id="cond-link" href={`${base}conditions/`}>2. Conditions</a></li>
-    <li class="current">3. Results</li>
-  </ol>
+  <Breadcrumb
+    items={[
+      { label: 'Home', href: base },
+      { label: '1. Location', href: `${base}search/area/`, id: 'loc-link' },
+      { label: '2. Conditions', href: `${base}conditions/`, id: 'cond-link' },
+      { label: '3. Results', current: true },
+    ]}
+  />
 
   <div class="results-layout">
     <aside id="filters">
-      <form class="panel" id="filter-form" data-lines={JSON.stringify(lineNames)}>
-        <p class="small mt-0">
-          <span class="muted">Location:</span> <strong id="location">Anywhere</strong>{' '}
-          <a id="change-link" href={`${base}search/area/`}>change</a>
-        </p>
-        <ConditionsFields compact />
-        <button class="btn block" type="submit">Update results</button>
+      <form class="card" data-size="sm" id="filter-form" data-lines={JSON.stringify(lineNames)}>
+        <header>
+          <h2>Filters</h2>
+          <p>Location: <strong class="text-foreground" id="location">Anywhere</strong> · <a class="link" id="change-link" href={`${base}search/area/`}>change</a></p>
+        </header>
+        <section>
+          <ConditionsFields compact />
+        </section>
+        <footer>
+          <button class="btn w-full" type="submit">Update results</button>
+        </footer>
       </form>
     </aside>
 
     <section aria-live="polite">
-      <div class="results-bar">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 class="m-0" id="headline">Loading listings…</h1>
-          <div class="muted small" id="subline"></div>
+          <h1 class="text-2xl font-semibold tracking-tight" id="headline">Loading listings…</h1>
+          <p class="text-sm text-muted-foreground" id="subline"></p>
         </div>
-        <div class="row">
-          <button class="btn secondary filter-toggle" type="button" id="filter-toggle" aria-controls="filters" aria-expanded="false">Filters</button>
-          <label class="small muted" for="sort">Sort</label>
-          <select id="sort">
+        <div class="flex items-center gap-2">
+          <button class="btn filter-toggle" data-variant="outline" type="button" id="filter-toggle" aria-controls="filters" aria-expanded="false">Filters</button>
+          <label class="label" for="sort">Sort</label>
+          <select class="select" id="sort">
             <option value="commute" hidden>Shortest commute</option>
             <option value="price">Lowest price</option>
             <option value="walk">Shortest walk</option>
@@ -47,11 +54,11 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
           </select>
         </div>
       </div>
-      <div id="results" data-amenities={JSON.stringify(amenityLabels)}></div>
-      <nav class="pager" id="pager" aria-label="Pages"></nav>
-      <p class="small muted" id="commute-note" hidden>
-        * Commute times are estimated from map data, not timetables, and don't include waiting for the first train.
-      </p>
+      <div class="flex flex-col gap-4" id="results" data-amenities={JSON.stringify(amenityLabels)}></div>
+      <nav class="mt-6 flex justify-center" aria-label="Pages"><div class="button-group" id="pager"></div></nav>
+      <div class="alert mt-6" id="commute-note" hidden>
+        <section>Commute times are estimated from map data, not timetables, and don't include waiting for the first train.</section>
+      </div>
     </section>
   </div>
 </Base>
@@ -81,6 +88,8 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     '<svg class="meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M9 21l-2-4M15 21l2-4"/></svg>';
   const CLOCK_ICON =
     '<svg class="meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  const SEARCH_ICON =
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
   let dest = '';
 
   const toggle = document.getElementById('filter-toggle')!;
@@ -91,11 +100,11 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 
   function unitRow(u: IndexUnit) {
     const [cls, label] = STATUS[u.s];
-    const when = u.s === 's' && u.d ? `<div class="muted small">from ${esc(u.d)}</div>` : '';
+    const when = u.s === 's' && u.d ? `<div class="text-xs whitespace-nowrap text-muted-foreground">from ${esc(u.d)}</div>` : '';
     return `<tr class="${u.s === 'f' ? 'is-full' : ''}">
-      <td><span class="badge ${cls}">${label}</span>${when}</td>
+      <td><span class="badge status-${cls}">${label}</span>${when}</td>
       <td>${esc(u.n)}</td>
-      <td class="num"><strong>${yen(u.t ?? u.r)}</strong>${u.t != null && u.r != null && u.t !== u.r ? `<div class="muted small">rent ${yen(u.r)}</div>` : ''}</td>
+      <td class="num"><strong>${yen(u.t ?? u.r)}</strong>${u.t != null && u.r != null && u.t !== u.r ? `<div class="text-xs text-muted-foreground">rent ${yen(u.r)}</div>` : ''}</td>
       <td class="num">${u.sz != null ? `${u.sz}㎡` : '—'}</td>
       <td class="num">${u.f != null ? `${u.f}F` : '—'}</td>
       <td class="opt">${esc(u.rt ?? '')}</td>
@@ -108,19 +117,21 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     const st = p.st.slice(0, 3).map(([name, walk]) => `${esc(name)}${walk != null ? ` ${walk} min` : ''}`).join(' · ');
     const shown = g.units.slice(0, UNITS_SHOWN);
     const more = g.units.length - shown.length;
-    return `<article class="prop-card">
+    return `<article class="card prop-card">
       <a class="thumb" href="${href}" aria-hidden="true" tabindex="-1">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}</a>
-      <div class="body">
-        <div class="kind">${esc(CATEGORY[p.c] ?? p.c)}${p.w ? ` · ${esc(p.w)}` : ''}</div>
-        <h3><a href="${href}">${esc(p.n)}</a></h3>
-        <div class="meta">${st ? `${TRAIN_ICON}<span>${st}</span>` : ''}</div>
-        ${g.commute ? `<div class="meta commute">${CLOCK_ICON}<span><strong>≈ ${g.commute.min} min*</strong> to ${esc(dest)} from ${esc(g.commute.station)} · ${transfersLabel(g.commute.transfers)} · +${g.commute.walk} min walk</span></div>` : ''}
-        <div class="table-scroll"><table>
-          <thead><tr><th>Status</th><th>Room</th><th class="num">Monthly</th><th class="num">Size</th><th class="num">Floor</th><th class="opt">Type</th></tr></thead>
-          <tbody>${shown.map((u) => unitRow(u)).join('')}</tbody>
-        </table></div>
-        ${more > 0 ? `<div class="more-units"><a href="${href}">+ ${more} more matching room${more > 1 ? 's' : ''}</a></div>` : ''}
-      </div>
+      <header>
+          <p class="kind">${esc(CATEGORY[p.c] ?? p.c)}${p.w ? ` · ${esc(p.w)}` : ''}</p>
+          <h3><a href="${href}">${esc(p.n)}</a></h3>
+          ${st ? `<p class="meta">${TRAIN_ICON}<span>${st}</span></p>` : ''}
+          ${g.commute ? `<p class="meta text-foreground">${CLOCK_ICON}<span><strong>≈ ${g.commute.min} min*</strong> to ${esc(dest)} from ${esc(g.commute.station)} · ${transfersLabel(g.commute.transfers)} · +${g.commute.walk} min walk</span></p>` : ''}
+        </header>
+        <section>
+          <div class="table-container"><table class="table">
+            <thead><tr><th>Status</th><th>Room</th><th class="num">Monthly</th><th class="num">Size</th><th class="num">Floor</th><th class="opt">Type</th></tr></thead>
+            <tbody>${shown.map((u) => unitRow(u)).join('')}</tbody>
+          </table></div>
+        </section>
+        ${more > 0 ? `<footer><a class="btn" data-variant="link" data-size="sm" href="${href}">+ ${more} more matching room${more > 1 ? 's' : ''}</a></footer>` : ''}
     </article>`;
   }
 
@@ -153,13 +164,13 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 
     results.innerHTML = slice.length
       ? slice.map(card).join('')
-      : `<div class="panel empty"><h2>No rooms match</h2><p class="muted">Try widening the price range, removing a few must-haves, or ticking <strong>Full</strong> under Availability.</p></div>`;
+      : `<section class="empty border"><header><figure>${SEARCH_ICON}</figure><h3>No rooms match</h3><p>Try widening the price range, removing a few must-haves, or ticking <strong>Full</strong> under Availability.</p></header></section>`;
 
     pager.innerHTML =
       pages > 1
         ? Array.from({ length: pages }, (_, i) => i + 1)
             .filter((n) => n === 1 || n === pages || Math.abs(n - page) <= 2)
-            .map((n, i, arr) => `${i > 0 && n - arr[i - 1] > 1 ? '<span class="muted">…</span>' : ''}<button class="btn secondary" data-page="${n}" ${n === page ? 'aria-current="page"' : ''}>${n}</button>`)
+            .map((n, i, arr) => `${i > 0 && n - arr[i - 1] > 1 ? '<button class="btn" data-variant="outline" disabled>…</button>' : ''}<button class="btn" data-variant="${n === page ? 'primary' : 'outline'}" data-page="${n}" ${n === page ? 'aria-current="page"' : ''}>${n}</button>`)
             .join('')
         : '';
   }
@@ -183,7 +194,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
       render(params, index, commute);
     } catch (err) {
       document.getElementById('headline')!.textContent = 'Could not load listings';
-      results.innerHTML = `<div class="panel empty"><p class="muted">${esc(err)}</p></div>`;
+      results.innerHTML = `<section class="empty border"><header><h3>Could not load listings</h3><p>${esc(err)}</p></header></section>`;
     }
   }
 

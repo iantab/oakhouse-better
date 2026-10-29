@@ -1,0 +1,28 @@
+/* Basecoat's stock (Vega) palette, with our green as the brand colour. Dark mode is html.dark,
+   set before first paint by Base.astro from the saved choice or the OS setting. */
+:root {
+  --primary: oklch(0.47 0.09 162);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.47 0.09 162 / 60%);
+
+  /* Room status colours (badges) */
+  --available: oklch(0.55 0.19 41);
+  --available-soft: oklch(0.96 0.03 55);
+  --soon: oklch(0.55 0.13 75);
+  --soon-soft: oklch(0.96 0.04 90);
+}
+
+.dark {
+  --primary: oklch(0.72 0.12 160);
+  --primary-foreground: oklch(0.2 0.03 160);
+  --ring: oklch(0.72 0.12 160 / 60%);
+
+  --available: oklch(0.76 0.15 55);
+  --available-soft: oklch(0.3 0.06 45);
+  --soon: oklch(0.86 0.15 95);
+  --soon-soft: oklch(0.3 0.05 90);
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+}
