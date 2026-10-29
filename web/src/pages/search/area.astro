@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getData } from '../../lib/data';
+import { groupTokyo } from '../../lib/tokyo';
 
 const base = import.meta.env.BASE_URL;
 const { areas } = getData();
@@ -17,37 +18,97 @@ const fmt = (n: number) => n.toLocaleString('en-US');
   <h1>Where do you want to live?</h1>
   <p class="muted">Tick a whole prefecture or region, or open it to pick individual wards and cities. Numbers are rooms listed.</p>
 
+  {/*
+    Checkboxes named "area" are submitted (prefecture / region / ward paths). Boxes with data-children
+    are name-less "select all" helpers (Tokyo 23-ward groups). Parent and helper states are derived
+    from the wards by the script below.
+  */}
   <form class="panel" method="get" action={`${base}conditions/`} id="area-form">
     {
       areas.map((pref, i) => (
         <details class="group" open={i === 0}>
           <summary>
             <label class="check">
-              <input type="checkbox" name="area" value={pref.slug} data-level="0" />
+              <input type="checkbox" name="area" value={pref.slug} />
               {pref.name} <span class="count">{fmt(pref.units)}</span>
             </label>
           </summary>
           <div class="body">
-            {pref.children.map((region) => (
-              <fieldset>
-                <legend>
-                  <label class="check">
-                    <input type="checkbox" name="area" value={`${pref.slug}/${region.slug}`} data-level="1" />
-                    {region.name} <span class="count">{fmt(region.units)}</span>
-                  </label>
-                </legend>
-                {region.children.length > 0 && (
-                  <div class="checks">
-                    {region.children.map((ward) => (
-                      <label class="check">
-                        <input type="checkbox" name="area" value={`${pref.slug}/${region.slug}/${ward.slug}`} data-level="2" />
-                        {ward.name} <span class="count">{fmt(ward.units)}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </fieldset>
-            ))}
+            {pref.slug === 'tokyo' ? (
+              (() => {
+                const { wards23, rest } = groupTokyo(pref);
+                const paths = (ws: { path: string }[]) => ws.map((w) => w.path).join(' ');
+                return (
+                  <>
+                    {wards23.groups.length > 0 && (
+                      <fieldset>
+                        <legend>
+                          <label class="check">
+                            <input type="checkbox" data-children={paths(wards23.groups.flatMap((g) => g.wards))} />
+                            Tokyo 23 wards <span class="count">{fmt(wards23.units)}</span>
+                          </label>
+                        </legend>
+                        {wards23.groups.map((g) => (
+                          <div class="ward-group">
+                            <label class="check ward-group-title">
+                              <input type="checkbox" data-children={paths(g.wards)} />
+                              {g.name} <span class="count">{fmt(g.units)}</span>
+                            </label>
+                            <div class="checks">
+                              {g.wards.map((w) => (
+                                <label class="check">
+                                  <input type="checkbox" name="area" value={w.path} />
+                                  {w.name} <span class="count">{fmt(w.units)}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </fieldset>
+                    )}
+                    {rest.wards.length > 0 && (
+                      <fieldset>
+                        <legend>
+                          <label class="check">
+                            <input type="checkbox" data-children={paths(rest.wards)} />
+                            Rest of Tokyo (Tama area) <span class="count">{fmt(rest.units)}</span>
+                          </label>
+                        </legend>
+                        <div class="checks">
+                          {rest.wards.map((w) => (
+                            <label class="check">
+                              <input type="checkbox" name="area" value={w.path} />
+                              {w.name} <span class="count">{fmt(w.units)}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+                    )}
+                  </>
+                );
+              })()
+            ) : (
+              pref.children.map((region) => (
+                <fieldset>
+                  <legend>
+                    <label class="check">
+                      <input type="checkbox" name="area" value={`${pref.slug}/${region.slug}`} />
+                      {region.name} <span class="count">{fmt(region.units)}</span>
+                    </label>
+                  </legend>
+                  {region.children.length > 0 && (
+                    <div class="checks">
+                      {region.children.map((ward) => (
+                        <label class="check">
+                          <input type="checkbox" name="area" value={`${pref.slug}/${region.slug}/${ward.slug}`} />
+                          {ward.name} <span class="count">{fmt(ward.units)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </fieldset>
+              ))
+            )}
           </div>
         </details>
       ))
@@ -63,26 +124,49 @@ const fmt = (n: number) => n.toLocaleString('en-US');
 <script>
   const form = document.getElementById('area-form') as HTMLFormElement;
   const summary = document.getElementById('area-summary')!;
-  const boxes = () => [...form.querySelectorAll<HTMLInputElement>('input[name="area"]')];
+  const areaBoxes = [...form.querySelectorAll<HTMLInputElement>('input[name="area"]')];
+  const helpers = [...form.querySelectorAll<HTMLInputElement>('input[data-children]')];
+  const isUnder = (child: string, parent: string) => child.startsWith(parent + '/');
+  // Leaf = an area box with no deeper area box rendered (a ward/city, or a region without wards).
+  const leaves = areaBoxes.filter((b) => !areaBoxes.some((o) => isUnder(o.value, b.value)));
+  const leafByPath = new Map(leaves.map((b) => [b.value, b]));
+
+  const leavesOf = (box: HTMLInputElement) =>
+    box.dataset.children !== undefined
+      ? box.dataset.children.split(' ').map((p) => leafByPath.get(p)).filter((b): b is HTMLInputElement => !!b)
+      : leaves.filter((l) => l === box || isUnder(l.value, box.value));
+
+  // Parents and helpers reflect their leaves: all ticked → checked, some → indeterminate.
+  function syncParents() {
+    for (const box of [...areaBoxes, ...helpers]) {
+      const ls = leavesOf(box);
+      if (ls.length === 1 && ls[0] === box) continue;
+      const on = ls.filter((l) => l.checked).length;
+      box.checked = ls.length > 0 && on === ls.length;
+      box.indeterminate = on > 0 && on < ls.length;
+    }
+  }
+
+  // The most general ticked selections, i.e. what actually gets submitted.
+  const submitted = () =>
+    areaBoxes.filter((b) => b.checked && !areaBoxes.some((p) => p !== b && p.checked && isUnder(b.value, p.value)));
 
   form.addEventListener('change', (e) => {
     const box = e.target as HTMLInputElement;
-    if (box.name !== 'area') return;
-    // Ticking a parent selects its children; ticking a child clears the parent (the parent would match everything anyway).
-    for (const other of boxes()) {
-      if (other !== box && other.value.startsWith(box.value + '/')) other.checked = box.checked;
-      if (box.checked && box.value.startsWith(other.value + '/')) other.checked = false;
-    }
-    const picked = boxes().filter((b) => b.checked);
-    summary.textContent = picked.length ? `${picked.length} area${picked.length > 1 ? 's' : ''} selected` : 'No areas selected (searches everywhere)';
+    if (box.name !== 'area' && box.dataset.children === undefined) return;
+    for (const leaf of leavesOf(box)) leaf.checked = box.checked;
+    syncParents();
+    const n = submitted().length;
+    summary.textContent = n ? `${n} area${n > 1 ? 's' : ''} selected` : 'No areas selected (searches everywhere)';
   });
 
-  // Only submit the most general selections: a ticked parent makes its ticked children redundant.
+  // Submit only the most general selections: a ticked parent makes its ticked children redundant.
   form.addEventListener('submit', () => {
-    const picked = boxes().filter((b) => b.checked);
-    for (const b of picked) {
-      if (picked.some((p) => p !== b && b.value.startsWith(p.value + '/'))) b.disabled = true;
-    }
+    const keep = new Set(submitted());
+    for (const b of areaBoxes) if (b.checked && !keep.has(b)) b.disabled = true;
   });
-  window.addEventListener('pageshow', () => boxes().forEach((b) => (b.disabled = false)));
+  window.addEventListener('pageshow', () => {
+    areaBoxes.forEach((b) => (b.disabled = false));
+    syncParents(); // back/forward cache restores ticks; recompute partial states
+  });
 </script>

@@ -19,8 +19,10 @@
   color-scheme: light;
 }
 
+/* Dark theme: follows the OS unless the header toggle stored a choice (html[data-theme]).
+   The variable block appears twice because a media query can't share a selector. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #141816;
     --surface: #1c211f;
     --surface-2: #232927;
@@ -37,6 +39,24 @@
     --full: #8b938f;
     color-scheme: dark;
   }
+}
+
+:root[data-theme='dark'] {
+  --bg: #141816;
+  --surface: #1c211f;
+  --surface-2: #232927;
+  --text: #e8ebe9;
+  --muted: #a3aba7;
+  --line: #2f3633;
+  --accent: #4fb88c;
+  --accent-ink: #0c1612;
+  --accent-soft: #1e3329;
+  --available: #fb923c;
+  --available-soft: #3a2316;
+  --soon: #facc15;
+  --soon-soft: #38301a;
+  --full: #8b938f;
+  color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -64,6 +84,21 @@ h3 { font-size: 1rem; }
 .site-nav { display: flex; gap: 18px; font-size: 0.93rem; }
 .site-nav a { color: var(--muted); text-decoration: none; }
 .site-nav a:hover { color: var(--text); }
+.theme-toggle {
+  margin-left: auto; flex: none; width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer; padding: 0;
+  background: var(--surface-2); color: var(--text); border: 1px solid var(--line);
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Show the icon for the theme you'd switch TO: moon while light, sun while dark */
+.theme-toggle .sun { display: none; }
+:root[data-theme='dark'] .theme-toggle .sun { display: block; }
+:root[data-theme='dark'] .theme-toggle .moon { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .theme-toggle .sun { display: block; }
+  :root:not([data-theme='light']) .theme-toggle .moon { display: none; }
+}
 .site-footer { margin-top: 64px; border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: 0.85rem; }
 .site-footer p { margin: 4px 0; }
 
@@ -157,6 +192,10 @@ details.group > summary::-webkit-details-marker { display: none; }
 details.group > summary::before { content: '+'; width: 18px; color: var(--muted); font-weight: 400; }
 details.group[open] > summary::before { content: '−'; }
 details.group > .body { padding: 0 4px 16px 32px; }
+/* Tokyo 23-ward groups (Central/North/…) inside the area picker */
+.ward-group { margin: 4px 0 14px; padding-left: 26px; }
+.ward-group-title { font-weight: 600; font-size: 0.92rem; }
+.ward-group .checks { padding-left: 26px; }
 .line-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; background: var(--muted); }
 
 /* Results */
