@@ -173,6 +173,15 @@ def floor_number(room: dict[str, Any]) -> int | None:
     return int(m.group(1)) if m else None
 
 
+STANDARD_LEASE_TERMS = {"Long-term lease : 1 year", "Key Money Required", "Security Deposit Required"}
+
+
+def is_standard_lease(prop: dict[str, Any]) -> bool:
+    """A typical Japanese lease (1 year, deposit/key money via an agent), as opposed to
+    Oakhouse's month-to-month contract with a flat contract fee."""
+    return any(t["label"] in STANDARD_LEASE_TERMS for t in prop["terms"])
+
+
 def structure(prop: dict[str, Any]) -> str | None:
     """Building structure from "Building outline" (e.g. "RC (Reinforced Concrete) 8-story building"):
     rc (RC/RCC/SRC), wood, steel (incl. light-gauge and ALC), or None when the page doesn't say."""

@@ -71,6 +71,7 @@ export const PAGE_SIZE = 20;
 export const TYPE_OF: Record<string, string> = {
   SHAREHOUSE: 'share',
   'SOCIAL RESIDENCE': 'social',
+  'OAKHOUSE APARTMENT': 'oakapt',
   APARTMENT: 'apartment',
 };
 

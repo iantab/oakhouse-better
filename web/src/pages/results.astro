@@ -69,7 +69,12 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
   const sortSel = document.getElementById('sort') as HTMLSelectElement;
   const lines = new Map(Object.entries(JSON.parse(form.dataset.lines ?? '{}')) as [string, string][]);
   const amenityLabels: Record<string, string> = JSON.parse(results.dataset.amenities ?? '{}');
-  const CATEGORY: Record<string, string> = { SHAREHOUSE: 'Share house', 'SOCIAL RESIDENCE': 'Social residence', APARTMENT: 'Apartment' };
+  const CATEGORY: Record<string, string> = {
+    SHAREHOUSE: 'Share house',
+    'SOCIAL RESIDENCE': 'Social residence',
+    'OAKHOUSE APARTMENT': 'Oakhouse apartment',
+    APARTMENT: 'Apartment',
+  };
   const STATUS = { a: ['available', 'Available'], s: ['soon', 'Soon'], f: ['full', 'Full'] } as const;
   const UNITS_SHOWN = 5;
   const TRAIN_ICON =

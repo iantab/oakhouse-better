@@ -76,6 +76,11 @@ export const yen = (n: number | null | undefined) =>
 
 export function categoryLabel(category: string) {
   return (
-    { SHAREHOUSE: 'Share house', 'SOCIAL RESIDENCE': 'Social residence', APARTMENT: 'Apartment' } as Record<string, string>
+    {
+      SHAREHOUSE: 'Share house',
+      'SOCIAL RESIDENCE': 'Social residence',
+      'OAKHOUSE APARTMENT': 'Oakhouse apartment',
+      APARTMENT: 'Apartment',
+    } as Record<string, string>
   )[category] ?? category.charAt(0) + category.slice(1).toLowerCase();
 }
