@@ -1,13 +1,17 @@
 // Keeps a filter <form> in sync with the URL query string.
+import { DEFAULT_AVAIL, parseQuery } from './filter';
 
 const CARRIED = ['area', 'st', 'line'];
 
 /** Prefill inputs from `params` and carry the area/station/line picks along as hidden inputs. */
 export function syncFormFromUrl(form: HTMLFormElement, params: URLSearchParams) {
+  const avail: string[] = parseQuery(params).avail; // applies the default + old status=all links
   for (const el of form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]')) {
     const values = params.getAll(el.name).flatMap((v) => v.split(','));
     if (el instanceof HTMLSelectElement) {
       el.value = values[0] ?? '';
+    } else if (el.name === 'avail') {
+      el.checked = avail.includes(el.value);
     } else if (el.type === 'checkbox') {
       el.checked = values.includes(el.value);
     } else if (el.type === 'radio') {
@@ -37,11 +41,26 @@ export function formToParams(form: HTMLFormElement): URLSearchParams {
   const params = new URLSearchParams();
   for (const [name, value] of new FormData(form)) {
     if (typeof value !== 'string' || value === '') continue;
-    if (name === 'status' && value === 'open') continue;
     if (name === 'sort' && value === 'price') continue;
     params.append(name, value);
   }
+  const avail = params.getAll('avail');
+  if (avail.length === DEFAULT_AVAIL.length && DEFAULT_AVAIL.every((v) => avail.includes(v))) params.delete('avail');
   return params;
+}
+
+/** Stop the last ticked box of a checkbox group (e.g. availability) from being unticked. */
+export function keepOneChecked(form: HTMLFormElement, name: string) {
+  // Capture phase, so the page's own change handlers already see the corrected state.
+  form.addEventListener(
+    'change',
+    (e) => {
+      const box = e.target as HTMLInputElement;
+      if (box.name !== name || box.checked) return;
+      if (!form.querySelector(`input[name="${name}"]:checked`)) box.checked = true;
+    },
+    true,
+  );
 }
 
 /** Human summary of the carried location picks, e.g. "2 areas" / "Yamanote Line + 3 stations". */

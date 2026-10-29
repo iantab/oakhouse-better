@@ -53,11 +53,12 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 </Base>
 
 <script>
-  import { describeLocation, formToParams, syncFormFromUrl } from '../lib/form';
+  import { describeLocation, formToParams, keepOneChecked, syncFormFromUrl } from '../lib/form';
   import { esc, loadIndex, PAGE_SIZE, parseQuery, search, yen, type Group, type IndexUnit } from '../lib/filter';
 
   const base = import.meta.env.BASE_URL;
   const form = document.getElementById('filter-form') as HTMLFormElement;
+  keepOneChecked(form, 'avail');
   const results = document.getElementById('results')!;
   const pager = document.getElementById('pager')!;
   const sortSel = document.getElementById('sort') as HTMLSelectElement;
@@ -107,6 +108,13 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     </article>`;
   }
 
+  // "Available & soon", "Available, soon & full", "Full only"…
+  function availLabel(avail: string[]) {
+    const names = (['a', 's', 'f'] as const).filter((s) => avail.includes(s)).map((s) => ({ a: 'available', s: 'soon', f: 'full' })[s]);
+    const text = names.length > 1 ? `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}` : `${names[0]} only`;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
   function render(params: URLSearchParams, index: Awaited<ReturnType<typeof loadIndex>>) {
     const q = parseQuery(params);
     const { groups, unitCount } = search(index, q);
@@ -118,7 +126,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
       `${unitCount.toLocaleString('en-US')} room${unitCount === 1 ? '' : 's'} in ${groups.length.toLocaleString('en-US')} propert${groups.length === 1 ? 'y' : 'ies'}`;
     const chips = q.am.map((k) => amenityLabels[k] ?? k);
     document.getElementById('subline')!.textContent = [
-      q.status === 'open' ? 'Available now or soon' : 'Including full rooms',
+      availLabel(q.avail),
       ...(q.rmax ? [`up to ${yen(q.rmax)}`] : []),
       ...(q.walk ? [`≤ ${q.walk} min walk`] : []),
       ...chips,
@@ -126,7 +134,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 
     results.innerHTML = slice.length
       ? slice.map(card).join('')
-      : `<div class="panel empty"><h2>No rooms match</h2><p class="muted">Try widening the price range, removing a few must-haves, or including full rooms.</p></div>`;
+      : `<div class="panel empty"><h2>No rooms match</h2><p class="muted">Try widening the price range, removing a few must-haves, or ticking <strong>Full</strong> under Availability.</p></div>`;
 
     pager.innerHTML =
       pages > 1
@@ -148,7 +156,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
   }
 
   async function go(params: URLSearchParams, push: boolean) {
-    if (push) history.pushState(null, '', `?${params}`);
+    if (push) history.pushState(null, '', params.size ? `?${params}` : location.pathname);
     sync(params);
     try {
       render(params, await loadIndex(base));

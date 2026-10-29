@@ -8,10 +8,13 @@ interface Props {
 }
 const { compact = false } = Astro.props;
 const { amenities } = getData();
+// Shown next to the price instead of in the Contract group (they're cost questions).
+const COST_KEYS = ['no_key_money', 'no_deposit'];
+const costToggles = COST_KEYS.map((key) => amenities.items.find((a) => a.key === key)).filter((a) => a != null);
 const groups = Object.entries(amenities.groups).map(([key, label]) => ({
   key,
   label,
-  items: amenities.items.filter((a) => a.group === key),
+  items: amenities.items.filter((a) => a.group === key && !COST_KEYS.includes(a.key)),
 }));
 const rents = [30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 120000, 150000, 200000, 300000];
 const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
@@ -31,6 +34,9 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
       <option value="">No maximum</option>
       {rents.map((r) => <option value={r}>{k(r)}</option>)}
     </select>
+    {costToggles.map((a) => (
+      <label class="check"><input type="checkbox" name="am" value={a!.key} /> {a!.label}</label>
+    ))}
   </div>
 </fieldset>
 
@@ -53,9 +59,11 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
 
 <fieldset>
   <legend>Availability</legend>
-  <div class="checks">
-    <label class="check"><input type="radio" name="status" value="open" checked /> Available now or soon</label>
-    <label class="check"><input type="radio" name="status" value="all" /> Include full rooms</label>
+  {/* Available + Soon is the default (DEFAULT_AVAIL in lib/filter.ts); the URL omits it */}
+  <div class="row">
+    <label class="check"><input type="checkbox" name="avail" value="a" checked /> Available</label>
+    <label class="check"><input type="checkbox" name="avail" value="s" checked /> Soon</label>
+    <label class="check"><input type="checkbox" name="avail" value="f" /> Full</label>
   </div>
 </fieldset>
 

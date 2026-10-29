@@ -44,10 +44,14 @@ export interface Query {
   rmax: number | null;
   types: string[];
   am: string[];
-  status: 'open' | 'all';
+  avail: Status[];
   sort: 'price' | 'walk' | 'size' | 'available';
   page: number;
 }
+
+export type Status = IndexUnit['s'];
+/** Availability ticked when the URL has no avail param. */
+export const DEFAULT_AVAIL: Status[] = ['a', 's'];
 
 export const PAGE_SIZE = 20;
 
@@ -63,6 +67,7 @@ export function parseQuery(params: URLSearchParams): Query {
   const multi = (name: string) =>
     params.getAll(name).flatMap((v) => v.split(',')).map((v) => v.trim()).filter(Boolean);
   const sort = params.get('sort');
+  const avail = multi('avail').filter((v): v is Status => v === 'a' || v === 's' || v === 'f');
   return {
     areas: multi('area'),
     stations: multi('st').map((v) => v.split('.').map(Number).filter((n) => !Number.isNaN(n))),
@@ -72,7 +77,8 @@ export function parseQuery(params: URLSearchParams): Query {
     rmax: num(params.get('rmax')),
     types: multi('type'),
     am: multi('am'),
-    status: params.get('status') === 'all' ? 'all' : 'open',
+    // Older links used status=all ("include full rooms")
+    avail: avail.length ? avail : params.get('status') === 'all' ? ['a', 's', 'f'] : [...DEFAULT_AVAIL],
     sort: sort === 'walk' || sort === 'size' || sort === 'available' ? sort : 'price',
     page: Math.max(1, num(params.get('page')) ?? 1),
   };
@@ -106,7 +112,7 @@ export function propertyMatches(p: IndexProperty, q: Query): { ok: boolean; walk
 }
 
 export function unitMatches(u: IndexUnit, q: Query, amIdx: number[]): boolean {
-  if (q.status === 'open' && u.s === 'f') return false;
+  if (!q.avail.includes(u.s)) return false;
   if (q.rmin != null && (u.t ?? u.r ?? 0) < q.rmin) return false;
   if (q.rmax != null && (u.t ?? u.r ?? Infinity) > q.rmax) return false;
   for (const i of amIdx) if (!u.am.includes(i)) return false;
