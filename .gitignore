@@ -24,6 +24,7 @@ scraper/.cache/
 web/src/data/*
 !web/src/data/stations.json
 !web/src/data/lines.json
+!web/src/data/rail-graph.json
 web/public/data/
 
 # Tooling

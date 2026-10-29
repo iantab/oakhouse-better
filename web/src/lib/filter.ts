@@ -1,5 +1,6 @@
 // Search logic shared by the conditions page (live count) and the results page.
 // Runs in the browser against public/data/search-index.json.
+import type { Commute } from './commute';
 
 export interface IndexProperty {
   id: number;
@@ -45,9 +46,17 @@ export interface Query {
   types: string[];
   am: string[];
   avail: Status[];
-  sort: 'price' | 'walk' | 'size' | 'available';
+  /** Commute search: destination station ids and max train minutes (times come from commute.ts). */
+  to: number[];
+  ct: number | null;
+  sort: 'price' | 'walk' | 'size' | 'available' | 'commute';
   page: number;
 }
+
+const SORTS = ['price', 'walk', 'size', 'available', 'commute'] as const;
+
+/** Sort used when the URL has none: shortest commute for commute searches, else lowest price. */
+export const defaultSort = (params: URLSearchParams): Query['sort'] => (params.get('to') ? 'commute' : 'price');
 
 export type Status = IndexUnit['s'];
 /** Availability ticked when the URL has no avail param. */
@@ -79,7 +88,9 @@ export function parseQuery(params: URLSearchParams): Query {
     am: multi('am'),
     // Older links used status=all ("include full rooms")
     avail: avail.length ? avail : params.get('status') === 'all' ? ['a', 's', 'f'] : [...DEFAULT_AVAIL],
-    sort: sort === 'walk' || sort === 'size' || sort === 'available' ? sort : 'price',
+    to: (params.get('to') ?? '').split('.').map(Number).filter((n) => n > 0),
+    ct: num(params.get('ct')),
+    sort: SORTS.find((s) => s === sort) ?? defaultSort(params),
     page: Math.max(1, num(params.get('page')) ?? 1),
   };
 }
@@ -99,16 +110,46 @@ export function stationWalk(p: IndexProperty, q: Query): number | null {
   return best;
 }
 
-export function propertyMatches(p: IndexProperty, q: Query): { ok: boolean; walk: number | null } {
+export interface PropertyCommute extends Commute {
+  station: string;
+  walk: number;
+}
+
+/** Fastest station (train time, then walk) within the walk limit that reaches the destination in time. */
+export function stationCommute(p: IndexProperty, q: Query, times: Map<number, Commute>): PropertyCommute | null {
+  let best: PropertyCommute | null = null;
+  for (const [name, walk, , ids] of p.st) {
+    if (walk == null || (q.walk != null && walk > q.walk)) continue;
+    for (const id of ids) {
+      const c = times.get(id);
+      if (!c || (q.ct != null && c.min > q.ct)) continue;
+      if (!best || c.min + walk < best.min + best.walk) best = { ...c, station: name, walk };
+    }
+  }
+  return best;
+}
+
+const NO_MATCH = { ok: false, walk: null, commute: null } as const;
+
+export function propertyMatches(
+  p: IndexProperty,
+  q: Query,
+  times?: Map<number, Commute> | null,
+): { ok: boolean; walk: number | null; commute: PropertyCommute | null } {
   if (q.areas.length) {
     const path = p.a.join('/');
-    if (!q.areas.some((a) => path === a || path.startsWith(a + '/'))) return { ok: false, walk: null };
+    if (!q.areas.some((a) => path === a || path.startsWith(a + '/'))) return NO_MATCH;
   }
-  if (q.types.length && !q.types.includes(TYPE_OF[p.c] ?? 'other')) return { ok: false, walk: null };
+  if (q.types.length && !q.types.includes(TYPE_OF[p.c] ?? 'other')) return NO_MATCH;
   const walk = stationWalk(p, q);
   const stationFiltered = q.stations.length > 0 || q.lines.length > 0 || q.walk != null;
-  if (stationFiltered && walk == null) return { ok: false, walk: null };
-  return { ok: true, walk };
+  if (stationFiltered && walk == null) return NO_MATCH;
+  let commute: PropertyCommute | null = null;
+  if (q.to.length) {
+    commute = times ? stationCommute(p, q, times) : null;
+    if (!commute) return NO_MATCH;
+  }
+  return { ok: true, walk: commute?.walk ?? walk, commute };
 }
 
 export function unitMatches(u: IndexUnit, q: Query, amIdx: number[]): boolean {
@@ -123,14 +164,20 @@ export interface Group {
   prop: IndexProperty;
   units: IndexUnit[];
   walk: number | null;
+  commute: PropertyCommute | null;
 }
 
-export function search(index: SearchIndex, q: Query): { groups: Group[]; unitCount: number } {
+/** `times` (from commute.ts) is required for commute searches (q.to); without it they match nothing. */
+export function search(
+  index: SearchIndex,
+  q: Query,
+  times?: Map<number, Commute> | null,
+): { groups: Group[]; unitCount: number } {
   const amIdx = q.am.map((k) => index.amenities.indexOf(k)).filter((i) => i >= 0);
-  const props = new Map<number, { prop: IndexProperty; walk: number | null }>();
+  const props = new Map<number, Omit<Group, 'units'>>();
   for (const p of index.properties) {
-    const m = propertyMatches(p, q);
-    if (m.ok) props.set(p.id, { prop: p, walk: m.walk ?? p.st[0]?.[1] ?? null });
+    const m = propertyMatches(p, q, times);
+    if (m.ok) props.set(p.id, { prop: p, walk: m.walk ?? p.st[0]?.[1] ?? null, commute: m.commute });
   }
   const groups = new Map<number, Group>();
   let unitCount = 0;
@@ -138,7 +185,7 @@ export function search(index: SearchIndex, q: Query): { groups: Group[]; unitCou
     const hit = props.get(u.p);
     if (!hit || !unitMatches(u, q, amIdx)) continue;
     unitCount++;
-    const g = groups.get(u.p) ?? { prop: hit.prop, units: [], walk: hit.walk };
+    const g = groups.get(u.p) ?? { ...hit, units: [] };
     g.units.push(u);
     groups.set(u.p, g);
   }
@@ -150,6 +197,7 @@ export function search(index: SearchIndex, q: Query): { groups: Group[]; unitCou
   const list = [...groups.values()];
   const minPrice = (g: Group) => Math.min(...g.units.map(price));
   const maxSize = (g: Group) => Math.max(...g.units.map((u) => u.sz ?? 0));
+  const doorToDoor = (g: Group) => (g.commute ? g.commute.min + g.commute.walk : Infinity);
   const firstDate = (g: Group) =>
     Math.min(...g.units.map((u) => (u.s === 'a' ? 0 : u.d ? Date.parse(u.d) : Infinity)));
   const sorters: Record<Query['sort'], (a: Group, b: Group) => number> = {
@@ -157,6 +205,7 @@ export function search(index: SearchIndex, q: Query): { groups: Group[]; unitCou
     walk: (a, b) => (a.walk ?? 99) - (b.walk ?? 99) || minPrice(a) - minPrice(b),
     size: (a, b) => maxSize(b) - maxSize(a),
     available: (a, b) => firstDate(a) - firstDate(b) || minPrice(a) - minPrice(b),
+    commute: (a, b) => doorToDoor(a) - doorToDoor(b) || minPrice(a) - minPrice(b),
   };
   list.sort(sorters[q.sort]);
   return { groups: list, unitCount };

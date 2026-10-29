@@ -1,7 +1,13 @@
 // Keeps a filter <form> in sync with the URL query string.
 import { DEFAULT_AVAIL, parseQuery } from './filter';
 
-const CARRIED = ['area', 'st', 'line'];
+const CARRIED = ['area', 'st', 'line', 'to', 'ct', 'xf'];
+
+/** The step-1 page that made these picks (area, line & station, or commute). */
+export function pickerUrl(base: string, params: URLSearchParams) {
+  const kind = params.has('to') ? 'commute' : params.has('line') || params.has('st') ? 'line' : 'area';
+  return `${base}search/${kind}/${kind === 'commute' ? `?${params}` : ''}`;
+}
 
 /** Prefill inputs from `params` and carry the area/station/line picks along as hidden inputs. */
 export function syncFormFromUrl(form: HTMLFormElement, params: URLSearchParams) {
@@ -9,7 +15,7 @@ export function syncFormFromUrl(form: HTMLFormElement, params: URLSearchParams) 
   for (const el of form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]')) {
     const values = params.getAll(el.name).flatMap((v) => v.split(','));
     if (el instanceof HTMLSelectElement) {
-      el.value = values[0] ?? '';
+      el.value = values[0] ?? [...el.options].find((o) => o.defaultSelected)?.value ?? '';
     } else if (el.name === 'avail') {
       el.checked = avail.includes(el.value);
     } else if (el.type === 'checkbox') {
@@ -64,8 +70,13 @@ export function keepOneChecked(form: HTMLFormElement, name: string) {
 }
 
 /** Human summary of the carried location picks, e.g. "2 areas" / "Yamanote Line + 3 stations". */
-export function describeLocation(params: URLSearchParams, labels: { lines?: Map<string, string> } = {}) {
+export function describeLocation(params: URLSearchParams, labels: { lines?: Map<string, string>; dest?: string } = {}) {
   const parts: string[] = [];
+  if (params.get('to')) {
+    const xf = params.get('xf');
+    const changes = xf === '0' ? ', no transfers' : xf ? `, up to ${xf} transfer${xf === '1' ? '' : 's'}` : '';
+    parts.push(`≤ ${params.get('ct') ?? 'any'} min to ${labels.dest ?? 'your destination'}${changes}`);
+  }
   const areas = params.getAll('area');
   if (areas.length) {
     parts.push(

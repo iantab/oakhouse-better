@@ -27,8 +27,9 @@ const lineNames = Object.fromEntries(getData().lines.map((l) => [l.id, l.name]))
 </Base>
 
 <script>
-  import { describeLocation, formToParams, keepOneChecked, syncFormFromUrl } from '../lib/form';
+  import { describeLocation, formToParams, keepOneChecked, pickerUrl, syncFormFromUrl } from '../lib/form';
   import { loadIndex, parseQuery, search } from '../lib/filter';
+  import { commuteFor } from '../lib/commute';
 
   const base = import.meta.env.BASE_URL;
   const form = document.getElementById('conditions-form') as HTMLFormElement;
@@ -37,16 +38,18 @@ const lineNames = Object.fromEntries(getData().lines.map((l) => [l.id, l.name]))
   syncFormFromUrl(form, params);
   keepOneChecked(form, 'avail');
 
-  document.getElementById('location')!.textContent = describeLocation(params, { lines });
-  const pickerUrl = `${base}search/${params.has('line') || params.has('st') ? 'line' : 'area'}/`;
-  for (const id of ['back-link', 'change-link']) (document.getElementById(id) as HTMLAnchorElement).href = pickerUrl;
+  const locationEl = document.getElementById('location')!;
+  locationEl.textContent = describeLocation(params, { lines });
+  for (const id of ['back-link', 'change-link']) (document.getElementById(id) as HTMLAnchorElement).href = pickerUrl(base, params);
+  const commute = commuteFor(base, params);
+  commute.then((c) => c && (locationEl.textContent = describeLocation(params, { lines, dest: c.dest }))).catch(() => {});
 
   const count = document.getElementById('match-count')!;
   const detail = document.getElementById('match-detail')!;
   async function update() {
     try {
-      const index = await loadIndex(base);
-      const { groups, unitCount } = search(index, parseQuery(formToParams(form)));
+      const [index, c] = await Promise.all([loadIndex(base), commute]);
+      const { groups, unitCount } = search(index, parseQuery(formToParams(form)), c?.times);
       count.textContent = unitCount.toLocaleString('en-US');
       detail.textContent = `in ${groups.length.toLocaleString('en-US')} propert${groups.length === 1 ? 'y' : 'ies'}`;
     } catch {

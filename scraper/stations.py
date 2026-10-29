@@ -1,9 +1,13 @@
-"""Build web/src/data/stations.json + lines.json from OpenStreetMap (Overpass API).
+"""Build web/src/data/stations.json, lines.json and rail-graph.json from OpenStreetMap (Overpass API).
 
 Run by hand a few times a year, after a crawl (it reads property coordinates from
-scraper/.cache/coords.json, written by build.py), then commit the two JSON files:
+scraper/.cache/coords.json, written by build.py), then commit the three JSON files:
 
     python stations.py
+
+rail-graph.json is the network the commute search runs on in the browser: every route's
+stops in order with estimated cumulative minutes, plus walking links between nearby
+stations. OSM has no timetables, so ride times come from stop distance and a per-mode speed.
 """
 
 from __future__ import annotations
@@ -29,6 +33,21 @@ RAW_DIR = CACHE_DIR / "overpass"  # raw responses, so re-processing doesn't re-q
 CELL_DEG = 0.25     # group properties into ~25km cells, one query per occupied cell
 MARGIN_DEG = 0.025  # ~2.5km around the outermost property in a cell
 
+# Rail graph. Each hop between stops costs STOP_MIN (dwell + braking/acceleration) plus the
+# straight-line distance at a cruising speed, so lines with fewer stops come out faster.
+# Calibrated against real journey times (see the calibration notes in README).
+GRAPH_CHUNK = 100   # route relations per stop-fetching query
+CRUISE_KMH = {"subway": 60.0, "train": 60.0, "monorail": 50.0, "light_rail": 30.0, "tram": 20.0}
+EXPRESS_KMH = 70.0  # express/rapid services that skip stops
+STOP_MIN = {"subway": 1.0, "train": 1.3}  # per hop; other modes use the subway value
+TRANSFER_MIN = 4.0  # changing trains: platform walk + average wait
+WALK_M_PER_MIN = 64.0       # 80 m/min with +25% for streets, as in build.py
+SAME_NAME_RADIUS_M = 500    # same-named stations this close are one interchange (JR/Metro Shinjuku)
+NEAR_RADIUS_M = 250         # any stations this close are linked (Hibiya–Yurakucho)
+# Services that need a supplementary ticket or aren't commuter trains; never routed on.
+_COMMUTER_NAME_RE = re.compile(r"Line|線|Railway|Monorail|Rapid|Express|Local|快速|急行|普通", re.I)
+_NOT_COMMUTER_RE = re.compile(r"Shinkansen|Limited Express|Liner|Sleeper|Romancecar|Skyliner|N'EX|Narita Express", re.I)
+
 
 def _query(bbox: tuple[float, float, float, float]) -> str:
     s, w, n, e = bbox
@@ -45,6 +64,30 @@ node(r.a)["public_transport"="stop_position"]->.p;
 rel(br.r)["type"="route_master"];
 out body;
 """
+
+
+def _graph_query(route_ids: list[int]) -> str:
+    """Every stop of the given routes (wherever it is) plus the stations those stops belong to."""
+    return f"""
+[out:json][timeout:300];
+rel(id:{",".join(map(str, route_ids))})->.r;
+node(r.r)->.p;
+.p out body;
+rel(bn.p)["public_transport"="stop_area"]->.a;
+.a out body;
+node(r.a)["railway"~"^(station|halt)$"];
+out body;
+"""
+
+
+def _cached(client: PoliteClient, query: str, refresh: bool, label: str) -> dict[str, Any]:
+    raw = RAW_DIR / (hashlib.sha1(query.encode()).hexdigest()[:16] + ".json")
+    if raw.exists() and not refresh:
+        return read_json(raw)
+    log.info("overpass %s", label)
+    data = _overpass(client, query)
+    write_json(raw, data)
+    return data
 
 
 def _overpass(client: PoliteClient, query: str) -> dict[str, Any]:
@@ -117,7 +160,8 @@ def _slugify(text: str) -> str:
 
 def build(
     client: PoliteClient, coords: list[tuple[float, float]], refresh: bool = False
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[int, dict[str, Any]]]:
+    """Returns (stations, lines, route relations). Routes carry their route_master's tags."""
     nodes: dict[int, dict[str, Any]] = {}
     areas: dict[int, dict[str, Any]] = {}
     routes: dict[int, dict[str, Any]] = {}
@@ -125,14 +169,7 @@ def build(
     boxes = _cells(coords)
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     for i, box in enumerate(boxes, 1):
-        query = _query(box)
-        raw = RAW_DIR / (hashlib.sha1(query.encode()).hexdigest()[:16] + ".json")
-        if raw.exists() and not refresh:
-            data = read_json(raw)
-        else:
-            log.info("overpass query %d/%d bbox=%s", i, len(boxes), tuple(round(x, 3) for x in box))
-            data = _overpass(client, query)
-            write_json(raw, data)
+        data = _cached(client, _query(box), refresh, f"query {i}/{len(boxes)} bbox={tuple(round(x, 3) for x in box)}")
         for el in data["elements"]:
             if el["type"] == "node":
                 nodes[el["id"]] = el
@@ -214,7 +251,203 @@ def build(
         })
 
     stations.sort(key=lambda s: (s["name"] or "", s["id"]))
-    return stations, sorted(lines.values(), key=lambda l: l["name"])
+    return stations, sorted(lines.values(), key=lambda l: l["name"]), routes
+
+
+def _dist_m(a: dict[str, Any], b: dict[str, Any]) -> float:
+    lat1, lng1, lat2, lng2 = map(math.radians, (a["lat"], a["lon"], b["lat"], b["lon"]))
+    h = math.sin((lat2 - lat1) / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin((lng2 - lng1) / 2) ** 2
+    return 2 * 6_371_000 * math.asin(math.sqrt(h))
+
+
+def _station_name(tags: dict[str, str]) -> str:
+    return re.sub(r"\s+[Ss]tation$", "", tags.get("name:en") or tags.get("name:ja-Latn") or tags.get("name") or "")
+
+
+def _name_key(tags: dict[str, str]) -> str:
+    """Comparable station name: Japanese name if present (most consistent across operators)."""
+    return re.sub(r"駅$", "", tags.get("name") or "") or _station_name(tags).lower()
+
+
+class _Grid:
+    """Bucket nodes by ~1km cells for radius lookups."""
+
+    STEP = 0.01
+
+    def __init__(self) -> None:
+        self.cells: dict[tuple[int, int], list[dict[str, Any]]] = defaultdict(list)
+
+    def add(self, n: dict[str, Any]) -> None:
+        self.cells[(int(n["lat"] // self.STEP), int(n["lon"] // self.STEP))].append(n)
+
+    def near(self, n: dict[str, Any], radius_m: float) -> list[tuple[float, dict[str, Any]]]:
+        cy, cx = int(n["lat"] // self.STEP), int(n["lon"] // self.STEP)
+        out = []
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                for m in self.cells.get((cy + dy, cx + dx), []):
+                    d = _dist_m(n, m)
+                    if d <= radius_m:
+                        out.append((d, m))
+        return sorted(out, key=lambda t: t[0])
+
+
+def build_graph(client: PoliteClient, routes: dict[int, dict[str, Any]], line_ids: dict[str, str],
+                refresh: bool = False) -> dict[str, Any]:
+    """Rail network for the commute search. `line_ids` maps _line_key → lines.json id."""
+    def commuter(r: dict[str, Any]) -> bool:
+        tags = r.get("tags", {})
+        name = tags.get("name:en") or tags.get("name") or ""
+        if tags.get("service") in ("high_speed", "long_distance", "night") or _NOT_COMMUTER_RE.search(name):
+            return False
+        # A train named without Line/Rapid/Express/Local is a named limited express ("Azusa", "Hitachi")
+        return tags.get("route") != "train" or bool(_COMMUTER_NAME_RE.search(_line_name(tags)))
+
+    usable = {rid: r for rid, r in routes.items() if commuter(r)}
+    nodes: dict[int, dict[str, Any]] = {}
+    areas: dict[int, dict[str, Any]] = {}
+    ids = sorted(usable)
+    chunks = [ids[i:i + GRAPH_CHUNK] for i in range(0, len(ids), GRAPH_CHUNK)]
+    for i, chunk in enumerate(chunks, 1):
+        data = _cached(client, _graph_query(chunk), refresh, f"route stops {i}/{len(chunks)}")
+        for el in data["elements"]:
+            if el["type"] == "node":
+                nodes[el["id"]] = el
+            elif el.get("tags", {}).get("public_transport") == "stop_area":
+                areas[el["id"]] = el
+
+    def is_station(n: dict[str, Any]) -> bool:
+        t = n.get("tags", {})
+        return t.get("railway") in ("station", "halt") and t.get("disused") != "yes"
+
+    stations = {nid: n for nid, n in nodes.items() if is_station(n)}
+    grid = _Grid()
+    for n in stations.values():
+        grid.add(n)
+    area_station: dict[int, int] = {}
+    for a in areas.values():
+        members = [m["ref"] for m in a.get("members", []) if m["type"] == "node"]
+        st = next((ref for ref in members if ref in stations), None)
+        if st is not None:
+            for ref in members:
+                area_station.setdefault(ref, st)
+
+    def station_of(ref: int) -> int | None:
+        n = nodes.get(ref)
+        if n is None:
+            return None
+        if ref in stations:
+            return ref
+        if ref in area_station:
+            return area_station[ref]
+        key = _name_key(n.get("tags", {}))
+        near = grid.near(n, 500)
+        same = [m for _, m in near if key and _name_key(m.get("tags", {})) == key]
+        if same:
+            return same[0]["id"]
+        if near and near[0][0] <= 200:
+            return near[0][1]["id"]
+        if n.get("tags", {}).get("name"):  # a stop with no station node: let it stand in for one
+            stations[ref] = n
+            grid.add(n)
+            return ref
+        return None
+
+    # Ordered station sequences per route
+    sequences: dict[int, list[int]] = {}
+    for rid, r in usable.items():
+        seq: list[int] = []
+        for m in r.get("members", []):
+            if m["type"] != "node" or not (m["role"].startswith("stop") or m["role"] == ""):
+                continue
+            sid = station_of(m["ref"])
+            if sid is not None and (not seq or seq[-1] != sid):
+                seq.append(sid)
+        if len(seq) >= 2:
+            sequences[rid] = seq
+
+    # Line identity, so switching between a line's local and express isn't a transfer:
+    # a service borrows the line of a same-operator local route covering most of its stops.
+    def op(r: dict[str, Any]) -> str:
+        t = r.get("tags", {})
+        return t.get("operator:en") or t.get("operator") or t.get("network") or ""
+
+    route_line: dict[int, str] = {}
+    line_names: dict[str, str] = {}
+    locals_: list[int] = []
+    for rid in sequences:
+        tags = usable[rid].get("tags", {})
+        name = _line_name(tags)
+        if not _is_service(tags, name):
+            route_line[rid] = line_ids.get(_line_key(tags, name)) or _line_key(tags, name)
+            line_names.setdefault(route_line[rid], name)
+            locals_.append(rid)
+    for rid in sequences:
+        if rid in route_line:
+            continue
+        own = set(sequences[rid])
+        best, score = None, 0.0
+        for lid in locals_:
+            if op(usable[lid]) != op(usable[rid]):
+                continue
+            s = len(own & set(sequences[lid])) / len(own)
+            if s > score:
+                best, score = lid, s
+        tags = usable[rid].get("tags", {})
+        route_line[rid] = route_line[best] if best is not None and score >= 0.8 else _line_key(tags, _line_name(tags))
+        line_names.setdefault(route_line[rid], _line_name(tags))
+
+    # Emit compact arrays
+    used = sorted({sid for seq in sequences.values() for sid in seq})
+    idx = {sid: i for i, sid in enumerate(used)}
+    line_list = sorted(set(route_line.values()))
+    line_idx = {l: i for i, l in enumerate(line_list)}
+    out_routes = []
+    for rid, seq in sequences.items():
+        tags = usable[rid].get("tags", {})
+        express = _is_service(tags, _line_name(tags))
+        mode = tags.get("route", "train")
+        speed = EXPRESS_KMH if express else CRUISE_KMH.get(mode, CRUISE_KMH["train"])
+        stop = STOP_MIN.get(mode, STOP_MIN["subway"])
+        cum, t = [0], 0.0
+        for a, b in zip(seq, seq[1:]):
+            t += stop + _dist_m(stations[a], stations[b]) / 1000 / speed * 60
+            cum.append(round(t * 10))  # tenths of a minute
+        out_routes.append([line_idx[route_line[rid]], [idx[s] for s in seq], cum])
+
+    links = []
+    used_set = set(used)
+    for sid in used:
+        n = stations[sid]
+        key = _name_key(n.get("tags", {}))
+        for d, m in grid.near(n, SAME_NAME_RADIUS_M):
+            mid = m["id"]
+            if mid <= sid or mid not in used_set:
+                continue
+            if d <= NEAR_RADIUS_M or (key and _name_key(m.get("tags", {})) == key):
+                links.append([idx[sid], idx[mid], round(d / WALK_M_PER_MIN * 10)])
+
+    # Lines serving each station, for the destination picker's hint
+    serving: dict[int, set[int]] = defaultdict(set)
+    for line, seq_idx, _ in out_routes:
+        for s in seq_idx:
+            serving[s].add(line)
+    out_stations = []
+    for sid in used:
+        tags = stations[sid].get("tags", {})
+        out_stations.append([
+            sid, _station_name(tags) or tags.get("name", ""), tags.get("name"),
+            round(stations[sid]["lat"], 5), round(stations[sid]["lon"], 5), sorted(serving[idx[sid]]),
+        ])
+    log.info("rail graph: %d stations, %d routes, %d lines, %d walking links",
+             len(out_stations), len(out_routes), len(line_list), len(links))
+    return {
+        "transfer_min": TRANSFER_MIN,
+        "lines": [line_names[l] for l in line_list],
+        "stations": out_stations,
+        "routes": out_routes,
+        "links": links,
+    }
 
 
 def main() -> None:
@@ -227,11 +460,13 @@ def main() -> None:
     if not coords:
         raise SystemExit(f"no coordinates in {args.coords}; run build.py first")
     client = PoliteClient(delay=5.0, user_agent=TOOL_UA, timeout=240)
-    stations, lines = build(client, coords, refresh=args.refresh)
+    stations, lines, routes = build(client, coords, refresh=args.refresh)
     write_json(WEB_DATA / "stations.json", stations)
     write_json(WEB_DATA / "lines.json", lines, pretty=True)
     no_line = sum(1 for s in stations if not s["lines"])
     log.info("wrote %d stations (%d without a line) and %d lines", len(stations), no_line, len(lines))
+    line_ids = {_line_key({"operator": l["operator"] or ""}, l["name"]): l["id"] for l in lines}
+    write_json(WEB_DATA / "rail-graph.json", build_graph(client, routes, line_ids, refresh=args.refresh))
 
 
 if __name__ == "__main__":

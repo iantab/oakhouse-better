@@ -1,0 +1,222 @@
+---
+import Base from '../../layouts/Base.astro';
+import { COMMUTE_CHOICES, DEFAULT_COMMUTE } from '../../lib/commute';
+
+const base = import.meta.env.BASE_URL;
+const TRANSFERS = [
+  ['', 'Any'],
+  ['0', 'None'],
+  ['1', 'Up to 1'],
+  ['2', 'Up to 2'],
+];
+---
+
+<Base title="Search by commute time">
+  <ol class="steps">
+    <li><a href={base}>Home</a></li>
+    <li class="current">1. Destination &amp; commute</li>
+    <li>2. Conditions</li>
+    <li>3. Results</li>
+  </ol>
+  <h1>Where do you commute to?</h1>
+  <p class="muted">
+    Pick the station you travel to every day and how long you're happy to ride. We'll find rooms near stations
+    that get you there in time.
+  </p>
+
+  <form class="panel" method="get" action={`${base}conditions/`} id="commute-form">
+    <fieldset>
+      <legend><label for="dest-input">Destination station</label></legend>
+      <div class="combo">
+        <input
+          id="dest-input"
+          type="search"
+          autocomplete="off"
+          placeholder="e.g. Shinjuku, Otemachi, 渋谷"
+          role="combobox"
+          aria-expanded="false"
+          aria-controls="dest-list"
+          aria-autocomplete="list"
+          disabled
+        />
+        <ul id="dest-list" class="combo-list" role="listbox" hidden></ul>
+      </div>
+      <input type="hidden" name="to" id="dest-ids" />
+      <p class="small muted mt-1" id="dest-hint">Loading stations…</p>
+    </fieldset>
+
+    <fieldset>
+      <legend><label for="ct">Maximum time on the train</label></legend>
+      <select name="ct" id="ct">
+        {COMMUTE_CHOICES.map((m) => <option value={m} selected={m === DEFAULT_COMMUTE}>{m} min</option>)}
+      </select>
+    </fieldset>
+
+    <fieldset>
+      <legend>Transfers</legend>
+      <div class="segmented">
+        {TRANSFERS.map(([value, label], i) => (
+          <label>
+            <input type="radio" name="xf" value={value} checked={i === 0} />
+            <span>{label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+
+    <p class="small muted m-0">
+      * Times are estimated from map data, not timetables, and don't include waiting for the first train or the walk
+      to the station (you can limit that on the next step).
+    </p>
+
+    <div class="sticky-submit">
+      <button class="btn" type="submit" id="commute-submit" disabled>Next: set conditions</button>
+      <span class="muted small" id="commute-summary">Pick a destination</span>
+    </div>
+  </form>
+</Base>
+
+<script>
+  import { commuteTimes, findPlace, loadGraph, MAX_TRANSFERS, places, type Place } from '../../lib/commute';
+  import { esc, loadIndex, parseQuery, search } from '../../lib/filter';
+  import { formToParams, syncFormFromUrl } from '../../lib/form';
+
+  const base = import.meta.env.BASE_URL;
+  const form = document.getElementById('commute-form') as HTMLFormElement;
+  const input = document.getElementById('dest-input') as HTMLInputElement;
+  const list = document.getElementById('dest-list')!;
+  const ids = document.getElementById('dest-ids') as HTMLInputElement;
+  const hint = document.getElementById('dest-hint')!;
+  const submit = document.getElementById('commute-submit') as HTMLButtonElement;
+  const summary = document.getElementById('commute-summary')!;
+  const MAX_OPTIONS = 8;
+
+  const linesHint = (p: Place) => (p.lines.length > 3 ? `${p.lines.slice(0, 3).join(', ')} +${p.lines.length - 3}` : p.lines.join(', '));
+
+  let all: Place[] = [];
+  let shown: Place[] = [];
+  let active = -1;
+  let chosen: Place | null = null;
+
+  function match(q: string): Place[] {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return [];
+    const scored: [number, Place][] = [];
+    for (const p of all) {
+      const name = p.name.toLowerCase();
+      const score = name.startsWith(needle) ? 0
+        : name.split(/[\s-]+/).some((w) => w.startsWith(needle)) ? 1
+        : p.nameJa?.includes(q.trim()) ? 1
+        : name.includes(needle) ? 2 : -1;
+      if (score >= 0) scored.push([score, p]);
+    }
+    // places() already orders by size (more lines first), and sort is stable
+    return scored.sort((a, b) => a[0] - b[0]).slice(0, MAX_OPTIONS).map(([, p]) => p);
+  }
+
+  function renderList() {
+    list.innerHTML = shown
+      .map((p, i) => `<li role="option" id="dest-opt-${i}" data-i="${i}" aria-selected="${i === active}">
+          <strong>${esc(p.name)}</strong>${p.nameJa && p.nameJa !== p.name ? ` <span class="muted">${esc(p.nameJa)}</span>` : ''}
+          <div class="small muted">${esc(linesHint(p))}</div>
+        </li>`)
+      .join('');
+    const open = shown.length > 0;
+    list.hidden = !open;
+    input.setAttribute('aria-expanded', String(open));
+    if (active >= 0) input.setAttribute('aria-activedescendant', `dest-opt-${active}`);
+    else input.removeAttribute('aria-activedescendant');
+  }
+
+  function choose(p: Place | null) {
+    chosen = p;
+    ids.value = p ? p.ids.join('.') : '';
+    if (p) input.value = p.name;
+    hint.textContent = p ? `Served by ${linesHint(p) || 'no mapped lines'}` : 'Type a station name and pick it from the list.';
+    shown = [];
+    active = -1;
+    renderList();
+    update();
+  }
+
+  input.addEventListener('input', () => {
+    if (chosen && input.value !== chosen.name) {
+      chosen = null;
+      ids.value = '';
+      update();
+    }
+    shown = match(input.value);
+    active = shown.length ? 0 : -1;
+    renderList();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (!shown.length) return;
+      e.preventDefault();
+      active = (active + (e.key === 'ArrowDown' ? 1 : -1) + shown.length) % shown.length;
+      renderList();
+    } else if (e.key === 'Enter' && shown.length) {
+      e.preventDefault();
+      choose(shown[Math.max(0, active)]);
+    } else if (e.key === 'Escape') {
+      shown = [];
+      renderList();
+    }
+  });
+  // mousedown (not click) so the choice lands before the input's blur closes the list
+  list.addEventListener('mousedown', (e) => {
+    const li = (e.target as HTMLElement).closest<HTMLElement>('li[data-i]');
+    if (!li) return;
+    e.preventDefault();
+    choose(shown[Number(li.dataset.i)]);
+  });
+  input.addEventListener('blur', () => {
+    shown = [];
+    renderList();
+  });
+
+  let seq = 0;
+  async function update() {
+    const run = ++seq;
+    submit.disabled = !chosen;
+    if (!chosen) {
+      summary.textContent = 'Pick a destination';
+      return;
+    }
+    summary.textContent = 'Counting…';
+    const params = formToParams(form);
+    const xf = params.get('xf');
+    const [graph, index] = await Promise.all([loadGraph(base), loadIndex(base)]);
+    const times = commuteTimes(graph, chosen.ids, xf ? Number(xf) : MAX_TRANSFERS);
+    const { groups, unitCount } = search(index, parseQuery(params), times);
+    if (run !== seq) return;
+    summary.textContent = `${unitCount.toLocaleString('en-US')} rooms available or soon, in ${groups.length.toLocaleString('en-US')} propert${groups.length === 1 ? 'y' : 'ies'}`;
+  }
+
+  form.addEventListener('change', (e) => {
+    if (e.target !== input) update();
+  });
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!chosen) return input.focus();
+    location.href = `${base}conditions/?${formToParams(form)}`;
+  });
+
+  // Coming back via "change": restore the previous picks
+  const params = new URLSearchParams(location.search);
+  syncFormFromUrl(form, params);
+
+  loadGraph(base)
+    .then((g) => {
+      all = places(g);
+      input.disabled = false;
+      hint.textContent = 'Type a station name and pick it from the list.';
+      const to = (params.get('to') ?? '').split('.').map(Number).filter((n) => n > 0);
+      const prev = to.length ? findPlace(all, to) : undefined;
+      if (prev) choose(prev);
+      else input.focus();
+    })
+    .catch(() => {
+      hint.textContent = 'Could not load the rail network. Try reloading the page.';
+    });
+</script>

@@ -39,6 +39,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
           <button class="btn secondary filter-toggle" type="button" id="filter-toggle" aria-controls="filters" aria-expanded="false">Filters</button>
           <label class="small muted" for="sort">Sort</label>
           <select id="sort">
+            <option value="commute" hidden>Shortest commute</option>
             <option value="price">Lowest price</option>
             <option value="walk">Shortest walk</option>
             <option value="available">Available soonest</option>
@@ -48,13 +49,17 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
       </div>
       <div id="results" data-amenities={JSON.stringify(amenityLabels)}></div>
       <nav class="pager" id="pager" aria-label="Pages"></nav>
+      <p class="small muted" id="commute-note" hidden>
+        * Commute times are estimated from map data, not timetables, and don't include waiting for the first train.
+      </p>
     </section>
   </div>
 </Base>
 
 <script>
-  import { describeLocation, formToParams, keepOneChecked, syncFormFromUrl } from '../lib/form';
-  import { esc, loadIndex, PAGE_SIZE, parseQuery, search, yen, type Group, type IndexUnit } from '../lib/filter';
+  import { describeLocation, formToParams, keepOneChecked, pickerUrl, syncFormFromUrl } from '../lib/form';
+  import { defaultSort, esc, loadIndex, PAGE_SIZE, parseQuery, search, yen, type Group, type IndexUnit } from '../lib/filter';
+  import { commuteFor, transfersLabel, type CommuteContext } from '../lib/commute';
 
   const base = import.meta.env.BASE_URL;
   const form = document.getElementById('filter-form') as HTMLFormElement;
@@ -69,6 +74,9 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
   const UNITS_SHOWN = 5;
   const TRAIN_ICON =
     '<svg class="meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M9 21l-2-4M15 21l2-4"/></svg>';
+  const CLOCK_ICON =
+    '<svg class="meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  let dest = '';
 
   const toggle = document.getElementById('filter-toggle')!;
   toggle.addEventListener('click', () => {
@@ -101,6 +109,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
         <div class="kind">${esc(CATEGORY[p.c] ?? p.c)}${p.w ? ` · ${esc(p.w)}` : ''}</div>
         <h3><a href="${href}">${esc(p.n)}</a></h3>
         <div class="meta">${st ? `${TRAIN_ICON}<span>${st}</span>` : ''}</div>
+        ${g.commute ? `<div class="meta commute">${CLOCK_ICON}<span><strong>≈ ${g.commute.min} min*</strong> to ${esc(dest)} from ${esc(g.commute.station)} · ${transfersLabel(g.commute.transfers)} · +${g.commute.walk} min walk</span></div>` : ''}
         <div class="table-scroll"><table>
           <thead><tr><th>Status</th><th>Room</th><th class="num">Monthly</th><th class="num">Size</th><th class="num">Floor</th><th class="opt">Type</th></tr></thead>
           <tbody>${shown.map((u) => unitRow(u)).join('')}</tbody>
@@ -117,9 +126,12 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
-  function render(params: URLSearchParams, index: Awaited<ReturnType<typeof loadIndex>>) {
+  function render(params: URLSearchParams, index: Awaited<ReturnType<typeof loadIndex>>, commute: CommuteContext | null) {
     const q = parseQuery(params);
-    const { groups, unitCount } = search(index, q);
+    const { groups, unitCount } = search(index, q, commute?.times);
+    dest = commute?.dest ?? '';
+    document.getElementById('location')!.textContent = describeLocation(params, { lines, dest: commute?.dest });
+    document.getElementById('commute-note')!.hidden = !commute;
     const pages = Math.max(1, Math.ceil(groups.length / PAGE_SIZE));
     const page = Math.min(q.page, pages);
     const slice = groups.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -149,9 +161,10 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 
   function sync(params: URLSearchParams) {
     syncFormFromUrl(form, params);
-    sortSel.value = params.get('sort') ?? 'price';
-    document.getElementById('location')!.textContent = describeLocation(params, { lines });
-    const picker = `${base}search/${params.has('line') || params.has('st') ? 'line' : 'area'}/`;
+    (sortSel.querySelector('option[value="commute"]') as HTMLOptionElement).hidden = !params.has('to');
+    sortSel.value = parseQuery(params).sort;
+    document.getElementById('location')!.textContent = describeLocation(params, { lines, dest: dest || undefined });
+    const picker = pickerUrl(base, params);
     (document.getElementById('loc-link') as HTMLAnchorElement).href = picker;
     (document.getElementById('change-link') as HTMLAnchorElement).href = picker;
     (document.getElementById('cond-link') as HTMLAnchorElement).href = `${base}conditions/?${params}`;
@@ -161,7 +174,8 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     if (push) history.pushState(null, '', params.size ? `?${params}` : location.pathname);
     sync(params);
     try {
-      render(params, await loadIndex(base));
+      const [index, commute] = await Promise.all([loadIndex(base), commuteFor(base, params)]);
+      render(params, index, commute);
     } catch (err) {
       document.getElementById('headline')!.textContent = 'Could not load listings';
       results.innerHTML = `<div class="panel empty"><p class="muted">${esc(err)}</p></div>`;
@@ -170,7 +184,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 
   function paramsFromForm(page = 1) {
     const params = formToParams(form);
-    if (sortSel.value !== 'price') params.set('sort', sortSel.value);
+    if (sortSel.value !== defaultSort(params)) params.set('sort', sortSel.value);
     if (page > 1) params.set('page', String(page));
     return params;
   }
