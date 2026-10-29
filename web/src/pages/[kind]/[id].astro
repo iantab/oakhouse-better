@@ -68,11 +68,11 @@ const fees = (r: Room) =>
     <div>
       <div class="kind">{categoryLabel(p.category)}</div>
       <h1>{p.name}</h1>
-      <p class="muted" style="margin:0">{address}</p>
+      <p class="muted m-0">{address}</p>
     </div>
-    <div style="text-align:right">
+    <div class="price-box">
       <div class="small muted">Monthly, incl. maintenance</div>
-      <div style="font-size:1.4rem;font-weight:700">{prices.length ? `${yen(Math.min(...prices))}${Math.max(...prices) !== Math.min(...prices) ? ` – ${yen(Math.max(...prices))}` : ''}` : '—'}</div>
+      <div class="price">{prices.length ? `${yen(Math.min(...prices))}${Math.max(...prices) !== Math.min(...prices) ? ` – ${yen(Math.max(...prices))}` : ''}` : '—'}</div>
       <div class="small"><strong>{open.length}</strong> of {p.rooms.length} room{p.rooms.length === 1 ? '' : 's'} available or soon</div>
     </div>
   </div>
@@ -95,8 +95,8 @@ const fees = (r: Room) =>
       <section class="panel rooms-panel">
         <h2>Rooms</h2>
         {commonKeys.length > 0 && (
-          <div style="margin-bottom:12px">
-            <div class="small muted" style="margin-bottom:6px">{rooms.length > 1 ? 'Every room has' : 'Room features'}</div>
+          <div class="mb-2">
+            <div class="small muted mb-1">{rooms.length > 1 ? 'Every room has' : 'Room features'}</div>
             <ul class="chips">{commonKeys.map((k) => <li class="chip on">{amenityLabel.get(k)!.label}</li>)}</ul>
           </div>
         )}
@@ -150,7 +150,7 @@ const fees = (r: Room) =>
                     <td class="features">
                       <ul class="chips">{roomChips(r).map((a) => <li class="chip">{a.label}</li>)}</ul>
                       {fees(r).length > 0 && (
-                        <div class="small muted" style="margin-top:4px">{fees(r).map(([k, v]) => `${k}: ${v.replace(/※.*$/, '').trim()}`).join(' · ')}</div>
+                        <div class="small muted mt-1">{fees(r).map(([k, v]) => `${k}: ${v.replace(/※.*$/, '').trim()}`).join(' · ')}</div>
                       )}
                     </td>
                   </tr>
@@ -172,7 +172,7 @@ const fees = (r: Room) =>
       {p.description && (
         <section class="panel">
           <h2>About this property</h2>
-          <p style="margin:0">{p.description}</p>
+          <p class="m-0">{p.description}</p>
         </section>
       )}
 
@@ -192,21 +192,21 @@ const fees = (r: Room) =>
 
     <div>
       <section class="panel">
-        <a class="btn" style="width:100%" href={p.url} target="_blank" rel="noopener">View &amp; apply on oakhouse.jp ↗</a>
-        <p class="small muted" style="margin:8px 0 0">Last updated by Oakhouse: {p.updated || 'unknown'}</p>
+        <a class="btn block" href={p.url} target="_blank" rel="noopener">View &amp; apply on oakhouse.jp ↗</a>
+        <p class="small muted m-0 mt-2">Last updated by Oakhouse: {p.updated || 'unknown'}</p>
       </section>
 
       <section class="panel">
         <h2>Getting there</h2>
         {mapUrl && <iframe class="map" src={mapUrl} title={`Map of ${p.name}`} loading="lazy" referrerpolicy="no-referrer-when-downgrade" />}
         {googleMapsUrl && (
-          <p class="small" style="margin:6px 0 0">
+          <p class="small m-0 mt-1">
             <a href={googleMapsUrl} target="_blank" rel="noopener">Open in Google Maps ↗</a>
           </p>
         )}
         {
           p.stations.length > 0 ? (
-            <table style="margin-top:10px">
+            <table class="mt-2">
               <thead><tr><th>Station</th><th class="num">Walk*</th></tr></thead>
               <tbody>
                 {p.stations.slice(0, 6).map((s) => (

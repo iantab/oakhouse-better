@@ -27,14 +27,14 @@ const fmt = (n: number) => n.toLocaleString('en-US');
   </p>
 
   <form class="panel" method="get" action={`${base}conditions/`} id="line-form">
-    <p class="row" style="margin-top:0">
+    <p class="row mt-0">
       <label for="line-filter" class="small muted">Filter lines</label>
-      <input id="line-filter" type="search" placeholder="e.g. Yamanote, Chuo, Tokyu" style="flex:1;min-width:200px;font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" />
+      <input id="line-filter" class="grow" type="search" placeholder="e.g. Yamanote, Chuo, Tokyu" />
     </p>
     {
       operators.map(([operator, opLines]) => (
-        <section class="operator" style="margin-top:18px">
-          <h2 class="small muted" style="text-transform:uppercase;letter-spacing:.06em">{operator}</h2>
+        <section class="operator">
+          <h2 class="eyebrow">{operator}</h2>
           {opLines.map((line) => (
             <details class="group" data-name={`${line.name} ${line.name_ja ?? ''} ${line.ref ?? ''}`.toLowerCase()}>
               <summary>

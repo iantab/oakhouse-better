@@ -72,7 +72,7 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
     compact ? (
       <details class="group">
         <summary>{g.label}</summary>
-        <div class="checks" style="padding:0 0 12px 4px">
+        <div class="checks group-checks">
           {g.items.map((a) => (
             <label class="check">
               <input type="checkbox" name="am" value={a.key} /> {a.label}

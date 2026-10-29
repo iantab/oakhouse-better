@@ -20,19 +20,19 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
   <div class="results-layout">
     <aside id="filters">
       <form class="panel" id="filter-form" data-lines={JSON.stringify(lineNames)}>
-        <p style="margin-top:0" class="small">
+        <p class="small mt-0">
           <span class="muted">Location:</span> <strong id="location">Anywhere</strong>{' '}
           <a id="change-link" href={`${base}search/area/`}>change</a>
         </p>
         <ConditionsFields compact />
-        <button class="btn" type="submit" style="width:100%">Update results</button>
+        <button class="btn block" type="submit">Update results</button>
       </form>
     </aside>
 
     <section aria-live="polite">
       <div class="results-bar">
         <div>
-          <h1 style="margin:0" id="headline">Loading listings…</h1>
+          <h1 class="m-0" id="headline">Loading listings…</h1>
           <div class="muted small" id="subline"></div>
         </div>
         <div class="row">
@@ -67,6 +67,8 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
   const CATEGORY: Record<string, string> = { SHAREHOUSE: 'Share house', 'SOCIAL RESIDENCE': 'Social residence', APARTMENT: 'Apartment' };
   const STATUS = { a: ['available', 'Available'], s: ['soon', 'Soon'], f: ['full', 'Full'] } as const;
   const UNITS_SHOWN = 5;
+  const TRAIN_ICON =
+    '<svg class="meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M9 21l-2-4M15 21l2-4"/></svg>';
 
   const toggle = document.getElementById('filter-toggle')!;
   toggle.addEventListener('click', () => {
@@ -94,11 +96,11 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     const shown = g.units.slice(0, UNITS_SHOWN);
     const more = g.units.length - shown.length;
     return `<article class="prop-card">
-      <a class="thumb" href="${href}" aria-hidden="true" tabindex="-1" style="${p.img ? `background-image:url('${esc(p.img)}')` : ''}"></a>
+      <a class="thumb" href="${href}" aria-hidden="true" tabindex="-1">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}</a>
       <div class="body">
         <div class="kind">${esc(CATEGORY[p.c] ?? p.c)}${p.w ? ` · ${esc(p.w)}` : ''}</div>
         <h3><a href="${href}">${esc(p.n)}</a></h3>
-        <div class="meta">${st ? `🚉 ${st}` : ''}</div>
+        <div class="meta">${st ? `${TRAIN_ICON}<span>${st}</span>` : ''}</div>
         <div class="table-scroll"><table>
           <thead><tr><th>Status</th><th>Room</th><th class="num">Monthly</th><th class="num">Size</th><th class="num">Floor</th><th class="opt">Type</th></tr></thead>
           <tbody>${shown.map((u) => unitRow(u)).join('')}</tbody>
