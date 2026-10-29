@@ -75,6 +75,8 @@ export interface Property {
   terms: Facility[];
   discounts: string[];
   building: Record<string, string>;
+  /** Parsed from building["Building outline"]; null when the page doesn't say. */
+  structure: 'wood' | 'steel' | 'rc' | null;
   shared_facilities: Record<string, Facility[]>;
   room_types: { key: string; name: string; facilities: Record<string, Facility[]> }[];
   rooms: Room[];

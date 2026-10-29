@@ -50,6 +50,16 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
 </fieldset>
 
 <fieldset>
+  <legend>Building structure</legend>
+  <div class="checks">
+    <label class="check"><input type="checkbox" name="struct" value="wood" /> Wood</label>
+    <label class="check"><input type="checkbox" name="struct" value="steel" /> Steel frame</label>
+    <label class="check"><input type="checkbox" name="struct" value="rc" /> Concrete (RC/SRC)</label>
+    <label class="check"><input type="checkbox" name="struct" value="none" /> Not stated</label>
+  </div>
+</fieldset>
+
+<fieldset>
   <legend>Walk to station</legend>
   <select name="walk" aria-label="Maximum walk to station">
     <option value="">Any</option>

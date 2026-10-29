@@ -191,12 +191,13 @@ def main() -> None:
         building, contract = am.property_amenities(p)
         unit_counts[p["id"]] = len(p["rooms"])
         p["amenities"] = sorted(building | contract)
+        p["structure"] = am.structure(p)
         cover = next((ph["src"] for ph in p["photos"]), None) or next(
             (r["photos"][0] for r in p["rooms"] if r["photos"]), None)
         index_props.append({
             "id": p["id"], "k": p["kind"][0], "c": p["category"], "n": p["name"],
             "a": p["area_path"], "w": p["ward"], "lat": p["lat"], "lng": p["lng"],
-            "img": cover,
+            "img": cover, "b": p["structure"],
             # nearest stations: [station name, walk minutes, [line ids], [osm node ids]]
             "st": [[s["name"], s["walk_min"], s["lines"], s["ids"]] for s in p["stations"]]
                   or [[name, walk, [], []] for name, walk in _dedupe_stations(p["oakhouse_stations"])],

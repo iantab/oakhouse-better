@@ -12,6 +12,8 @@ export interface IndexProperty {
   lat: number | null;
   lng: number | null;
   img: string | null;
+  /** Building structure: wood / steel / rc, null when not stated. */
+  b: string | null;
   st: [name: string, walk: number | null, lines: string[], ids: number[]][];
 }
 
@@ -44,6 +46,8 @@ export interface Query {
   rmin: number | null;
   rmax: number | null;
   types: string[];
+  /** Building structures; 'none' matches listings that don't state one. */
+  struct: string[];
   am: string[];
   avail: Status[];
   /** Commute search: destination station ids and max train minutes (times come from commute.ts). */
@@ -85,6 +89,7 @@ export function parseQuery(params: URLSearchParams): Query {
     rmin: num(params.get('rmin')),
     rmax: num(params.get('rmax')),
     types: multi('type'),
+    struct: multi('struct'),
     am: multi('am'),
     // Older links used status=all ("include full rooms")
     avail: avail.length ? avail : params.get('status') === 'all' ? ['a', 's', 'f'] : [...DEFAULT_AVAIL],
@@ -141,6 +146,7 @@ export function propertyMatches(
     if (!q.areas.some((a) => path === a || path.startsWith(a + '/'))) return NO_MATCH;
   }
   if (q.types.length && !q.types.includes(TYPE_OF[p.c] ?? 'other')) return NO_MATCH;
+  if (q.struct.length && !q.struct.includes(p.b ?? 'none')) return NO_MATCH;
   const walk = stationWalk(p, q);
   const stationFiltered = q.stations.length > 0 || q.lines.length > 0 || q.walk != null;
   if (stationFiltered && walk == null) return NO_MATCH;

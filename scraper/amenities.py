@@ -173,5 +173,19 @@ def floor_number(room: dict[str, Any]) -> int | None:
     return int(m.group(1)) if m else None
 
 
+def structure(prop: dict[str, Any]) -> str | None:
+    """Building structure from "Building outline" (e.g. "RC (Reinforced Concrete) 8-story building"):
+    rc (RC/RCC/SRC), wood, steel (incl. light-gauge and ALC), or None when the page doesn't say."""
+    outline = prop["building"].get("Building outline") or ""
+    # Concrete first: "Steel-framed Reinforced Concrete" (SRC) also mentions steel
+    if re.search(r"\bS?RCC?\b|Reinforced Concrete", outline, re.I):
+        return "rc"
+    if re.search(r"\bWood", outline, re.I):
+        return "wood"
+    if re.search(r"Steel|\bALC\b", outline, re.I):
+        return "steel"
+    return None
+
+
 def catalog() -> list[dict[str, str]]:
     return [{"key": k, "label": label, "group": g} for k, label, g, _, _ in AMENITIES]
