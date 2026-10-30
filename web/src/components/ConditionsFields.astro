@@ -2,6 +2,7 @@
 // Filter fields shared by /conditions/ and the /results/ sidebar. Values are prefilled from the
 // URL by syncFormFromUrl() in lib/form.ts; area/station/line picks are carried as hidden inputs.
 import { getData } from '../lib/data';
+import { OPERATORS } from '../lib/filter';
 import Chevron from './Chevron.astro';
 
 interface Props {
@@ -49,8 +50,26 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
     <div class="checks">
       <label class="label"><input class="input" type="checkbox" name="type" value="share" /> Share house</label>
       <label class="label"><input class="input" type="checkbox" name="type" value="social" /> Social residence</label>
-      <label class="label"><input class="input" type="checkbox" name="type" value="oakapt" /> Oakhouse apartment</label>
-      <label class="label"><input class="input" type="checkbox" name="type" value="apartment" /> Apartment</label>
+      <label class="label"><input class="input" type="checkbox" name="type" value="flexapt" /> <span>Furnished apartment <span class="text-muted-foreground">(flexible lease)</span></span></label>
+      <label class="label"><input class="input" type="checkbox" name="type" value="apartment" /> <span>Apartment <span class="text-muted-foreground">(standard lease)</span></span></label>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Share-house room</legend>
+    <div class="checks">
+      <label class="label"><input class="input" type="checkbox" name="rc" value="private" /> Private room</label>
+      <label class="label"><input class="input" type="checkbox" name="rc" value="semi" /> Semi-private</label>
+      <label class="label"><input class="input" type="checkbox" name="rc" value="dorm" /> Dormitory</label>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Operator</legend>
+    <div class="checks">
+      {Object.entries(OPERATORS).map(([key, op]) => (
+        <label class="label"><input class="input" type="checkbox" name="op" value={key} /> {op.name}</label>
+      ))}
     </div>
   </fieldset>
 

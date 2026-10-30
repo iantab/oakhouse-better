@@ -375,6 +375,7 @@ def parse_listing(html: str, kind: str, pid: int, base_url: str = "https://www.o
 
     return {
         "id": pid,
+        "operator": "oakhouse",
         "kind": kind,
         "name_missing": name_missing,
         "category": category,  # SHAREHOUSE / APARTMENT / SOCIAL RESIDENCE ...
@@ -389,7 +390,7 @@ def parse_listing(html: str, kind: str, pid: int, base_url: str = "https://www.o
         "area_path": area_path,
         "lat": float(coords.group(1)) if coords else None,
         "lng": float(coords.group(2)) if coords else None,
-        "oakhouse_stations": stations,
+        "operator_stations": stations,
         "terminal": terminal,
         "terms": terms,
         "discounts": discounts,

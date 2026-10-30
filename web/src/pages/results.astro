@@ -65,7 +65,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 
 <script>
   import { describeLocation, formToParams, keepOneChecked, pickerUrl, syncFormFromUrl } from '../lib/form';
-  import { defaultSort, esc, loadIndex, PAGE_SIZE, parseQuery, search, yen, type Group, type IndexUnit } from '../lib/filter';
+  import { CATEGORY_LABELS, defaultSort, esc, loadIndex, OPERATORS, PAGE_SIZE, parseQuery, search, yen, type Group, type IndexUnit } from '../lib/filter';
   import { commuteFor, transfersLabel, type CommuteContext } from '../lib/commute';
 
   const base = import.meta.env.BASE_URL;
@@ -76,12 +76,6 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
   const sortSel = document.getElementById('sort') as HTMLSelectElement;
   const lines = new Map(Object.entries(JSON.parse(form.dataset.lines ?? '{}')) as [string, string][]);
   const amenityLabels: Record<string, string> = JSON.parse(results.dataset.amenities ?? '{}');
-  const CATEGORY: Record<string, string> = {
-    SHAREHOUSE: 'Share house',
-    'SOCIAL RESIDENCE': 'Social residence',
-    'OAKHOUSE APARTMENT': 'Oakhouse apartment',
-    APARTMENT: 'Apartment',
-  };
   const STATUS = { a: ['available', 'Available'], s: ['soon', 'Soon'], f: ['full', 'Full'] } as const;
   const UNITS_SHOWN = 5;
   const TRAIN_ICON =
@@ -120,7 +114,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     return `<article class="card prop-card">
       <a class="thumb" href="${href}" aria-hidden="true" tabindex="-1">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}</a>
       <header>
-          <p class="kind">${esc(CATEGORY[p.c] ?? p.c)}${p.w ? ` · ${esc(p.w)}` : ''}</p>
+          <p class="kind">${esc(CATEGORY_LABELS[p.c] ?? p.c)} · ${OPERATORS[p.o ?? 'o'].name}${p.w ? ` · ${esc(p.w)}` : ''}</p>
           <h3><a href="${href}">${esc(p.n)}</a></h3>
           ${st ? `<p class="meta">${TRAIN_ICON}<span>${st}</span></p>` : ''}
           ${g.commute ? `<p class="meta text-foreground">${CLOCK_ICON}<span><strong>≈ ${g.commute.min} min*</strong> to ${esc(dest)} from ${esc(g.commute.station)} · ${transfersLabel(g.commute.transfers)} · +${g.commute.walk} min walk</span></p>` : ''}

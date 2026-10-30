@@ -50,19 +50,29 @@ class PoliteClient:
         )
 
     def get(self, url: str, retries: int = 4, **kwargs: Any) -> httpx.Response:
+        return self.request("GET", url, retries, **kwargs)
+
+    def post(self, url: str, retries: int = 4, **kwargs: Any) -> httpx.Response:
+        return self.request("POST", url, retries, **kwargs)
+
+    def request(self, method: str, url: str, retries: int = 4, **kwargs: Any) -> httpx.Response:
         for attempt in range(retries):
             wait = self.delay - (time.monotonic() - self._last)
             if wait > 0:
                 time.sleep(wait)
             self._last = time.monotonic()
             try:
-                resp = self.client.get(url, **kwargs)
+                resp = self.client.request(method, url, **kwargs)
                 if resp.status_code in (429, 500, 502, 503, 504):
                     raise httpx.HTTPStatusError(f"HTTP {resp.status_code}", request=resp.request, response=resp)
                 return resp
             except (httpx.TransportError, httpx.HTTPStatusError) as exc:
                 backoff = 5 * 2**attempt
-                log.warning("GET %s failed (%s); retry %d/%d in %ds", url, exc, attempt + 1, retries, backoff)
+                # Rate limiters (x-house.co.jp's Laravel throttle) say how long to wait
+                retry_after = exc.response.headers.get("Retry-After") if isinstance(exc, httpx.HTTPStatusError) else None
+                if retry_after and retry_after.isdigit():
+                    backoff = int(retry_after) + 1
+                log.warning("%s %s failed (%s); retry %d/%d in %ds", method, url, exc, attempt + 1, retries, backoff)
                 time.sleep(backoff)
         raise RuntimeError(f"giving up on {url}")
 

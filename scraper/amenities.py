@@ -32,6 +32,7 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     ("corner", "Corner room", "room", {"pos_corner"}, r"Corner room"),
     ("near_toilet", "Close to a toilet", "room", {"pos_toilet"}, r"Close to a toilet"),
     ("tatami", "Japanese-style (tatami)", "room", {"style_japanese"}, r"Interior: Japanese"),
+    ("two_people", "2 people OK", "room", set(), None),
     # Building (shared)
     ("shared_bidet", "Shared bidet toilet", "building", set(), r"bidet"),
     ("bathtub", "Bathtub (shared)", "building", {"bathroom", "bigbath"}, r"^(Bathroom|Large bath)$"),
@@ -55,6 +56,7 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     ("no_brokerage", "No brokerage fee", "contract", set(), r"^No brokerage Fee$"),
     ("guests_ok", "Overnight guests OK", "contract", {"overnight_guest_ok"}, r"Accommodation for friends"),
     ("non_smoking", "Non-smoking building", "contract", {"nosmoking"}, r"Non-Smoking"),
+    ("age_40_plus", "Ages 40+ accepted", "contract", set(), None),
     ("women_only", "Women only", "contract", set(), None),
     ("men_only", "Men only", "contract", set(), None),
     ("campaign", "Campaign / discount", "contract", set(), None),
@@ -101,6 +103,9 @@ def property_amenities(prop: dict[str, Any]) -> tuple[set[str], set[str]]:
     """Building-level and property-wide contract amenities."""
     building = _match(_flatten(prop["shared_facilities"]), "building")
     contract = _match(prop["terms"], "contract", "room")
+    # Oakhouse listings never state an age limit (Xross ones always do; see xross_property_amenities)
+    if not any(re.search(r"\bage\b|years old", t["label"], re.I) for t in prop["terms"]):
+        contract.add("age_40_plus")
     return building, contract
 
 
@@ -153,6 +158,8 @@ def unit_amenities(prop: dict[str, Any], room: dict[str, Any], building: set[str
         keys.add("campaign")
     if a.get("style") == "japanese":
         keys.add("tatami")
+    if (room.get("max_occupancy") or 0) >= 2:
+        keys.add("two_people")
     floor = floor_number(room)
     if floor is not None and floor >= 2:
         keys.add("floor2")
@@ -162,6 +169,106 @@ def unit_amenities(prop: dict[str, Any], room: dict[str, Any], building: set[str
         if not yes("bathroom"):
             keys.discard("private_bath")
             keys.discard("private_toilet")
+    return keys
+
+
+# Xross House: matched against "Category: item" lines from the room-equipment and shared-facilities
+# tables ("Wash basin: 3-piece unit Bathroom", "Entrance key type: Auto lock (PIN code)") and the
+# room-feature icon labels. Same keys as above, different vocabulary.
+XROSS_ROOM: list[tuple[str, str]] = [
+    ("private_bath", r"unit Bath|^(Bath|Bathroom|Shower)\b"),
+    ("private_toilet", r"unit Bath|^Toilet\b"),
+    ("bath_toilet_separate", r"(?i)separate.*(bath|toilet)|(bath|toilet).*separate"),
+    ("washlet", r"(?i)washlet|bidet"),
+    ("private_kitchen", r"^Kitchen\b"),
+    ("private_sink", r"^Wash basin\b"),
+    ("washer_in_room", r"^Washing machine\b"),
+    ("aircon", r"Air conditioner"),
+    ("fridge", r"^Refrigerator\b"),
+    ("microwave", r"^Microwave\b"),
+    ("desk", r"^Desk: Desk"),
+    ("balcony", r"(?i)balcony|veranda"),
+    ("internet", r"^Internet\b|^WiFi"),
+    ("tatami", r"(?i)japanese-style|tatami"),
+    ("two_people", r"^2 people move in"),
+]
+XROSS_BUILDING: list[tuple[str, str]] = [
+    ("shared_bidet", r"(?i)^Toilet: .*(washlet|bidet)"),
+    ("women_toilet", r"(?i)^Toilet: .*(women|female)"),
+    ("bathtub", r"(?i)^Bath: .*(tub|unit bath|large bath|bathroom)"),
+    ("shared_washer", r"^Washing machine\b"),
+    ("dryer", r"(?i)(?<!hair)dryer|drying machine"),
+    ("lounge", r"(?i)^Living room|lounge"),
+    ("autolock", r"(?i)auto ?lock"),
+    ("elevator", r"(?i)elevator"),
+    ("delivery_box", r"(?i)delivery (box|locker)"),
+    ("bike_parking", r"^Bicycle parking"),
+    ("gym", r"(?i)\bgym\b"),
+    ("coworking", r"(?i)co-?working|work(ing)? space"),
+    ("free_internet", r"(?i)wifi \(free\)|free wi-?fi"),
+]
+# Shared-facility categories that never map to a filter; not reported as unmapped
+XROSS_IGNORED = re.compile(r"^(Post|Mailbox|Air conditioner|Kitchen|Wash basin|Other/special equipment|"
+                           r"Entrance key type|Key type|Bed|Chair|Storage|Tv set|Futon|Mattress|Clothes drying|"
+                           r"Other equipment|Toilet: Toilet|Bath: (Shower|Toiletries)|Living room: (Living|Tv)|"
+                           r"(Desk|Chair|Storage space|TV)$|Desk: (Low table|Folding|Simple table)|Safe box)")
+_XROSS_ROOM = [(k, re.compile(rx)) for k, rx in XROSS_ROOM]
+_XROSS_BUILDING = [(k, re.compile(rx)) for k, rx in XROSS_BUILDING]
+
+
+def _xross_lines(cats: dict[str, list[dict[str, Any]]]) -> list[str]:
+    return [f"{cat}: {i['label']}" for cat, items in cats.items() for i in items]
+
+
+def _xross_match(lines: Iterable[str], table: list[tuple[str, re.Pattern[str]]], group: str) -> set[str]:
+    keys = set()
+    for line in lines:
+        hits = {k for k, rx in table if rx.search(line)}
+        keys |= hits
+        if not hits and not XROSS_IGNORED.match(line):
+            unmatched[(f"xross/{group}", line[:60], None)] += 1
+    return keys
+
+
+def xross_property_amenities(prop: dict[str, Any]) -> tuple[set[str], set[str]]:
+    """Building-level and contract amenities for an Xross House listing."""
+    building = _xross_match(_xross_lines(prop["shared_facilities"]), _XROSS_BUILDING, "building")
+    b = prop["building"]
+    contract = set()
+    promos = " | ".join(t["label"] for t in prop["terms"])
+    if re.search(r"No security deposit", promos, re.I):
+        contract.add("no_deposit")
+    if re.search(r"agency fee|brokerage", promos, re.I):
+        contract.add("no_brokerage")
+    if re.search(r"key money", promos, re.I):
+        contract.add("no_key_money")
+    if prop["discounts"]:
+        contract.add("campaign")
+    if re.search(r"as short as one month", b.get("Contract Period", "")):
+        contract.add("short_term")
+    if re.match(r"No smoking", b.get("About smoking", ""), re.I):
+        contract.add("non_smoking")
+    if "English" in b.get("Available languages", ""):
+        contract.add("foreigners_ok")
+    age = re.search(r"to\s*(\d+)\s*years", b.get("Age limit", ""))
+    if not b.get("Age limit") or (age and int(age.group(1)) >= 40):
+        contract.add("age_40_plus")
+    # A guarantee company is always required, so never "no_guarantor"
+    return building, contract
+
+
+def xross_unit_amenities(room: dict[str, Any], building: set[str], contract: set[str]) -> set[str]:
+    # Icon labels are bare ("Kitchen", "Desk"); the equipment table says what each one is ("Desk: Low table")
+    lines = _xross_lines(room.get("facilities", {})) + [f["label"] for f in room["features"]]
+    keys = _xross_match(lines, _XROSS_ROOM, "room") | building | contract | {"furnished"}
+    # Apartments list their (free) WiFi per room rather than as a shared facility
+    if any(re.search(r"(?i)^Internet: WiFi \(free\)", line) for line in lines):
+        keys.add("free_internet")
+    if room["attrs"].get("gender") == "W":
+        keys.add("women_only")
+    floor = floor_number(room)
+    if floor is not None and floor >= 2:
+        keys.add("floor2")
     return keys
 
 
@@ -182,7 +289,8 @@ def is_oakhouse_lease(prop: dict[str, Any]) -> bool:
 def structure(prop: dict[str, Any]) -> str | None:
     """Building structure from "Building outline" (e.g. "RC (Reinforced Concrete) 8-story building"):
     rc (RC/RCC/SRC), wood, steel (incl. light-gauge and ALC), or None when the page doesn't say."""
-    outline = prop["building"].get("Building outline") or ""
+    # Oakhouse: "Building outline"; Xross: "Structure" ("Steel frame construction, 4 stories")
+    outline = prop["building"].get("Building outline") or prop["building"].get("Structure") or ""
     # Concrete first: "Steel-framed Reinforced Concrete" (SRC) also mentions steel
     if re.search(r"\bS?RCC?\b|Reinforced Concrete", outline, re.I):
         return "rc"

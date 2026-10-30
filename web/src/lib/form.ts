@@ -11,13 +11,16 @@ export function pickerUrl(base: string, params: URLSearchParams) {
 
 /** Prefill inputs from `params` and carry the area/station/line picks along as hidden inputs. */
 export function syncFormFromUrl(form: HTMLFormElement, params: URLSearchParams) {
-  const avail: string[] = parseQuery(params).avail; // applies the default + old status=all links
+  const q = parseQuery(params);
+  const avail: string[] = q.avail; // applies the default + old status=all links
   for (const el of form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]')) {
     const values = params.getAll(el.name).flatMap((v) => v.split(','));
     if (el instanceof HTMLSelectElement) {
       el.value = values[0] ?? [...el.options].find((o) => o.defaultSelected)?.value ?? '';
     } else if (el.name === 'avail') {
       el.checked = avail.includes(el.value);
+    } else if (el.name === 'type') {
+      el.checked = q.types.includes(el.value); // maps old type values (oakapt → flexapt)
     } else if (el.type === 'checkbox') {
       el.checked = values.includes(el.value);
     } else if (el.type === 'radio') {

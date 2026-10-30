@@ -30,6 +30,8 @@ export interface Room {
   type_key: string;
   amenities: string[];
   gender: 'any' | 'women' | 'men';
+  /** Xross apartment units keep their own listing page after being grouped into a building. */
+  url?: string;
 }
 
 export interface NearStation {
@@ -41,7 +43,9 @@ export interface NearStation {
 }
 
 export interface Property {
+  /** Xross House ids are offset by 100000 so they never collide with Oakhouse's. */
   id: number;
+  operator: 'oakhouse' | 'xross';
   kind: 'house' | 'apartment';
   category: string;
   name: string;
@@ -49,6 +53,8 @@ export interface Property {
   updated: string;
   description: string;
   address: string;
+  /** Xross only (Oakhouse's comes from reverse geocoding, in `geo`). */
+  postcode?: string | null;
   prefecture: string | null;
   region: string | null;
   ward: string | null;
@@ -63,7 +69,8 @@ export interface Property {
     city: string | null;
     prefecture: string | null;
   } | null;
-  oakhouse_stations: {
+  /** The operator's own station list (we compute `stations` ourselves from OSM). */
+  operator_stations: {
     line: string | null;
     line_slug: string | null;
     station: string;
@@ -124,4 +131,5 @@ export interface Meta {
   properties: number;
   units: number;
   available: number;
+  operators?: Record<'oakhouse' | 'xross', { properties: number; units: number }>;
 }

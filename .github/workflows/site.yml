@@ -1,11 +1,12 @@
-# Build the Astro site and deploy it to GitHub Pages, scraping oakhouse.jp first when needed:
+# Build the Astro site and deploy it to GitHub Pages, scraping oakhouse.jp and x-house.co.jp first when needed:
 #   - daily schedule, or a manual run with "scrape" ticked → fresh scrape
 #   - push touching scraper/ → fresh scrape (parser/output may have changed)
 #   - any other push → reuse the data already on the live site (no scrape), falling back to a
 #     scrape if that download fails
 # Scraped listings are never committed: they live in the Pages deployment. Reference data that
-# rarely changes is committed (scraper/geocode.json, web/src/data/stations.json + lines.json);
-# the only run state kept between runs (last successful counts) lives in actions/cache.
+# rarely changes is committed (scraper/geocode.json, web/src/data/stations.json + lines.json).
+# Run state kept between runs lives in actions/cache: last successful counts, Xross detail pages
+# (refetched weekly, not daily) and Xross address lookups.
 name: Scrape & deploy
 
 on:
@@ -17,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       scrape:
-        description: Scrape oakhouse.jp (untick to just rebuild with the current live data)
+        description: Scrape the listing sites (untick to just rebuild with the current live data)
         type: boolean
         default: true
 
@@ -33,6 +34,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Oakhouse and Xross scrape in parallel; Xross's room lists are capped at 30/min, so a run takes ~1 h
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v7
@@ -77,13 +79,16 @@ jobs:
         if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
         uses: actions/cache@v6
         with:
-          path: scraper/.cache/last-good.json
+          path: |
+            scraper/.cache/last-good.json
+            scraper/.cache/xross/detail
+            scraper/xross-geocode.json
           key: scraper-state-${{ github.run_id }}
           restore-keys: scraper-state-
 
-      # Exits non-zero if the listing count drops >10% vs. the last good run; the job then stops
-      # and the previous deployment stays live.
-      - name: Scrape oakhouse.jp
+      # Exits non-zero if either site's listing count drops >10% vs. the last good run; the job then
+      # stops and the previous deployment stays live.
+      - name: Scrape listings
         if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
         working-directory: scraper
         run: python build.py

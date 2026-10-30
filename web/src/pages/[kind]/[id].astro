@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import Breadcrumb from '../../components/Breadcrumb.astro';
 import Chevron from '../../components/Chevron.astro';
-import { categoryLabel, getData, yen } from '../../lib/data';
+import { categoryLabel, getData, operatorOf, yen } from '../../lib/data';
 import type { Property, Room } from '../../lib/types';
 
 export function getStaticPaths() {
@@ -29,10 +29,13 @@ const soonCount = statusCount('soon');
 const fullCount = statusCount('full');
 const prices = rooms.map((r) => r.monthly_total ?? r.rent).filter((n): n is number => n != null);
 
+const op = operatorOf(p);
 const g = p.geo;
 const address = g?.chome
   ? [g.chome, p.ward ?? g.ward, p.prefecture ?? g.prefecture].filter(Boolean).join(', ') + (g.postcode ? ` ${g.postcode}` : '')
-  : p.address;
+  : p.address + (p.postcode ? ` ${p.postcode}` : '');
+// Xross apartment buildings are grouped from one listing per unit; each unit keeps its own page
+const unitPages = rooms.some((r) => r.url && r.url !== p.url);
 
 const propertyChips = p.amenities.map((k) => amenityLabel.get(k)).filter((a) => a != null);
 const roomKeys = (r: Room) => r.amenities.filter((k) => amenityLabel.get(k)?.group === 'room');
@@ -64,7 +67,7 @@ const fees = (r: Room) =>
 
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <p class="kind">{categoryLabel(p.category)}</p>
+      <p class="kind">{categoryLabel(p.category)} · {op.name}</p>
       <h1 class="text-3xl font-bold tracking-tight">{p.name}</h1>
       <p class="mt-1 text-muted-foreground">{address}</p>
     </div>
@@ -129,7 +132,9 @@ const fees = (r: Room) =>
                         {r.available_from && <div class="text-xs whitespace-nowrap text-muted-foreground">from {r.available_from}</div>}
                       </td>
                       <td>
-                        <strong>{r.number}</strong>
+                        {unitPages && r.url
+                          ? <a class="link" href={r.url} target="_blank" rel="noopener"><strong>{r.number}</strong></a>
+                          : <strong>{r.number}</strong>}
                         {r.photos.length > 0 && (
                           <div class="room-photos">
                             {r.photos.slice(0, 1).map((src) => <img src={src} alt={`Room ${r.number}`} loading="lazy" referrerpolicy="no-referrer" />)}
@@ -166,7 +171,7 @@ const fees = (r: Room) =>
         </section>
         {rooms.some((r) => r.contract_fee) && (
           <footer>
-            <p class="text-muted-foreground">One-time contract fee: {[...new Set(rooms.map((r) => r.contract_fee).filter(Boolean))].map((n) => yen(n)).join(' / ')}.</p>
+            <p class="text-muted-foreground">One-time {p.operator === 'xross' ? 'registration' : 'contract'} fee: {[...new Set(rooms.map((r) => r.contract_fee).filter(Boolean))].map((n) => yen(n)).join(' / ')}.</p>
           </footer>
         )}
       </section>
@@ -197,8 +202,9 @@ const fees = (r: Room) =>
     <div class="flex min-w-0 flex-col gap-4">
       <section class="card">
         <section class="flex flex-col gap-3">
-          <a class="btn w-full" data-size="lg" href={p.url} target="_blank" rel="noopener">View &amp; apply on oakhouse.jp ↗</a>
-          <p class="text-xs text-muted-foreground">Last updated by Oakhouse: {p.updated || 'unknown'}</p>
+          <a class="btn w-full" data-size="lg" href={p.url} target="_blank" rel="noopener">View &amp; apply on {op.site} ↗</a>
+          {unitPages && <p class="text-xs text-muted-foreground">Each unit has its own page on {op.site}: click a room number.</p>}
+          {p.updated && <p class="text-xs text-muted-foreground">Last updated by {op.name}: {p.updated}</p>}
         </section>
       </section>
 
@@ -232,16 +238,16 @@ const fees = (r: Room) =>
           }
           {p.stations.length > 0 && <p class="text-xs text-muted-foreground">*Estimated from straight-line distance (80 m/min, +25% for streets).</p>}
           {
-            p.oakhouse_stations.length > 0 && (
+            p.operator_stations.length > 0 && (
               <div class="accordion">
                 <details open={p.stations.length === 0}>
                   <summary>
-                    Oakhouse's station list
+                    {op.name}'s station list
                     <Chevron />
                   </summary>
                   <section>
                     <ul class="list-disc space-y-1 ps-5">
-                      {p.oakhouse_stations.map((s) => (
+                      {p.operator_stations.map((s) => (
                         <li>{s.station} ({s.line}){s.walk_min != null && ` – ${s.walk_min} min walk`}</li>
                       ))}
                     </ul>

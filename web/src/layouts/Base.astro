@@ -2,12 +2,17 @@
 import '@fontsource-variable/inter';
 import '../styles/global.css';
 import { getData } from '../lib/data';
+import { OPERATORS } from '../lib/filter';
 
 interface Props {
   title?: string;
   description?: string;
 }
-const { title, description = 'Search every Oakhouse share house, social residence and apartment by area or train line.' } = Astro.props;
+const SITE_NAME = 'Heya Search';
+const {
+  title,
+  description = 'Search every Oakhouse and Xross House share house, social residence and furnished apartment by area, train line or commute.',
+} = Astro.props;
 const base = import.meta.env.BASE_URL;
 const { meta } = getData();
 const updated = meta.updated
@@ -30,7 +35,7 @@ const updated = meta.updated
       if (t) document.documentElement.dataset.theme = t;
       document.documentElement.classList.toggle('dark', t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
     </script>
-    <title>{title ? `${title} · Oakhouse Search` : 'Oakhouse Search'}</title>
+    <title>{title ? `${title} · ${SITE_NAME}` : SITE_NAME}</title>
     <meta name="description" content={description} />
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
   </head>
@@ -41,7 +46,7 @@ const updated = meta.updated
           <span class="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground" aria-hidden="true">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></svg>
           </span>
-          Oakhouse Search
+          {SITE_NAME}
         </a>
         <nav class="site-nav flex gap-1" aria-label="Main">
           <a class="btn" data-variant="ghost" data-size="sm" href={`${base}search/area/`}>By area</a>
@@ -61,10 +66,14 @@ const updated = meta.updated
     <footer class="mt-16 border-t">
       <div class="wrap space-y-1 py-8 text-sm text-muted-foreground">
         <p>
-          An unofficial search for listings from <a class="link" href="https://www.oakhouse.jp/eng/">oakhouse.jp</a>. Prices and
-          vacancies change; always confirm on the official page before applying.
+          An unofficial search for listings from <a class="link" href={OPERATORS.o.url}>{OPERATORS.o.site}</a> and{' '}
+          <a class="link" href={OPERATORS.x.url}>{OPERATORS.x.site}</a>. Prices and vacancies change; always confirm on the
+          official page before applying.
         </p>
-        <p>Data updated {updated}. Station data © <a class="link" href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.</p>
+        <p>
+          Data updated {updated}. Station data © <a class="link" href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.
+          Xross House locations: <a class="link" href="https://www.gsi.go.jp/">GSI Japan</a> address search.
+        </p>
       </div>
     </footer>
   </body>

@@ -4,6 +4,8 @@ import type { Commute } from './commute';
 
 export interface IndexProperty {
   id: number;
+  /** Operator: o = Oakhouse, x = Xross House. */
+  o: 'o' | 'x';
   k: 'h' | 'a';
   c: string;
   n: string;
@@ -28,8 +30,12 @@ export interface IndexUnit {
   sz: number | null;
   f: number | null;
   rt: string | null;
+  /** Share-house room class (both operators' wording normalised); null for apartments. */
+  rc: RoomClass | null;
   am: number[];
 }
+
+export type RoomClass = 'private' | 'semi' | 'dorm';
 
 export interface SearchIndex {
   updated: string;
@@ -46,6 +52,10 @@ export interface Query {
   rmin: number | null;
   rmax: number | null;
   types: string[];
+  /** Operators: 'o' Oakhouse, 'x' Xross House. */
+  ops: string[];
+  /** Share-house room classes. */
+  rc: string[];
   /** Building structures; 'none' matches listings that don't state one. */
   struct: string[];
   am: string[];
@@ -68,12 +78,30 @@ export const DEFAULT_AVAIL: Status[] = ['a', 's'];
 
 export const PAGE_SIZE = 20;
 
+/** Listing category → Type filter value. Types are by product, so both operators' flexible-lease
+ *  furnished apartments share one type; the Operator filter tells them apart. */
 export const TYPE_OF: Record<string, string> = {
   SHAREHOUSE: 'share',
   'SOCIAL RESIDENCE': 'social',
-  'OAKHOUSE APARTMENT': 'oakapt',
+  'OAKHOUSE APARTMENT': 'flexapt',
+  'FURNISHED APARTMENT': 'flexapt',
   APARTMENT: 'apartment',
 };
+/** Type values from older links. */
+const TYPE_ALIASES: Record<string, string> = { oakapt: 'flexapt' };
+
+export const CATEGORY_LABELS: Record<string, string> = {
+  SHAREHOUSE: 'Share house',
+  'SOCIAL RESIDENCE': 'Social residence',
+  'OAKHOUSE APARTMENT': 'Furnished apartment',
+  'FURNISHED APARTMENT': 'Furnished apartment',
+  APARTMENT: 'Apartment',
+};
+
+export const OPERATORS = {
+  o: { name: 'Oakhouse', site: 'oakhouse.jp', url: 'https://www.oakhouse.jp/eng/' },
+  x: { name: 'Xross House', site: 'x-house.co.jp', url: 'https://x-house.co.jp/en/' },
+} as const;
 
 const num = (v: string | null) => (v && !Number.isNaN(Number(v)) && v !== '' ? Number(v) : null);
 
@@ -89,7 +117,9 @@ export function parseQuery(params: URLSearchParams): Query {
     walk: num(params.get('walk')),
     rmin: num(params.get('rmin')),
     rmax: num(params.get('rmax')),
-    types: multi('type'),
+    types: multi('type').map((t) => TYPE_ALIASES[t] ?? t),
+    ops: multi('op'),
+    rc: multi('rc'),
     struct: multi('struct'),
     am: multi('am'),
     // Older links used status=all ("include full rooms")
@@ -147,6 +177,7 @@ export function propertyMatches(
     if (!q.areas.some((a) => path === a || path.startsWith(a + '/'))) return NO_MATCH;
   }
   if (q.types.length && !q.types.includes(TYPE_OF[p.c] ?? 'other')) return NO_MATCH;
+  if (q.ops.length && !q.ops.includes(p.o ?? 'o')) return NO_MATCH; // data from before Xross has no `o`
   if (q.struct.length && !q.struct.includes(p.b ?? 'none')) return NO_MATCH;
   const walk = stationWalk(p, q);
   const stationFiltered = q.stations.length > 0 || q.lines.length > 0 || q.walk != null;
@@ -163,6 +194,7 @@ export function unitMatches(u: IndexUnit, q: Query, amIdx: number[]): boolean {
   if (!q.avail.includes(u.s)) return false;
   if (q.rmin != null && (u.t ?? u.r ?? 0) < q.rmin) return false;
   if (q.rmax != null && (u.t ?? u.r ?? Infinity) > q.rmax) return false;
+  if (q.rc.length && !(u.rc && q.rc.includes(u.rc))) return false;
   for (const i of amIdx) if (!u.am.includes(i)) return false;
   return true;
 }

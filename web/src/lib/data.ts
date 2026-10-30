@@ -3,6 +3,7 @@
 // run `npm run data:pull` or the scraper to get real listings.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { CATEGORY_LABELS, OPERATORS } from './filter';
 import type { AreaNode, Amenity, Line, Meta, Property, Station } from './types';
 
 const DATA_DIR = join(process.cwd(), 'src', 'data');
@@ -25,9 +26,14 @@ let cache: {
   meta: Meta;
 } | null = null;
 
+/** Data scraped before Xross House was added has no operator fields; fill them in. */
+function withOperator(p: Property & { oakhouse_stations?: Property['operator_stations'] }): Property {
+  return { ...p, operator: p.operator ?? 'oakhouse', operator_stations: p.operator_stations ?? p.oakhouse_stations ?? [] };
+}
+
 export function getData() {
   cache ??= {
-    properties: load<Property[]>('properties.json', []),
+    properties: load<Property[]>('properties.json', []).map(withOperator),
     areas: load<AreaNode[]>('areas.json', []),
     lines: load<Line[]>('lines.json', []),
     stations: load<Station[]>('stations.json', []),
@@ -75,12 +81,8 @@ export const yen = (n: number | null | undefined) =>
   n == null ? '—' : `¥${n.toLocaleString('en-US')}`;
 
 export function categoryLabel(category: string) {
-  return (
-    {
-      SHAREHOUSE: 'Share house',
-      'SOCIAL RESIDENCE': 'Social residence',
-      'OAKHOUSE APARTMENT': 'Oakhouse apartment',
-      APARTMENT: 'Apartment',
-    } as Record<string, string>
-  )[category] ?? category.charAt(0) + category.slice(1).toLowerCase();
+  return CATEGORY_LABELS[category] ?? category.charAt(0) + category.slice(1).toLowerCase();
 }
+
+/** Operator display info for a property (name, site, home URL). */
+export const operatorOf = (p: Property) => OPERATORS[p.operator === 'xross' ? 'x' : 'o'];

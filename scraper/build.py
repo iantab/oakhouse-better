@@ -1,8 +1,9 @@
-"""Scrape Oakhouse and write the site's data files.
+"""Scrape Oakhouse and Xross House and write the site's data files.
 
-    python build.py                 # full run: sitemap → fetch → parse → enrich → write
-    python build.py --limit 20      # quick local run on the first 20 listings
+    python build.py                 # full run: sitemaps → fetch → parse → enrich → write
+    python build.py --limit 20      # quick local run on the first 20 listings of each operator
     python build.py --offline       # re-parse cached HTML only, no network for pages
+    python build.py --no-xross      # Oakhouse only
 
 Outputs (all gitignored, regenerated every run):
     web/src/data/properties.json        full detail, read by Astro at build time
@@ -10,7 +11,7 @@ Outputs (all gitignored, regenerated every run):
     web/public/data/search-index.json   compact rows the results page filters in the browser
     web/public/data/*.json              copies of the above for `npm run data:pull`
 
-Exits with status 2 (writing nothing) if the listing count drops more than
+Exits with status 2 (writing nothing) if either operator's listing count drops more than
 --max-drop below the previous successful run, so a broken scrape never deploys.
 """
 
@@ -18,13 +19,16 @@ from __future__ import annotations
 
 import argparse
 import math
+import re
 import shutil
 import sys
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any
 
 import amenities as am
+import xross
 from common import CACHE_DIR, HTML_CACHE, WEB_DATA, WEB_PUBLIC_DATA, PoliteClient, log, read_json, setup_logging, write_json
 from fetch import fetch_all
 from geocode import Geocoder
@@ -108,15 +112,35 @@ def _areas(props: list[dict[str, Any]], unit_counts: dict[int, int]) -> list[dic
     return to_list(tree)
 
 
-def _sanity_check(n_props: int, n_units: int, max_drop: float) -> None:
+def _counts(props: list[dict[str, Any]]) -> dict[str, int]:
+    return {"properties": len(props), "units": sum(len(p["rooms"]) for p in props)}
+
+
+def _sanity_check(operator: str, props: list[dict[str, Any]], max_drop: float) -> None:
     last = read_json(LAST_GOOD)
     if not last:
         return
-    for label, now, before in (("properties", n_props, last["properties"]), ("units", n_units, last["units"])):
-        if before and now < before * (1 - max_drop):
-            log.error("sanity check failed: %s dropped %d → %d (more than %.0f%%); not writing data",
-                      label, before, now, max_drop * 100)
+    # Runs before Xross was added stored Oakhouse's counts at the top level
+    before = last.get("operators", {}).get(operator) or (last if operator == "oakhouse" else None)
+    if not before:
+        return
+    for label, now in _counts(props).items():
+        if before[label] and now < before[label] * (1 - max_drop):
+            log.error("sanity check failed: %s %s dropped %d → %d (more than %.0f%%); not writing data",
+                      operator, label, before[label], now, max_drop * 100)
             sys.exit(2)
+
+
+def room_class(room_type: str | None) -> str | None:
+    """Share-house room class across both operators' wording: private / semi / dorm (None for apartments)."""
+    t = (room_type or "").lower()
+    if re.search(r"dormitory|share room", t):
+        return "dorm"
+    if re.search(r"semi|compartment", t):
+        return "semi"
+    if re.search(r"single room|private room", t):
+        return "private"
+    return None
 
 
 def main() -> None:
@@ -128,9 +152,18 @@ def main() -> None:
     ap.add_argument("--workers", type=int, default=3, help="parallel page fetchers (1 = sequential)")
     ap.add_argument("--max-geocode", type=int, help="cap new Nominatim lookups this run")
     ap.add_argument("--max-drop", type=float, default=0.10, help="sanity gate: allowed fractional drop")
+    ap.add_argument("--no-xross", action="store_true", help="skip Xross House")
+    ap.add_argument("--xross-delay", type=float, default=2.0, help="seconds between x-house.co.jp detail requests, per worker")
+    ap.add_argument("--xross-workers", type=int, default=3, help="parallel Xross detail-page fetchers (room lists are capped at 30/min regardless)")
+    ap.add_argument("--xross-max-age-d", type=float, default=7, help="refetch Xross detail pages after this many days")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
     setup_logging(args.verbose)
+
+    # Xross House runs alongside Oakhouse (different hosts, so neither slows the other); its fetch is
+    # bounded by a 30/min room-list cap and takes about as long as Oakhouse's whole crawl.
+    pool = ThreadPoolExecutor(max_workers=1)
+    xross_job = None if args.no_xross else pool.submit(xross.scrape, args)
 
     # 1. Listing pages
     if args.offline:
@@ -162,10 +195,18 @@ def main() -> None:
             log.warning("%s/%d: no name and no rooms, skipping", kind, pid)
             continue
         props.append(prop)
-    n_units = sum(len(p["rooms"]) for p in props)
-    log.info("parsed %d properties, %d units", len(props), n_units)
+    log.info("oakhouse: parsed %d properties, %d units", len(props), sum(len(p["rooms"]) for p in props))
+
+    # 2b. Xross House: its own fetch + parse (started above), producing the same record shape.
+    # Both sanity checks run after the join: exiting earlier would still wait for the Xross thread.
+    xprops = xross_job.result() if xross_job is not None else []  # re-raises if the Xross scrape failed
+    pool.shutdown()
     if not args.limit:
-        _sanity_check(len(props), n_units, args.max_drop)
+        _sanity_check("oakhouse", props, args.max_drop)
+        if xross_job is not None:
+            _sanity_check("xross", xprops, args.max_drop)
+    props += xprops
+    n_units = sum(len(p["rooms"]) for p in props)
 
     write_json(CACHE_DIR / "coords.json", [[p["lat"], p["lng"]] for p in props if p["lat"] is not None])
 
@@ -176,7 +217,8 @@ def main() -> None:
         log.warning("web/src/data/stations.json missing; run stations.py. Falling back to Oakhouse's station list")
     grid = _station_grid(stations)
     for p in props:
-        p["geo"] = geocoder.lookup(p["lat"], p["lng"]) if p["lat"] is not None else None
+        # Xross pages already give an English street address and postcode; only Oakhouse needs Nominatim
+        p["geo"] = geocoder.lookup(p["lat"], p["lng"]) if p["lat"] is not None and p["operator"] == "oakhouse" else None
         if p["geo"] and not p["ward"]:
             p["ward"] = p["geo"].get("ward")
         p["stations"] = nearest_stations(p, stations, grid) if stations else []
@@ -188,30 +230,32 @@ def main() -> None:
     index_props, index_units = [], []
     unit_counts: dict[int, int] = {}
     for p in props:
-        building, contract = am.property_amenities(p)
+        is_xross = p["operator"] == "xross"
+        building, contract = am.xross_property_amenities(p) if is_xross else am.property_amenities(p)
         unit_counts[p["id"]] = len(p["rooms"])
         p["amenities"] = sorted(building | contract)
         p["structure"] = am.structure(p)
-        if p["kind"] == "apartment" and am.is_oakhouse_lease(p):
+        if not is_xross and p["kind"] == "apartment" and am.is_oakhouse_lease(p):
             p["category"] = "OAKHOUSE APARTMENT"  # month-to-month, flat contract fee
         cover = next((ph["src"] for ph in p["photos"]), None) or next(
             (r["photos"][0] for r in p["rooms"] if r["photos"]), None)
         index_props.append({
-            "id": p["id"], "k": p["kind"][0], "c": p["category"], "n": p["name"],
+            "id": p["id"], "o": p["operator"][0], "k": p["kind"][0], "c": p["category"], "n": p["name"],
             "a": p["area_path"], "w": p["ward"], "lat": p["lat"], "lng": p["lng"],
             "img": cover, "b": p["structure"],
             # nearest stations: [station name, walk minutes, [line ids], [osm node ids]]
             "st": [[s["name"], s["walk_min"], s["lines"], s["ids"]] for s in p["stations"]]
-                  or [[name, walk, [], []] for name, walk in _dedupe_stations(p["oakhouse_stations"])],
+                  or [[name, walk, [], []] for name, walk in _dedupe_stations(p["operator_stations"])],
         })
         for r in p["rooms"]:
-            keys = am.unit_amenities(p, r, building, contract)
+            keys = (am.xross_unit_amenities(r, building, contract) if is_xross
+                    else am.unit_amenities(p, r, building, contract))
             r["amenities"] = sorted(keys)
             r["floor"] = am.floor_number(r)
             index_units.append({
                 "p": p["id"], "u": r["id"], "n": r["number"], "s": r["status"][0],
                 "d": r["available_from"], "r": r["rent"], "t": r["monthly_total"],
-                "sz": r["size_m2"], "f": r["floor"], "rt": r["room_type"],
+                "sz": r["size_m2"], "f": r["floor"], "rt": r["room_type"], "rc": room_class(r["room_type"]),
                 "am": sorted(amenity_index[k] for k in keys),
             })
     if am.unmatched:
@@ -221,7 +265,8 @@ def main() -> None:
 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     meta = {"updated": now, "properties": len(props), "units": n_units,
-            "available": sum(1 for u in index_units if u["s"] != "f")}
+            "available": sum(1 for u in index_units if u["s"] != "f"),
+            "operators": {op: _counts([p for p in props if p["operator"] == op]) for op in ("oakhouse", "xross")}}
 
     # 5. Write. Raw data-* attributes are only needed to derive amenities; keep the few the UI shows.
     for p in props:
