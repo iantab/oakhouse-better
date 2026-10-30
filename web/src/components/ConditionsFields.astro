@@ -46,6 +46,15 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
   </fieldset>
 
   <fieldset class="fieldset">
+    <legend>Operator</legend>
+    <div class="checks">
+      {Object.entries(OPERATORS).map(([key, op]) => (
+        <label class="label"><input class="input" type="checkbox" name="op" value={key} /> {op.name}</label>
+      ))}
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
     <legend>Type</legend>
     <div class="checks">
       <label class="label"><input class="input" type="checkbox" name="type" value="share" /> Share house</label>
@@ -61,15 +70,6 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
       <label class="label"><input class="input" type="checkbox" name="rc" value="private" /> Private room</label>
       <label class="label"><input class="input" type="checkbox" name="rc" value="semi" /> Semi-private</label>
       <label class="label"><input class="input" type="checkbox" name="rc" value="dorm" /> Dormitory</label>
-    </div>
-  </fieldset>
-
-  <fieldset class="fieldset">
-    <legend>Operator</legend>
-    <div class="checks">
-      {Object.entries(OPERATORS).map(([key, op]) => (
-        <label class="label"><input class="input" type="checkbox" name="op" value={key} /> {op.name}</label>
-      ))}
     </div>
   </fieldset>
 

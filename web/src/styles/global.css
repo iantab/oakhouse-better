@@ -26,8 +26,12 @@
   .dark .theme-toggle .sun { display: block; }
 
   /* Checkbox lists */
-  .checks { @apply grid gap-x-4 gap-y-3; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
-  .count { @apply text-xs font-normal text-muted-foreground tabular-nums; }
+  .checks { @apply grid gap-x-4 gap-y-1; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .count { @apply text-sm font-normal text-muted-foreground tabular-nums; }
+  /* Pick lists (areas, lines, conditions): the whole row is a roomy click target, not just the box */
+  :is(.fieldset, .accordion) .label { @apply -mx-2 cursor-pointer gap-3 rounded-md px-2 py-2 text-base hover:bg-muted; }
+  :is(.fieldset, .accordion) .label > .input[type='checkbox'] { @apply size-5; }
+  :is(.fieldset, .accordion) .label > .input[type='checkbox']:checked::after { @apply size-4 mask-size-[1rem]; }
   /* Basecoat's checkbox has no indeterminate look; the area picker's parent boxes need one */
   .input[type='checkbox']:indeterminate { @apply border-primary bg-primary; }
   .input[type='checkbox']:indeterminate::after {
