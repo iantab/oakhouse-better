@@ -33,6 +33,8 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     ("near_toilet", "Close to a toilet", "room", {"pos_toilet"}, r"Close to a toilet"),
     ("tatami", "Japanese-style (tatami)", "room", {"style_japanese"}, r"Interior: Japanese"),
     ("two_people", "2 people OK", "room", set(), None),
+    ("loft", "Loft", "room", set(), None),  # Xross only
+    ("video_intercom", "Intercom with monitor", "room", set(), None),  # Xross only
     # Building (shared)
     ("shared_bidet", "Shared bidet toilet", "building", set(), r"bidet"),
     ("bathtub", "Bathtub (shared)", "building", {"bathroom", "bigbath"}, r"^(Bathroom|Large bath)$"),
@@ -176,21 +178,25 @@ def unit_amenities(prop: dict[str, Any], room: dict[str, Any], building: set[str
 # tables ("Wash basin: 3-piece unit Bathroom", "Entrance key type: Auto lock (PIN code)") and the
 # room-feature icon labels. Same keys as above, different vocabulary.
 XROSS_ROOM: list[tuple[str, str]] = [
-    ("private_bath", r"unit Bath|^(Bath|Bathroom|Shower)\b"),
-    ("private_toilet", r"unit Bath|^Toilet\b"),
+    # Apartments' "Bath and toilet" / "Bathroom and toilet" / "Bath · Toilet" rows mean the unit has both
+    ("private_bath", r"(?i)unit bath|^(bath|bathroom|shower)\b"),
+    ("private_toilet", r"(?i)unit bath|^toilet\b|^bath(room)?\s*(and|·)\s*toilet"),
     ("bath_toilet_separate", r"(?i)separate.*(bath|toilet)|(bath|toilet).*separate"),
     ("washlet", r"(?i)washlet|bidet"),
-    ("private_kitchen", r"^Kitchen\b"),
-    ("private_sink", r"^Wash basin\b"),
+    ("private_kitchen", r"(?i)^(kitchen|indoor kitchen|in-room kitchen)\b"),
+    # A 3-piece (bath + toilet + basin) or 2-piece (bath + basin) unit bath includes the sink
+    ("private_sink", r"(?i)^wash ?basin|unit bath"),
     ("washer_in_room", r"^Washing machine\b"),
-    ("aircon", r"Air conditioner"),
-    ("fridge", r"^Refrigerator\b"),
-    ("microwave", r"^Microwave\b"),
-    ("desk", r"^Desk: Desk"),
+    ("aircon", r"(?i)air conditioner"),
+    ("fridge", r"(?i)^refrigerator\b|kitchen: refrigerator"),
+    ("microwave", r"(?i)^microwave\b|kitchen: microwave"),
+    ("desk", r"(?i)^desk: .*desk"),  # not "Low table" / "Simple table"
     ("balcony", r"(?i)balcony|veranda"),
     ("internet", r"^Internet\b|^WiFi"),
     ("tatami", r"(?i)japanese-style|tatami"),
-    ("two_people", r"^2 people move in"),
+    ("two_people", r"(?i)^(2|two) people"),
+    ("loft", r"(?i)\bloft\b"),
+    ("video_intercom", r"(?i)^intercom: .*monitor"),
 ]
 XROSS_BUILDING: list[tuple[str, str]] = [
     ("shared_bidet", r"(?i)^Toilet: .*(washlet|bidet)"),
@@ -199,7 +205,7 @@ XROSS_BUILDING: list[tuple[str, str]] = [
     ("shared_washer", r"^Washing machine\b"),
     ("dryer", r"(?i)(?<!hair)dryer|drying machine"),
     ("lounge", r"(?i)^Living room|lounge"),
-    ("autolock", r"(?i)auto ?lock"),
+    ("autolock", r"(?i)auto ?lock|automatic lock"),
     ("elevator", r"(?i)elevator"),
     ("delivery_box", r"(?i)delivery (box|locker)"),
     ("bike_parking", r"^Bicycle parking"),
@@ -208,10 +214,13 @@ XROSS_BUILDING: list[tuple[str, str]] = [
     ("free_internet", r"(?i)wifi \(free\)|free wi-?fi"),
 ]
 # Shared-facility categories that never map to a filter; not reported as unmapped
-XROSS_IGNORED = re.compile(r"^(Post|Mailbox|Air conditioner|Kitchen|Wash basin|Other/special equipment|"
-                           r"Entrance key type|Key type|Bed|Chair|Storage|Tv set|Futon|Mattress|Clothes drying|"
-                           r"Other equipment|Toilet: Toilet|Bath: (Shower|Toiletries)|Living room: (Living|Tv)|"
-                           r"(Desk|Chair|Storage space|TV)$|Desk: (Low table|Folding|Simple table)|Safe box)")
+XROSS_IGNORED = re.compile(r"(?i)^(Post|Mailbox|Air conditioner|Kitchen|Wash ?basin|Other/special equipment|"
+                           r"Entrance key type|Front door lock type|Key type|Bed|Chair|Storage|Tv set|Futon|Mattress|"
+                           r"Clothes drying|Drying facilities|Other equipment|Toilet: Toilet|"
+                           r"Bath: (Shower|Toiletr(y|ies))|Desk light|Indoor kitchen|In-room kitchen|"
+                           r"Living room: (Living|Tv)|(Desk|Chair|Storage space|TV)$|"
+                           r"Desk: (Low table|Folding|Simple table)|Safe box|Life ?lines?|Intercom|Kettle|Toaster|"
+                           r"Rice cooker)")
 _XROSS_ROOM = [(k, re.compile(rx)) for k, rx in XROSS_ROOM]
 _XROSS_BUILDING = [(k, re.compile(rx)) for k, rx in XROSS_BUILDING]
 

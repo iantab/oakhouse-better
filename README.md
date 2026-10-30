@@ -9,8 +9,9 @@ Live site: https://iantab.github.io/oakhouse-better/
 ## How it works
 
 ```
-GitHub Actions (daily 03:00 JST, on push to master, or manual)
-  scraper/build.py  → scrapes oakhouse.jp/eng + x-house.co.jp/en, writes JSON into web/   (never committed)
+GitHub Actions (daily 03:00 Toronto time, on push to master, or manual)
+  build.py fetch    → "Scrape listings": downloads oakhouse.jp/eng + x-house.co.jp/en pages into scraper/.cache (~1 h)
+  build.py process  → "Parse & enrich": parse → geocode → nearest stations → amenities → JSON into web/   (never committed)
      or data-pull   → re-uses the data already on the live site (pushes that don't touch scraper/)
   astro build       → static site, one page per property
   deploy-pages      → GitHub Pages
@@ -32,7 +33,7 @@ GitHub Actions (daily 03:00 JST, on push to master, or manual)
 
 | Path | What |
 |---|---|
-| `scraper/build.py` | Main pipeline: sitemap → fetch pages → parse → geocode → nearest stations → amenities → JSON |
+| `scraper/build.py` | Main pipeline in two stages: `fetch` (sitemaps → pages, records a manifest) and `process` (parse → geocode → nearest stations → amenities → JSON) |
 | `scraper/parse.py` | HTML → property/room records (share-house tables and brokered-apartment cards) |
 | `scraper/xross.py` | Xross House: sitemap → detail pages + room lists → the same records as `parse.py`; groups apartment units into buildings |
 | `scraper/amenities.py` | Maps both sites' free-text facilities to filter keys (`washlet`, `bathtub`, `no_deposit`…) |
@@ -58,8 +59,10 @@ python -m venv .venv && .venv/Scripts/activate   # or: source .venv/bin/activate
 pip install -r requirements.txt
 python build.py --limit 20     # quick run on 20 listings
 python build.py                # full run, ~1 h (both sites in parallel; Xross room lists are capped at 30/min)
+python build.py fetch          # just download (into scraper/.cache, plus .cache/manifest.json)
+python build.py process        # just parse + enrich + write, from what the last fetch downloaded
 python build.py --workers 1    # same, one page at a time (3 parallel fetchers by default, 1 s apart each)
-python build.py --offline      # re-parse cached pages only (after changing parse.py or xross.py)
+python build.py --offline      # same as process (re-parse after changing parse.py or xross.py)
 python build.py --no-xross     # Oakhouse only
 python xross.py --limit 5      # fetch + parse a few Xross listings and print them (writes no site data)
 ```

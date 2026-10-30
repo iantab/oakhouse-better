@@ -86,12 +86,20 @@ jobs:
           key: scraper-state-${{ github.run_id }}
           restore-keys: scraper-state-
 
-      # Exits non-zero if either site's listing count drops >10% vs. the last good run; the job then
-      # stops and the previous deployment stays live.
+      # Downloads only (~1 h: Xross room lists are capped at 30/min); writes scraper/.cache/manifest.json.
+      # Fails if Xross blocks us or too many of its listings fail; the previous deployment stays live.
       - name: Scrape listings
         if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
         working-directory: scraper
-        run: python build.py
+        run: python build.py fetch
+
+      # Parses the downloaded pages, geocodes (Nominatim, GSI), finds nearest stations, maps amenities and
+      # writes the site's data. Exits non-zero if either site's listing count drops >10% vs. the last good
+      # run; the job then stops and the previous deployment stays live.
+      - name: Parse & enrich
+        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
+        working-directory: scraper
+        run: python build.py process
 
       - name: Build site
         uses: withastro/action@v6

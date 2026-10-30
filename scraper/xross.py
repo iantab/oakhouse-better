@@ -260,19 +260,21 @@ class Fetcher:
         self.client.close()
 
 
-def fetch_all(delay: float = 2.0, detail_max_age_d: float = 7, limit: int | None = None,
-              offline: bool = False, workers: int = 1) -> list[tuple[int, str, str, str]]:
-    """(xross id, path, detail html, rooms html) for every live listing."""
-    if offline:
-        out = []
-        for f in sorted(DETAIL_CACHE.glob("*.html.gz")):
-            xid = int(f.name.split(".")[0])
-            html = _read_gz(f)
-            m = re.search(r'/en/(sharehouse/[a-z-]+/city/[a-z-]+/xross-\d+)/', html)
-            if m and _rooms_path(xid).exists():
-                out.append((xid, m.group(1), html, _read_gz(_rooms_path(xid))))
-        return out[:limit] if limit else out
+def load(entries: list[tuple[int, str]]) -> list[tuple[int, str, str, str]]:
+    """(xross id, path, detail html, rooms html) from the cache, for the listings a fetch recorded."""
+    out = []
+    for xid, path in entries:
+        detail, rooms = _detail_path(xid), _rooms_path(xid)
+        if detail.exists() and rooms.exists():
+            out.append((xid, path, _read_gz(detail), _read_gz(rooms)))
+        else:
+            log.warning("xross %d: not in the cache; skipping", xid)
+    return out
 
+
+def fetch_all(delay: float = 2.0, detail_max_age_d: float = 7, limit: int | None = None,
+              workers: int = 1) -> list[tuple[int, str]]:
+    """Download every live listing's detail page and room list into the cache; returns (xross id, path)."""
     # Room lists are throttled to 30 requests/minute per IP (x-ratelimit-limit: 30), so one thread
     # fetches them at just under that rate. Detail pages are fetched alongside by `workers` fetchers
     # (default 1, 2 s apart) and handed over through a queue. Keep the total near 1 request/s: a CI run
@@ -281,7 +283,7 @@ def fetch_all(delay: float = 2.0, detail_max_age_d: float = 7, limit: int | None
     paths = listing_paths(rooms_f.client)
     log.info("xross sitemap: %d listings", len(paths))
     ids = sorted(paths)[:limit] if limit else sorted(paths)
-    ready: queue.Queue[tuple[int, str] | None] = queue.Queue()
+    ready: queue.Queue[int | None] = queue.Queue()  # ids whose detail page is cached
     local = threading.local()
     fetchers: list[Fetcher] = [rooms_f]
     lock = threading.Lock()
@@ -298,7 +300,7 @@ def fetch_all(delay: float = 2.0, detail_max_age_d: float = 7, limit: int | None
         try:
             detail = breaker.call(f.detail, xid, paths[xid])
             if detail is not None:
-                ready.put((xid, detail))
+                ready.put(xid)
             else:
                 with lock:
                     gone += 1
@@ -318,10 +320,10 @@ def fetch_all(delay: float = 2.0, detail_max_age_d: float = 7, limit: int | None
     producer = threading.Thread(target=details_then_stop, daemon=True)
     producer.start()
     try:
-        while (item := ready.get()) is not None:
-            xid, detail = item
+        while (xid := ready.get()) is not None:
             try:
-                out.append((xid, paths[xid], detail, breaker.call(rooms_f.rooms, xid)))
+                breaker.call(rooms_f.rooms, xid)  # cached as .cache/xross/rooms/{id}.html.gz
+                out.append((xid, paths[xid]))
             except Aborted:
                 raise
             except Exception as exc:
@@ -357,6 +359,21 @@ class AddressGeocoder:
         self.client: PoliteClient | None = None
         self.new = 0
 
+    def lookup_all(self, addresses: list[str]) -> None:
+        """Look up every address not cached yet, logging progress (the first run has ~1,000)."""
+        todo = sorted({a for a in addresses if a not in self.cache})
+        if not todo:
+            log.info("GSI: all %d addresses already cached", len(set(addresses)))
+            return
+        log.info("GSI: %d new addresses to geocode (~%.0f min)", len(todo), len(todo) * 0.5 / 60)
+        start = time.monotonic()
+        for i, address in enumerate(todo, 1):
+            self.lookup(address)
+            if i % 100 == 0 and i < len(todo):
+                left = (time.monotonic() - start) / i * (len(todo) - i)
+                log.info("GSI geocoded %d/%d new addresses (~%.0fs left)", i, len(todo), left)
+                self.save(quiet=True)  # keep progress if the run is cut short
+
     def lookup(self, address: str) -> tuple[float, float] | None:
         if address not in self.cache:
             self.client = self.client or PoliteClient(delay=0.5, user_agent=TOOL_UA)
@@ -373,10 +390,11 @@ class AddressGeocoder:
         hit = self.cache[address]
         return (hit[0], hit[1]) if hit else None
 
-    def save(self) -> None:
+    def save(self, quiet: bool = False) -> None:
         if self.new:
             write_json(GEO_FILE, self.cache, pretty=True, sort_keys=True)
-            log.info("GSI geocoded %d new addresses", self.new)
+            if not quiet:
+                log.info("GSI geocoded %d new addresses", self.new)
 
 
 # ----------------------------------------------------------------------------------------- parsing
@@ -630,17 +648,24 @@ def group_apartments(props: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
-def scrape(args: argparse.Namespace) -> list[dict[str, Any]]:
-    """Fetch, parse, geocode and group; returns property records ready for build.py's enrichment."""
-    listings = fetch_all(delay=args.xross_delay, detail_max_age_d=args.xross_max_age_d,
-                         limit=args.limit, offline=args.offline, workers=args.xross_workers)
+def fetch(args: argparse.Namespace) -> list[tuple[int, str]]:
+    """build.py's fetch stage: download into the cache; returns the (xross id, path) entries for its manifest."""
+    return fetch_all(delay=args.xross_delay, detail_max_age_d=args.xross_max_age_d, limit=args.limit,
+                     workers=args.xross_workers)
+
+
+def process(entries: list[tuple[int, str]]) -> list[dict[str, Any]]:
+    """build.py's process stage: parse the cached pages, geocode and group; returns property records."""
+    start = time.monotonic()
     props = []
-    for xid, path, detail, rooms in listings:
+    for xid, path, detail, rooms in load(entries):
         try:
             props.append(parse_xross(detail, rooms, xid, path))
         except Exception as exc:
             log.error("parse xross %d failed: %s", xid, exc)
+    log.info("xross: parsed %d of %d listings in %.0fs", len(props), len(entries), time.monotonic() - start)
     geo = AddressGeocoder()
+    geo.lookup_all([p["address_ja"] for p in props if p["address_ja"]])
     for p in props:
         hit = geo.lookup(p["address_ja"]) if p["address_ja"] else None
         if hit:
@@ -655,13 +680,12 @@ def scrape(args: argparse.Namespace) -> list[dict[str, Any]]:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--limit", type=int, default=5)
-    ap.add_argument("--offline", action="store_true")
     ap.add_argument("--xross-delay", type=float, default=2.0)
     ap.add_argument("--xross-max-age-d", type=float, default=7)
     ap.add_argument("--xross-workers", type=int, default=1)
     args = ap.parse_args()
     setup_logging()
-    for p in scrape(args):
+    for p in process(fetch(args)):
         rooms = p["rooms"]
         log.info("%d %s | %s | %s | %s | %s,%s | %d rooms (%s) | stations %s", p["id"], p["category"], p["name"],
                  "/".join(p["area_path"]), p["address"], p["lat"], p["lng"], len(rooms),
