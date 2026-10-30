@@ -71,7 +71,7 @@ def fetch_all(
             done += 1
             if done % 50 == 0 or done == len(ids):
                 elapsed = time.monotonic() - start
-                log.info("fetched %d/%d (%.0fs elapsed, ~%.0fs left)", done, len(ids), elapsed,
+                log.info("oakhouse fetched %d/%d (%.0fs elapsed, ~%.0fs left)", done, len(ids), elapsed,
                          elapsed / done * (len(ids) - done))
         return (kind, pid, path) if path is not None else None
 

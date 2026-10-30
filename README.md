@@ -93,9 +93,12 @@ Repository **Settings → Pages → Source: GitHub Actions**. The workflow then 
 - Photos are linked from oakhouse.jp and x-house.co.jp, not copied.
 - **Xross House** is scraped within its robots.txt: listing URLs come from its sitemap, and only English detail pages
   and each property's room list are fetched (never the map or search endpoints). The room-list endpoint allows 30
-  requests a minute per IP, so refreshing all ~1,600 listings takes ~55 min whatever the parallelism; detail pages
-  (not throttled; 3 fetchers, 2 s apart each) are refetched every 7–14 days, room availability daily. Coordinates come from
-  [GSI's address search](https://msearch.gsi.go.jp/) on each listing's street address.
+  requests a minute per IP, so refreshing all ~1,600 listings takes ~55 min whatever the parallelism. Detail pages
+  are fetched alongside by one fetcher, 2 s apart: at ~2 requests/s overall the site's firewall blocked the CI
+  runner after ~550 requests, so keep the total near 1/s. If the site starts blocking anyway, the scrape pauses
+  5 min, then fails the job rather than deploying partial data. Detail pages are refetched every 7–14 days, room
+  availability daily. Coordinates come from [GSI's address search](https://msearch.gsi.go.jp/) on each listing's
+  street address.
 - Xross lists every furnished-apartment unit separately; units with the same address and building name are shown as
   one property, and each unit links to its own Xross page. Xross ids are offset by 100000 in this site's URLs.
 - Station data © OpenStreetMap contributors (ODbL). Addresses: Nominatim (OSM).

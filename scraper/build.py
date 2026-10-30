@@ -154,7 +154,7 @@ def main() -> None:
     ap.add_argument("--max-drop", type=float, default=0.10, help="sanity gate: allowed fractional drop")
     ap.add_argument("--no-xross", action="store_true", help="skip Xross House")
     ap.add_argument("--xross-delay", type=float, default=2.0, help="seconds between x-house.co.jp detail requests, per worker")
-    ap.add_argument("--xross-workers", type=int, default=3, help="parallel Xross detail-page fetchers (room lists are capped at 30/min regardless)")
+    ap.add_argument("--xross-workers", type=int, default=1, help="Xross detail-page fetchers; keep the total near 1 req/s or the site blocks us (room lists are capped at 30/min regardless)")
     ap.add_argument("--xross-max-age-d", type=float, default=7, help="refetch Xross detail pages after this many days")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
@@ -174,7 +174,7 @@ def main() -> None:
         client = PoliteClient(delay=args.delay)
         ids = listing_ids(client)
         client.close()
-        log.info("sitemap: %d listings", len(ids))
+        log.info("oakhouse sitemap: %d listings", len(ids))
         if args.limit:
             ids = ids[: args.limit]
         listings = fetch_all(ids, args.max_age_h, workers=args.workers, delay=args.delay)

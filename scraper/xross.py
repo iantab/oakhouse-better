@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote
 
+import httpx
 from selectolax.lexbor import LexborHTMLParser, LexborNode
 
 from common import CACHE_DIR, SCRAPER_DIR, TOOL_UA, PoliteClient, log, read_json, setup_logging, write_json
@@ -122,6 +123,86 @@ def _write_gz(path: Path, text: str) -> None:
     path.write_bytes(gzip.compress(text.encode("utf-8")))
 
 
+class Blocked(Exception):
+    """x-house.co.jp answered with something other than the page asked for (e.g. a firewall/bot page)."""
+
+
+class Aborted(RuntimeError):
+    """x-house.co.jp kept blocking us; the Xross scrape gives up (and the build fails) for this run."""
+
+
+_blocked_logged = 0
+
+
+def _blocked(xid: int, what: str, resp: httpx.Response) -> Blocked:
+    """Build a Blocked error; the first few also log what came back, to see what the site sends."""
+    global _blocked_logged
+    headers = {k: v for k, v in resp.headers.items()
+               if k.lower() in ("server", "content-type") or k.lower().startswith(("x-amzn", "cf-", "x-ratelimit"))}
+    info = f"HTTP {resp.status_code} {headers} body={resp.text[:200]!r}"
+    if _blocked_logged < 3:
+        _blocked_logged += 1
+        log.warning("xross %d %s: unexpected response: %s", xid, what, info)
+    return Blocked(f"xross {xid} {what}: unexpected response (HTTP {resp.status_code})")
+
+
+class Breaker:
+    """Counts blocked responses in a row across the detail and room-list pipelines. After `trip` in a row,
+    every fetcher pauses for `pause_s`; if the next `trip` are blocked too, the scrape is aborted, so a
+    blocked run fails (and the live site keeps its data) instead of deploying a partial Xross."""
+
+    def __init__(self, trip: int = 10, pause_s: float = 300):
+        self.trip, self.pause_s = trip, pause_s
+        self.lock = threading.Lock()
+        self.streak = 0
+        self.paused_once = False
+        self.resume_at = 0.0
+        self.aborted: str | None = None
+
+    def wait(self) -> None:
+        while True:
+            with self.lock:
+                if self.aborted:
+                    raise Aborted(self.aborted)
+                delay = self.resume_at - time.monotonic()
+            if delay <= 0:
+                return
+            time.sleep(min(delay, 5))
+
+    def ok(self) -> None:
+        with self.lock:
+            self.streak = 0
+            self.paused_once = False
+
+    def blocked(self) -> None:
+        with self.lock:
+            self.streak += 1
+            if self.streak < self.trip:
+                return
+            self.streak = 0
+            if self.paused_once:
+                self.aborted = (f"x-house.co.jp is still blocking us after a {self.pause_s / 60:.0f} min pause; "
+                                "stopping the Xross scrape")
+                raise Aborted(self.aborted)
+            self.paused_once = True
+            self.resume_at = time.monotonic() + self.pause_s
+            log.warning("xross: %d blocked responses in a row; pausing %.0f min", self.trip, self.pause_s / 60)
+
+    def call(self, fn: Any, *args: Any) -> Any:
+        """Run one fetch, retrying it once if it comes back blocked."""
+        for attempt in range(2):
+            self.wait()
+            try:
+                result = fn(*args)
+            except Blocked:
+                self.blocked()
+                if attempt == 1:
+                    raise
+                continue
+            self.ok()
+            return result
+
+
 class Fetcher:
     def __init__(self, delay: float, detail_max_age_d: float):
         self.client = PoliteClient(delay=delay)
@@ -133,9 +214,10 @@ class Fetcher:
         if html and (m := _TOKEN_RE.search(html)):
             self.token = m.group(1)
         if self.token is None:
-            m = _TOKEN_RE.search(self.client.get(f"{XROSS_URL}/en/").text)
+            resp = self.client.get(f"{XROSS_URL}/en/")
+            m = _TOKEN_RE.search(resp.text)
             if not m:
-                raise RuntimeError("x-house.co.jp: no csrf-token meta tag")
+                raise _blocked(0, "csrf token", resp)
             self.token = m.group(1)
         return self.token
 
@@ -151,8 +233,7 @@ class Fetcher:
             return None
         resp.raise_for_status()
         if 'class="c-ttl03"' not in resp.text:
-            log.warning("xross %d: page has no property title; skipping", xid)
-            return None
+            raise _blocked(xid, "detail page", resp)
         self._token(resp.text)
         _write_gz(cached, resp.text)
         return resp.text
@@ -167,7 +248,10 @@ class Fetcher:
                 self.token = None
                 continue
             resp.raise_for_status()
-            html = resp.json().get("html") or ""
+            try:
+                html = resp.json().get("html") or ""
+            except ValueError:
+                raise _blocked(xid, "room list", resp) from None
             _write_gz(_rooms_path(xid), html)
             return html
         raise RuntimeError(f"xross {xid}: room list kept failing")
@@ -177,7 +261,7 @@ class Fetcher:
 
 
 def fetch_all(delay: float = 2.0, detail_max_age_d: float = 7, limit: int | None = None,
-              offline: bool = False, workers: int = 3) -> list[tuple[int, str, str, str]]:
+              offline: bool = False, workers: int = 1) -> list[tuple[int, str, str, str]]:
     """(xross id, path, detail html, rooms html) for every live listing."""
     if offline:
         out = []
@@ -190,8 +274,9 @@ def fetch_all(delay: float = 2.0, detail_max_age_d: float = 7, limit: int | None
         return out[:limit] if limit else out
 
     # Room lists are throttled to 30 requests/minute per IP (x-ratelimit-limit: 30), so one thread
-    # fetches them at just under that rate; more workers can't make that part faster. Detail pages
-    # aren't throttled, so a small pool fetches them ahead of it and hands them over through a queue.
+    # fetches them at just under that rate. Detail pages are fetched alongside by `workers` fetchers
+    # (default 1, 2 s apart) and handed over through a queue. Keep the total near 1 request/s: a CI run
+    # at ~2/s (3 detail fetchers) got the runner's IP blocked by the site's firewall after ~550 requests.
     rooms_f = Fetcher(ROOMS_INTERVAL_S, detail_max_age_d)
     paths = listing_paths(rooms_f.client)
     log.info("xross sitemap: %d listings", len(paths))
@@ -200,19 +285,29 @@ def fetch_all(delay: float = 2.0, detail_max_age_d: float = 7, limit: int | None
     local = threading.local()
     fetchers: list[Fetcher] = [rooms_f]
     lock = threading.Lock()
+    breaker = Breaker()
+    failed = gone = 0
 
     def get_detail(xid: int) -> None:
+        nonlocal failed, gone
         f = getattr(local, "f", None)
         if f is None:
             f = local.f = Fetcher(delay, detail_max_age_d)
             with lock:
                 fetchers.append(f)
         try:
-            detail = f.detail(xid, paths[xid])
+            detail = breaker.call(f.detail, xid, paths[xid])
             if detail is not None:
                 ready.put((xid, detail))
+            else:
+                with lock:
+                    gone += 1
+        except Aborted:
+            return  # the room-list loop raises it
         except Exception as exc:  # one bad listing shouldn't sink the crawl
             log.error("xross %d detail failed: %s", xid, exc)
+            with lock:
+                failed += 1
 
     def details_then_stop() -> None:
         with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
@@ -226,18 +321,30 @@ def fetch_all(delay: float = 2.0, detail_max_age_d: float = 7, limit: int | None
         while (item := ready.get()) is not None:
             xid, detail = item
             try:
-                out.append((xid, paths[xid], detail, rooms_f.rooms(xid)))
+                out.append((xid, paths[xid], detail, breaker.call(rooms_f.rooms, xid)))
+            except Aborted:
+                raise
             except Exception as exc:
                 log.error("xross %d rooms failed: %s", xid, exc)
+                with lock:
+                    failed += 1
             done += 1
             if done % 100 == 0:
                 elapsed = time.monotonic() - start
                 log.info("xross fetched %d/%d (%.0fs elapsed, ~%.0fs left)", done, len(ids), elapsed,
                          (len(ids) - done) * ROOMS_INTERVAL_S)
         producer.join()
-        log.info("xross fetched %d listings in %.0fs", len(out), time.monotonic() - start)
+        if breaker.aborted:
+            raise Aborted(breaker.aborted)
+        log.info("xross fetched %d listings in %.0fs (%d failed, %d gone)", len(out), time.monotonic() - start,
+                 failed, gone)
+        # A run with many failures would deploy a partial Xross; fail instead (covers the first run too,
+        # when build.py's drop check has no previous counts to compare against)
+        if failed > 0.1 * len(ids):
+            raise Aborted(f"{failed} of {len(ids)} Xross listings failed; not using this scrape")
         return sorted(out)
     finally:
+        breaker.aborted = breaker.aborted or "stopped"  # release any detail fetcher still waiting
         for f in fetchers:
             f.close()
 
@@ -551,7 +658,7 @@ def main() -> None:
     ap.add_argument("--offline", action="store_true")
     ap.add_argument("--xross-delay", type=float, default=2.0)
     ap.add_argument("--xross-max-age-d", type=float, default=7)
-    ap.add_argument("--xross-workers", type=int, default=3)
+    ap.add_argument("--xross-workers", type=int, default=1)
     args = ap.parse_args()
     setup_logging()
     for p in scrape(args):
