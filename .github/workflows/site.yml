@@ -1,5 +1,6 @@
 # Build the Astro site and deploy it to GitHub Pages, scraping oakhouse.jp and x-house.co.jp first when needed:
-#   - daily schedule, or a manual run with "scrape" ticked → fresh scrape
+#   - daily run triggered by cron-job.org (workflow_dispatch), or a manual run with "scrape" ticked
+#     → fresh scrape
 #   - push touching scraper/ → fresh scrape (parser/output may have changed)
 #   - any other push → reuse the data already on the live site (no scrape), falling back to a
 #     scrape if that download fails
@@ -10,9 +11,6 @@
 name: Scrape & deploy
 
 on:
-  schedule:
-    - cron: "0 3 * * *" # daily at 03:00 Eastern time
-      timezone: "America/Toronto"
   push:
     branches: [master]
   workflow_dispatch:

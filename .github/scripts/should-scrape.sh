@@ -8,8 +8,6 @@ set -uo pipefail
 
 zero=0000000000000000000000000000000000000000
 case "${EVENT:-}" in
-  schedule)
-    scrape=true; why="daily schedule" ;;
   workflow_dispatch)
     scrape="${DISPATCH_SCRAPE:-true}"; why="manual run" ;;
   push)
