@@ -94,9 +94,6 @@
   .detail-grid { @apply grid items-start gap-4; grid-template-columns: minmax(0, 1fr) 340px; }
   .facts { @apply grid gap-x-4 gap-y-2 text-sm; grid-template-columns: minmax(6em, max-content) 1fr; }
   .facts dt { @apply max-w-52 text-muted-foreground; }
-  .facts.stacked { @apply grid-cols-1 gap-y-0; }
-  .facts.stacked dt { @apply max-w-none text-xs; }
-  .facts.stacked dd { @apply mb-2; }
   .table .features { min-width: 200px; }
   /* Rooms table header stays visible while scrolling: sticky only works inside the nearest scroll
      box, so long tables scroll within a capped height. */
@@ -125,6 +122,12 @@
     .site-nav::-webkit-scrollbar { display: none; }
     .price-box { @apply text-left; }
     .gallery img { @apply h-48; }
+  }
+  /* Phones: long labels ("Cancellation fee (moving out fee)") would squeeze values into a sliver */
+  @media (max-width: 560px) {
+    .facts { @apply grid-cols-1 gap-y-0; }
+    .facts dt { @apply max-w-none text-xs; }
+    .facts dd { @apply mb-2; }
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -176,10 +176,32 @@ const fees = (r: Room) =>
         )}
       </section>
 
-      {p.description && (
+      {/* Contract terms and building facts decide whether a place fits, so they come right after the rooms */}
+      {propertyChips.length > 0 && (
         <section class="card">
-          <header><h2>About this property</h2></header>
-          <section><p class="leading-relaxed">{p.description}</p></section>
+          <header>
+            <h2>Building &amp; contract</h2>
+            {p.discounts.length > 0 && <p>Discounts: {p.discounts.join(', ')}</p>}
+          </header>
+          <section>
+            <ul class="flex flex-wrap gap-1.5">{propertyChips.map((a) => <li class="badge" data-variant="secondary">{a!.label}</li>)}</ul>
+          </section>
+        </section>
+      )}
+
+      {Object.keys(p.building).length > 0 && (
+        <section class="card">
+          <header><h2>Building info</h2></header>
+          <section>
+            <dl class="facts">
+              {Object.entries(p.building).filter(([, v]) => v).map(([k, v]) => (
+                <>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </>
+              ))}
+            </dl>
+          </section>
         </section>
       )}
 
@@ -197,6 +219,13 @@ const fees = (r: Room) =>
           </dl>
         </section>
       </section>
+
+      {p.description && (
+        <section class="card">
+          <header><h2>About this property</h2></header>
+          <section><p class="leading-relaxed">{p.description}</p></section>
+        </section>
+      )}
     </div>
 
     <div class="flex min-w-0 flex-col gap-4">
@@ -258,34 +287,6 @@ const fees = (r: Room) =>
           }
         </section>
       </section>
-
-      {propertyChips.length > 0 && (
-        <section class="card">
-          <header>
-            <h2>Building &amp; contract</h2>
-            {p.discounts.length > 0 && <p>Discounts: {p.discounts.join(', ')}</p>}
-          </header>
-          <section>
-            <ul class="flex flex-wrap gap-1.5">{propertyChips.map((a) => <li class="badge" data-variant="secondary">{a!.label}</li>)}</ul>
-          </section>
-        </section>
-      )}
-
-      {Object.keys(p.building).length > 0 && (
-        <section class="card">
-          <header><h2>Building info</h2></header>
-          <section>
-            <dl class="facts stacked">
-              {Object.entries(p.building).filter(([, v]) => v).map(([k, v]) => (
-                <>
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </>
-              ))}
-            </dl>
-          </section>
-        </section>
-      )}
     </div>
   </div>
 </Base>
