@@ -1,0 +1,91 @@
+---
+// Every listing on a map of Japan. The sidebar holds the same filters as /results/; changing one
+// re-filters the map straight away. Clicking a building opens a popup linking to its page.
+import Base from '../layouts/Base.astro';
+import ConditionsFields from '../components/ConditionsFields.astro';
+---
+
+<Base title="Map" description="Every Oakhouse and Xross House listing on a map of Japan, with the same filters as search.">
+  <div class="map-layout">
+    <aside id="filters">
+      <form class="card" data-size="sm" id="filter-form">
+        <header>
+          <h2>Filters</h2>
+          <p>The map updates as you change them.</p>
+        </header>
+        <section>
+          <ConditionsFields compact />
+        </section>
+        <footer>
+          <button class="btn w-full" data-variant="outline" type="reset" id="reset">Clear filters</button>
+        </footer>
+      </form>
+    </aside>
+
+    <section class="map-panel">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <h1 class="text-xl font-semibold tracking-tight">Map</h1>
+          <span class="badge" data-variant="secondary" id="count" aria-live="polite">Loading listings…</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="legend"><span class="dot dot-o"></span>Oakhouse</span>
+          <span class="legend"><span class="dot dot-x"></span>Xross House</span>
+          <button class="btn filter-toggle" data-variant="outline" data-size="sm" type="button" id="filter-toggle" aria-controls="filters" aria-expanded="false">Filters</button>
+        </div>
+      </div>
+      <div id="map" class="map-canvas"></div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { formToParams, keepOneChecked, syncFormFromUrl } from '../lib/form';
+  import { loadIndex, parseQuery, search } from '../lib/filter';
+  import { createMap } from '../lib/map';
+
+  const base = import.meta.env.BASE_URL;
+  const form = document.getElementById('filter-form') as HTMLFormElement;
+  const count = document.getElementById('count')!;
+  keepOneChecked(form, 'avail');
+
+  const toggle = document.getElementById('filter-toggle')!;
+  toggle.addEventListener('click', () => {
+    const open = document.getElementById('filters')!.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
+  const map = createMap(document.getElementById('map')!, base);
+  const indexP = loadIndex(base);
+
+  async function update(params: URLSearchParams) {
+    try {
+      const index = await indexP;
+      const { groups, unitCount } = search(index, parseQuery(params));
+      map.setGroups(groups);
+      const n = (x: number) => x.toLocaleString('en-US');
+      count.textContent = `${n(unitCount)} room${unitCount === 1 ? '' : 's'} in ${n(groups.length)} building${groups.length === 1 ? '' : 's'}`;
+    } catch (err) {
+      count.textContent = 'Could not load listings';
+      console.error(err);
+    }
+  }
+
+  function fromForm() {
+    const params = formToParams(form);
+    history.replaceState(null, '', params.size ? `?${params}` : location.pathname);
+    update(params);
+  }
+
+  form.addEventListener('change', fromForm);
+  form.addEventListener('submit', (e) => e.preventDefault());
+  // "Clear filters": back to the defaults (the reset event fires before the inputs change)
+  form.addEventListener('reset', () => setTimeout(() => {
+    syncFormFromUrl(form, new URLSearchParams());
+    fromForm();
+  }));
+
+  const initial = new URLSearchParams(location.search);
+  syncFormFromUrl(form, initial);
+  update(initial);
+</script>

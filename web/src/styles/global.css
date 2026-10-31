@@ -90,6 +90,21 @@
   .prop-card .meta svg { @apply shrink-0 text-primary; }
   .prop-card .table { @apply text-xs; }
 
+  /* Map page: filters on the left, map filling the rest of the viewport */
+  .map-layout { @apply grid items-start gap-6; grid-template-columns: 300px minmax(0, 1fr); }
+  .map-layout aside { @apply sticky top-4 overflow-auto p-px; max-height: calc(100vh - 2rem); }
+  .map-layout aside .checks { grid-template-columns: 1fr; }
+  .map-canvas { @apply w-full overflow-hidden rounded-xl border bg-muted; height: calc(100vh - 12rem); min-height: 420px; }
+  .legend { @apply inline-flex items-center gap-1.5 text-xs text-muted-foreground; }
+  .legend .dot { @apply inline-block size-2.5 rounded-full ring-2 ring-background; }
+  .dot-o { background: #1f7a5c; }
+  .dot-x { background: #c2410c; }
+  .dark .dot-o { background: #5fd4a6; }
+  .dark .dot-x { background: #fb923c; }
+  .map-popup img { @apply h-28 w-full bg-muted object-cover; }
+  .map-popup .body { @apply flex flex-col gap-1 p-3; }
+  .map-popup .btn { @apply mt-2; }
+
   /* Detail page */
   .price-box { @apply text-right; }
   .gallery {
@@ -118,6 +133,10 @@
     .results-layout, .detail-grid { grid-template-columns: minmax(0, 1fr); }
     .results-layout aside { @apply static hidden max-h-none; }
     .results-layout aside.open { display: block; }
+    .map-layout { grid-template-columns: minmax(0, 1fr); }
+    .map-layout aside { @apply static hidden max-h-none; }
+    .map-layout aside.open { display: block; }
+    .map-canvas { height: calc(100vh - 14rem); }
     .filter-toggle { display: inline-flex; }
     .prop-card { grid-template-columns: minmax(0, 1fr); }
     .prop-card { grid-template-rows: none; }
@@ -143,3 +162,14 @@
     .prop-card:hover > .thumb img { transform: none; }
   }
 }
+
+/* MapLibre overrides. Outside the layers on purpose: maplibre-gl.css is unlayered, so layered rules lose to it. */
+.heya-popup .maplibregl-popup-content { @apply overflow-hidden rounded-lg border bg-popover p-0 text-popover-foreground shadow-md; }
+.heya-popup .maplibregl-popup-tip { @apply hidden; }
+.heya-popup .maplibregl-popup-close-button { @apply top-1 right-1 size-6 rounded-md bg-background/80 text-base leading-none text-foreground hover:bg-accent; }
+.map-canvas .maplibregl-ctrl-group { @apply rounded-md border shadow-sm; }
+.dark .map-canvas .maplibregl-ctrl-group { @apply bg-card; }
+.dark .map-canvas .maplibregl-ctrl button .maplibregl-ctrl-icon { filter: invert(1); }
+.dark .map-canvas .maplibregl-ctrl-attrib { @apply bg-card/90 text-muted-foreground; }
+.dark .map-canvas .maplibregl-ctrl-attrib a { @apply text-muted-foreground; }
+.dark .map-canvas .maplibregl-ctrl-attrib-button { filter: invert(1); }
