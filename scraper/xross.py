@@ -631,7 +631,9 @@ def _building_name(name: str, numbers: list[str]) -> str:
 
 def group_apartments(props: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Xross lists each furnished-apartment unit as its own property; merge units of one building
-    (same street address and building name) into a single property whose rooms are the units."""
+    (same street address and building name) into a single property whose rooms are the units.
+    Unit pages fill in building details unevenly (one says "Structure: wooden", another omits the
+    row), so the building takes each detail from the first unit that states it."""
     out, buildings = [], {}
     for p in sorted(props, key=lambda p: p["id"]):
         if p["kind"] != "apartment":
@@ -643,7 +645,7 @@ def group_apartments(props: list[dict[str, Any]]) -> list[dict[str, Any]]:
             r["url"] = p["url"]
         key = (p["address_ja"] or p["address"], name)
         if key not in buildings:
-            buildings[key] = {**p, "name": name}
+            buildings[key] = {**p, "name": name, "building": dict(p["building"])}
             out.append(buildings[key])
             continue
         b = buildings[key]
@@ -652,6 +654,8 @@ def group_apartments(props: list[dict[str, Any]]) -> list[dict[str, Any]]:
         b["photos"] = b["photos"] + [ph for ph in p["photos"] if ph["src"] not in seen]
         b["description"] = b["description"] or p["description"]
         b["discounts"] = sorted(set(b["discounts"]) | set(p["discounts"]))
+        for k, v in p["building"].items():
+            b["building"].setdefault(k, v)
     return out
 
 
