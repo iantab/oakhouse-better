@@ -179,14 +179,14 @@ def unit_amenities(prop: dict[str, Any], room: dict[str, Any], building: set[str
 # room-feature icon labels. Same keys as above, different vocabulary.
 XROSS_ROOM: list[tuple[str, str]] = [
     # Apartments' "Bath and toilet" / "Bathroom and toilet" / "Bath · Toilet" rows mean the unit has both
-    ("private_bath", r"(?i)unit bath|^(bath|bathroom|shower)\b"),
+    ("private_bath", r"(?i)unit bath|^(bath|bathroom|shower)\b(?!.*:\s*Toilet$)"),  # not "Bath · Toilet: Toilet"
     ("private_toilet", r"(?i)unit bath|^toilet\b|^bath(room)?\s*(and|·)\s*toilet"),
     ("bath_toilet_separate", r"(?i)separate.*(bath|toilet)|(bath|toilet).*separate"),
     ("washlet", r"(?i)washlet|bidet"),
     ("private_kitchen", r"(?i)^(kitchen|indoor kitchen|in-room kitchen)\b"),
     # A 3-piece (bath + toilet + basin) or 2-piece (bath + basin) unit bath includes the sink
     ("private_sink", r"(?i)^wash ?basin|unit bath"),
-    ("washer_in_room", r"^Washing machine\b"),
+    ("washer_in_room", r"^Washing machine\b(?!: Coin laundry)"),
     ("aircon", r"(?i)air conditioner"),
     ("fridge", r"(?i)^refrigerator\b|kitchen: refrigerator"),
     ("microwave", r"(?i)^microwave\b|kitchen: microwave"),
@@ -203,9 +203,9 @@ XROSS_BUILDING: list[tuple[str, str]] = [
     ("women_toilet", r"(?i)^Toilet: .*(women|female)"),
     ("bathtub", r"(?i)^Bath: .*(tub|unit bath|large bath|bathroom)"),
     ("shared_washer", r"^Washing machine\b"),
-    ("dryer", r"(?i)(?<!hair)dryer|drying machine"),
+    ("dryer", r"(?i)^(?!wash ?basin:).*((?<!hair)dryer|drying machine)"),  # "Washbasin: Dryer" is a hairdryer
     ("lounge", r"(?i)^Living room|lounge"),
-    ("autolock", r"(?i)auto ?lock|automatic lock"),
+    ("autolock", r"(?i)auto[- ]?lock|automatic lock"),
     ("elevator", r"(?i)elevator"),
     ("delivery_box", r"(?i)delivery (box|locker)"),
     ("bike_parking", r"^Bicycle parking"),
@@ -270,6 +270,10 @@ def xross_unit_amenities(room: dict[str, Any], building: set[str], contract: set
     # Icon labels are bare ("Kitchen", "Desk"); the equipment table says what each one is ("Desk: Low table")
     lines = _xross_lines(room.get("facilities", {})) + [f["label"] for f in room["features"]]
     keys = _xross_match(lines, _XROSS_ROOM, "room") | building | contract | {"furnished"}
+    # The "Washing machine" icon also shows for rooms whose only washer is the building's coin laundry
+    washers = room.get("facilities", {}).get("Washing machine", [])
+    if washers and all(w["label"].startswith("Coin laundry") for w in washers):
+        keys.discard("washer_in_room")
     # Apartments list their (free) WiFi per room rather than as a shared facility
     if any(re.search(r"(?i)^Internet: WiFi \(free\)", line) for line in lines):
         keys.add("free_internet")

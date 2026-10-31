@@ -399,6 +399,13 @@ class AddressGeocoder:
 
 # ----------------------------------------------------------------------------------------- parsing
 
+def _next_td(th: LexborNode) -> LexborNode | None:
+    td = th.next
+    while td is not None and td.tag != "td":
+        td = td.next
+    return td
+
+
 def _tables(tree: LexborHTMLParser) -> dict[str, LexborNode]:
     """First <td> for each <th> label in the page's .c-table01 tables (rows can hold two th/td pairs)."""
     out: dict[str, LexborNode] = {}
@@ -408,9 +415,7 @@ def _tables(tree: LexborHTMLParser) -> dict[str, LexborNode]:
             table = table.parent
         if table is not None and "inner-table" in (table.attributes.get("class") or ""):
             continue  # per-room-type fee breakdowns; read by _fees_by_type
-        td = th.next
-        while td is not None and td.tag != "td":
-            td = td.next
+        td = _next_td(th)
         label = _text(th)
         if td is not None and label and label not in out:
             out[label] = td
@@ -531,7 +536,9 @@ def parse_xross(detail_html: str, rooms_html: str, xid: int, path: str) -> dict[
     t = _tables(tree)
     val = lambda label: _text(t.get(label))  # noqa: E731
 
-    prop_type = val("Property Type")  # "Share house (Some are for women only)", "Furnished apartment"
+    # "Share house (Some are for women only)", "Furnished apartment". The page has two Property Type rows and
+    # only the second (details) one carries the "(Women only)" note, so read them all
+    prop_type = " ".join(_text(_next_td(th)) for th in tree.css("div.c-table01 th") if _text(th) == "Property Type")
     kind = "apartment" if "apartment" in prop_type.lower() else "house"
     women_only = bool(re.search(r"women only|female only", prop_type, re.I)) and not re.search(r"\bSome\b", prop_type, re.I)
 
