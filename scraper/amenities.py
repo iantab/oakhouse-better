@@ -314,5 +314,16 @@ def structure(prop: dict[str, Any]) -> str | None:
     return None
 
 
+def built_year(prop: dict[str, Any], year_now: int) -> int | None:
+    """Year the building was completed, or None when the page doesn't say (~310 listings don't).
+    Oakhouse: "… 5-story building Year Built:2025/09" in "Building outline" (may be in the future for
+    buildings under construction). Xross: "Building age": "49 year", converted relative to `year_now`."""
+    m = re.search(r"Year Built:\s*(\d{4})", prop["building"].get("Building outline") or "")
+    if m:
+        return int(m.group(1))
+    m = re.match(r"\s*(\d+)", prop["building"].get("Building age") or "")
+    return year_now - int(m.group(1)) if m else None
+
+
 def catalog() -> list[dict[str, str]]:
     return [{"key": k, "label": label, "group": g} for k, label, g, _, _ in AMENITIES]

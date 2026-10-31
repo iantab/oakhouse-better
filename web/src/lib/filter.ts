@@ -16,6 +16,8 @@ export interface IndexProperty {
   img: string | null;
   /** Building structure: wood / steel / rc, null when not stated. */
   b: string | null;
+  /** Year built; null when the listing doesn't say. Missing from indexes built before this field. */
+  y?: number | null;
   st: [name: string, walk: number | null, lines: string[], ids: number[]][];
 }
 
@@ -58,6 +60,12 @@ export interface Query {
   rc: string[];
   /** Building structures; 'none' matches listings that don't state one. */
   struct: string[];
+  /** Max building age in years; `ageu` also keeps listings that don't state an age. */
+  age: number | null;
+  ageu: boolean;
+  /** Room size bounds in m². */
+  szmin: number | null;
+  szmax: number | null;
   am: string[];
   avail: Status[];
   /** Commute search: destination station ids and max train minutes (times come from commute.ts). */
@@ -121,6 +129,10 @@ export function parseQuery(params: URLSearchParams): Query {
     ops: multi('op'),
     rc: multi('rc'),
     struct: multi('struct'),
+    age: num(params.get('age')),
+    ageu: params.get('ageu') === '1',
+    szmin: num(params.get('szmin')),
+    szmax: num(params.get('szmax')),
     am: multi('am'),
     // Older links used status=all ("include full rooms")
     avail: avail.length ? avail : params.get('status') === 'all' ? ['a', 's', 'f'] : [...DEFAULT_AVAIL],
@@ -166,6 +178,7 @@ export function stationCommute(p: IndexProperty, q: Query, times: Map<number, Co
 }
 
 const NO_MATCH = { ok: false, walk: null, commute: null } as const;
+const THIS_YEAR = new Date().getFullYear();
 
 export function propertyMatches(
   p: IndexProperty,
@@ -179,6 +192,11 @@ export function propertyMatches(
   if (q.types.length && !q.types.includes(TYPE_OF[p.c] ?? 'other')) return NO_MATCH;
   if (q.ops.length && !q.ops.includes(p.o ?? 'o')) return NO_MATCH; // data from before Xross has no `o`
   if (q.struct.length && !q.struct.includes(p.b ?? 'none')) return NO_MATCH;
+  if (q.age != null) {
+    if (p.y == null) {
+      if (!q.ageu) return NO_MATCH;
+    } else if (Math.max(0, THIS_YEAR - p.y) > q.age) return NO_MATCH;
+  }
   const walk = stationWalk(p, q);
   const stationFiltered = q.stations.length > 0 || q.lines.length > 0 || q.walk != null;
   if (stationFiltered && walk == null) return NO_MATCH;
@@ -195,6 +213,8 @@ export function unitMatches(u: IndexUnit, q: Query, amIdx: number[]): boolean {
   if (q.rmin != null && (u.t ?? u.r ?? 0) < q.rmin) return false;
   if (q.rmax != null && (u.t ?? u.r ?? Infinity) > q.rmax) return false;
   if (q.rc.length && !(u.rc && q.rc.includes(u.rc))) return false;
+  if (q.szmin != null && (u.sz == null || u.sz < q.szmin)) return false;
+  if (q.szmax != null && (u.sz == null || u.sz > q.szmax)) return false;
   for (const i of amIdx) if (!u.am.includes(i)) return false;
   return true;
 }

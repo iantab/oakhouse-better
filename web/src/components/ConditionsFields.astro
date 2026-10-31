@@ -20,6 +20,9 @@ const groups = Object.entries(amenities.groups).map(([key, label]) => ({
 }));
 const rents = [30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 120000, 150000, 200000, 300000];
 const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
+// 10–70 m² in 5s, then 80/90/100 ("No maximum" still includes the few bigger units)
+const sizes = [...Array.from({ length: 13 }, (_, i) => 10 + i * 5), 80, 90, 100];
+const ages = [5, 10, 15, 20, 25, 30];
 ---
 
 <div data-carry hidden></div>
@@ -42,6 +45,21 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
       {costToggles.map((a) => (
         <label class="label"><input class="input" type="checkbox" name="am" value={a!.key} /> {a!.label}</label>
       ))}
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Room size</legend>
+    <div class="flex flex-wrap items-center gap-2">
+      <select class="select" name="szmin" aria-label="Minimum room size">
+        <option value="">No minimum</option>
+        {sizes.map((s) => <option value={s}>{s} m²</option>)}
+      </select>
+      <span class="text-sm text-muted-foreground">to</span>
+      <select class="select" name="szmax" aria-label="Maximum room size">
+        <option value="">No maximum</option>
+        {sizes.map((s) => <option value={s}>{s} m²</option>)}
+      </select>
     </div>
   </fieldset>
 
@@ -81,6 +99,17 @@ const k = (n: number) => `¥${(n / 1000).toLocaleString('en-US')}k`;
       <label class="label"><input class="input" type="checkbox" name="struct" value="rc" /> Concrete (RC/SRC)</label>
       <label class="label"><input class="input" type="checkbox" name="struct" value="none" /> Not stated</label>
     </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Building age</legend>
+    <select class="select w-fit" name="age" aria-label="Maximum building age">
+      <option value="">Any</option>
+      <option value="0">New (under 1 year)</option>
+      {ages.map((a) => <option value={a}>{a} years or less</option>)}
+    </select>
+    {/* About 1 in 7 listings don't state an age; only applies when an age is picked */}
+    <label class="label"><input class="input" type="checkbox" name="ageu" value="1" /> Include listings with unknown age</label>
   </fieldset>
 
   <fieldset class="fieldset">

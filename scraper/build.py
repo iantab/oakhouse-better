@@ -271,6 +271,7 @@ def process_stage(args: argparse.Namespace) -> None:
             amenity_index = {k: i for i, k in enumerate(amenity_keys)}
             index_props, index_units = [], []
             unit_counts: dict[int, int] = {}
+            year_now = datetime.now(timezone.utc).year
             for p in props:
                 is_xross = p["operator"] == "xross"
                 building, contract = am.xross_property_amenities(p) if is_xross else am.property_amenities(p)
@@ -284,7 +285,7 @@ def process_stage(args: argparse.Namespace) -> None:
                 index_props.append({
                     "id": p["id"], "o": p["operator"][0], "k": p["kind"][0], "c": p["category"], "n": p["name"],
                     "a": p["area_path"], "w": p["ward"], "lat": p["lat"], "lng": p["lng"],
-                    "img": cover, "b": p["structure"],
+                    "img": cover, "b": p["structure"], "y": am.built_year(p, year_now),
                     # nearest stations: [station name, walk minutes, [line ids], [osm node ids]]
                     "st": [[s["name"], s["walk_min"], s["lines"], s["ids"]] for s in p["stations"]]
                           or [[name, walk, [], []] for name, walk in _dedupe_stations(p["operator_stations"])],
