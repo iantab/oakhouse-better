@@ -57,6 +57,10 @@
   .badge.status-soon { background: var(--soon-soft); color: var(--soon); }
   .badge.status-full { @apply bg-muted text-muted-foreground; }
 
+  /* Room gender badges */
+  .badge.gender-women { background: var(--women-soft); color: var(--women); }
+  .badge.gender-men { background: var(--men-soft); color: var(--men); }
+
   /* Tables: numbers right-aligned, long text allowed to wrap */
   .table th { @apply text-xs text-muted-foreground; }
   .table td { @apply align-top whitespace-normal; }

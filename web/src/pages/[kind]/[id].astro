@@ -144,7 +144,7 @@ const fees = (r: Room) =>
                       <td>
                         {r.room_type}
                         {r.floor_plan && <div class="text-xs text-muted-foreground">{r.floor_plan}</div>}
-                        {r.gender !== 'any' && <div class="text-xs font-medium">{r.gender === 'women' ? 'Women only' : 'Men only'}</div>}
+                        {r.gender !== 'any' && <div class="mt-1"><span class={`badge gender-${r.gender}`}>{r.gender === 'women' ? 'Women only' : 'Men only'}</span></div>}
                       </td>
                       <td class="num">{r.size_m2 != null ? `${r.size_m2}㎡` : '—'}</td>
                       <td class="num">{r.floor != null ? `${r.floor}F` : '—'}</td>

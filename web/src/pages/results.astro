@@ -85,6 +85,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
   const SEARCH_ICON =
     '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
   let dest = '';
+  let genderIdx = { w: -1, m: -1 }; // positions of women_only / men_only in the index's amenity list
 
   const toggle = document.getElementById('filter-toggle')!;
   toggle.addEventListener('click', () => {
@@ -95,9 +96,10 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
   function unitRow(u: IndexUnit) {
     const [cls, label] = STATUS[u.s];
     const when = u.s === 's' && u.d ? `<div class="text-xs whitespace-nowrap text-muted-foreground">from ${esc(u.d)}</div>` : '';
+    const gender = u.am.includes(genderIdx.w) ? ['women', 'Women only'] : u.am.includes(genderIdx.m) ? ['men', 'Men only'] : null;
     return `<tr class="${u.s === 'f' ? 'is-full' : ''}">
       <td><span class="badge status-${cls}">${label}</span>${when}</td>
-      <td>${esc(u.n)}</td>
+      <td>${esc(u.n)}${gender ? `<div class="mt-1"><span class="badge gender-${gender[0]}">${gender[1]}</span></div>` : ''}</td>
       <td class="num"><strong>${yen(u.t ?? u.r)}</strong>${u.t != null && u.r != null && u.t !== u.r ? `<div class="text-xs text-muted-foreground">rent ${yen(u.r)}</div>` : ''}</td>
       <td class="num">${u.sz != null ? `${u.sz}㎡` : '—'}</td>
       <td class="num">${u.f != null ? `${u.f}F` : '—'}</td>
@@ -140,6 +142,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     const q = parseQuery(params);
     const { groups, unitCount } = search(index, q, commute?.times);
     dest = commute?.dest ?? '';
+    genderIdx = { w: index.amenities.indexOf('women_only'), m: index.amenities.indexOf('men_only') };
     document.getElementById('location')!.textContent = describeLocation(params, { lines, dest: commute?.dest });
     document.getElementById('commute-note')!.hidden = !commute;
     const pages = Math.max(1, Math.ceil(groups.length / PAGE_SIZE));
