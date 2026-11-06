@@ -2,9 +2,10 @@
 # (api.monthly-homes.jp) first when needed:
 #   - daily run triggered by cron-job.org (workflow_dispatch), or a manual run with "scrape" ticked
 #     → fresh scrape
-#   - any push (whatever it touches, scraper/ included) → reuse the data already on the live site
-#     (no scrape), falling back to a scrape if that download fails. Scraper changes take effect at
-#     the next daily run; run manually with "scrape" ticked to apply them sooner.
+#   - any push (whatever it touches, scraper/ included) → reuse the data already on the live site.
+#     Pushes never scrape: if that download fails (site down, or a change added a data file the live
+#     site doesn't have yet), the run fails and the previous deployment stays live. Scraper changes
+#     take effect at the next daily run; run manually with "scrape" ticked to apply them sooner.
 # Scraped listings are never committed: they live in the Pages deployment. Reference data that
 # rarely changes is committed (scraper/geocode.json, web/src/data/stations.json + lines.json).
 # Run state kept between runs lives in actions/cache: last successful counts, Xross detail pages
@@ -50,28 +51,36 @@ jobs:
         with:
           node-version: 24
 
-      # On failure (site down, never deployed) the scrape steps below run instead.
+      # Fails the run if any file is missing; pushes never fall back to scraping (only the daily run scrapes)
       - name: Reuse deployed data
         id: pull
         if: steps.mode.outputs.scrape == 'false'
-        continue-on-error: true
         run: node web/scripts/data-pull.mjs
 
+      - name: Explain failed reuse
+        if: failure() && steps.pull.outcome == 'failure'
+        run: |
+          {
+            echo "### Couldn't reuse the live site's data"
+            echo "A data file is missing on the live site (a change added a new one, or the site is down). Nothing was scraped."
+            echo "Run **Actions → Scrape & deploy** with \"scrape\" ticked to rebuild the data."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/setup-python@v7
-        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
+        if: steps.mode.outputs.scrape == 'true'
         with:
           python-version: "3.14"
           cache: pip
           cache-dependency-path: scraper/requirements.txt
 
       - name: Install scraper dependencies
-        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
+        if: steps.mode.outputs.scrape == 'true'
         run: pip install -r scraper/requirements.txt
 
       # Caches are immutable, so save under a new key every run and restore the newest by prefix.
       # Saved only when the job succeeds, so a failed scrape never replaces the last good state.
       - name: Restore scraper state
-        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
+        if: steps.mode.outputs.scrape == 'true'
         uses: actions/cache@v6
         with:
           path: |
@@ -86,7 +95,7 @@ jobs:
       # writes scraper/.cache/manifest.json.
       # Fails if Xross blocks us or too many of its listings fail; the previous deployment stays live.
       - name: Scrape listings
-        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
+        if: steps.mode.outputs.scrape == 'true'
         working-directory: scraper
         run: python build.py fetch
 
@@ -94,7 +103,7 @@ jobs:
       # writes the site's data. Exits non-zero if any site's listing count drops >10% vs. the last good
       # run; the job then stops and the previous deployment stays live.
       - name: Parse & enrich
-        if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
+        if: steps.mode.outputs.scrape == 'true'
         working-directory: scraper
         run: python build.py process
 

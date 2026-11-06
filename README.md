@@ -18,9 +18,11 @@ GitHub Actions (daily 03:00 Toronto time, on push to master, or manual)
   deploy-pages      → GitHub Pages
 ```
 
-- **When it scrapes:** daily, on pushes that change `scraper/`, and on manual runs (**Actions → Scrape & deploy →
-  Run workflow**; untick "scrape" to just rebuild). Other pushes, such as site or README changes, rebuild in a couple
-  of minutes using the current live data.
+- **When it scrapes:** only on the daily run and on manual runs (**Actions → Scrape & deploy → Run workflow**; untick
+  "scrape" to just rebuild). Pushes never scrape, even ones that change `scraper/`: they rebuild in a couple of minutes
+  from the data already on the live site. If that data can't be downloaded (the site is down, or a change added a
+  data file the live site doesn't have yet), the run fails, the previous deployment stays live, and a manual run with
+  "scrape" ticked fixes it.
 - **No backend or database.** The results page filters `search-index.json` in the browser.
 - **Scraped listings are not committed.** Between runs, `actions/cache` keeps the last successful listing counts,
   Xross detail pages and Xross address lookups. If either site's scrape returns more than 10% fewer listings than
