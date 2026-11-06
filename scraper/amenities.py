@@ -37,7 +37,7 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     ("video_intercom", "Intercom with monitor", "room", set(), None),  # Xross only
     # Building (shared)
     ("shared_bidet", "Shared bidet toilet", "building", set(), r"bidet"),
-    ("bathtub", "Bathtub (shared)", "building", {"bathroom", "bigbath"}, r"^(Bathroom|Large bath)$"),
+    ("bathtub", "Bathtub (shared)", "building", {"bathroom", "bigbath", "bathtub"}, r"^(Bathroom|Large bath|Bath tub)$"),
     ("shared_washer", "Shared washing machine", "building", {"washing_machine"}, r"Washing machine"),
     ("dryer", "Clothes dryer", "building", {"dryer_machine"}, r"^Dryer$"),
     ("lounge", "Shared lounge", "building", {"shared_lounge", "large_lounge"}, r"lounge"),
@@ -46,6 +46,9 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     ("elevator", "Elevator", "building", {"elevator"}, r"Elevator"),
     ("delivery_box", "Delivery box", "building", {"deliverylocker"}, r"Delivery box"),
     ("bike_parking", "Bicycle parking", "building", {"parkingcycle"}, r"Bicycle parking"),
+    ("moto_parking", "Scooter/motorbike parking", "building", {"motorbikes_parking"}, r"(?i)motorcycle parking"),
+    ("car_parking", "Car parking", "building", {"parkingcar"}, r"^Car parking$"),  # also listed per room
+    ("security_camera", "Security camera", "building", {"security_camera"}, r"(?i)surveillance camera"),
     ("gym", "Gym", "building", {"gym"}, r"gym"),
     ("coworking", "Coworking space", "building", {"coworking_space"}, r"Coworking"),
     ("free_internet", "Free internet", "building", {"internet_free_wifi"}, r"Free Internet|usage fee: free"),
@@ -54,7 +57,7 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     ("short_term", "Short-term OK", "contract", {"monthly"}, r"Short-Term Rental|Monthly available"),
     ("no_deposit", "No security deposit", "contract", set(), r"^No security deposit$"),
     ("no_key_money", "No key money", "contract", set(), r"^No Key Money$"),
-    ("no_guarantor", "No guarantor needed", "contract", set(), r"^No guarantor$"),
+    ("no_guarantor", "No guarantor needed", "contract", set(), r"^No guarantor( company)?$"),
     ("no_brokerage", "No brokerage fee", "contract", set(), r"^No brokerage Fee$"),
     ("guests_ok", "Overnight guests OK", "contract", {"overnight_guest_ok"}, r"Accommodation for friends"),
     ("non_smoking", "Non-smoking building", "contract", {"nosmoking"}, r"Non-Smoking"),
@@ -67,6 +70,9 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
 GROUPS = {"room": "Room", "building": "Building", "contract": "Contract"}
 _COMPILED = [(k, g, icons, re.compile(rx) if rx else None) for k, _, g, icons, rx in AMENITIES]
 
+# Keys that also match outside their display group (Oakhouse lists car parking as a room facility too)
+ANY_GROUP = {"car_parking"}
+
 unmatched: Counter[tuple[str, str, str | None]] = Counter()
 
 
@@ -76,9 +82,20 @@ IGNORED_ICONS = {
     "daylight_window", "window", "storage", "outdoor_clothes_airer", "indoor_closeths_airer", "flooring",
     "table", "sofa", "rice_cooker", "toaster", "oven", "frying_pan", "plates", "pot", "utencils",
     "pos_stairs", "pos_lounge", "pos_smoking", "cable_tv", "single", "semi_double", "double", "queen_bed",
+    # shared equipment most houses have (room-level uses of these icons still match above)
+    "microwave_oven", "kitchen", "sharedkitchen", "shower", "cleaner", "iron", "dryer", "dry_space", "food_stocker",
+    "unisex_restroom", "unisex_washroom", "only_mens_restroom", "powder_room", "smokingroom",
+    # internet type, not whether it's free
+    "internet_fiber_line", "internet_cable", "internet_nuro", "internet_pocket_wifi", "internet_no_internet",
+    # rare extras
+    "terrace", "garden", "field", "theater", "rooftop", "library", "soundproof_room", "rental_bicycles",
+    "shared_pc", "office", "basketball_court",
 }
 IGNORED_LABELS = re.compile(r"^(Man / Woman|Woman Only|Man Only|Close to |Kitchen stove|Long-term lease|"
-                            r".*Required$|Invitation of friends|Overnight stays)")
+                            r".*Required$|Invitation of friends|Overnight stays|"
+                            # women_only comes from each room's gender attribute instead
+                            r"No Guarantor Deposit$|No furnitures and appliances$|Women only$|Women-only rooms|"
+                            r"AU$|Netflix$)")
 
 
 def _match(items: Iterable[dict[str, Any]], *groups: str) -> set[str]:
@@ -87,7 +104,7 @@ def _match(items: Iterable[dict[str, Any]], *groups: str) -> set[str]:
         icon, label = item.get("icon"), item.get("label", "")
         hit = False
         for key, g, icons, rx in _COMPILED:
-            if g not in groups:
+            if g not in groups and key not in ANY_GROUP:
                 continue
             if (icon and icon in icons) or (rx and rx.search(label)):
                 keys.add(key)
@@ -187,7 +204,7 @@ XROSS_ROOM: list[tuple[str, str]] = [
     # A 3-piece (bath + toilet + basin) or 2-piece (bath + basin) unit bath includes the sink
     ("private_sink", r"(?i)^wash ?basin|unit bath"),
     ("washer_in_room", r"^Washing machine\b(?!: Coin laundry)"),
-    ("aircon", r"(?i)air conditioner"),
+    ("aircon", r"(?i)air conditioner|: air conditioning$"),  # not "Air conditioning equipment: Heater"
     ("fridge", r"(?i)^refrigerator\b|kitchen: refrigerator"),
     ("microwave", r"(?i)^microwave\b|kitchen: microwave"),
     ("desk", r"(?i)^desk: .*desk"),  # not "Low table" / "Simple table"
@@ -214,13 +231,13 @@ XROSS_BUILDING: list[tuple[str, str]] = [
     ("free_internet", r"(?i)wifi \(free\)|free wi-?fi"),
 ]
 # Shared-facility categories that never map to a filter; not reported as unmapped
-XROSS_IGNORED = re.compile(r"(?i)^(Post|Mailbox|Air conditioner|Kitchen|Wash ?basin|Other/special equipment|"
+XROSS_IGNORED = re.compile(r"(?i)^(Post|Mailbox|Air condition(er|ing)|Kitchen|Wash ?basin|Other/special equipment|"
                            r"Entrance key type|Front door lock type|Key type|Bed|Chair|Storage|Tv set|Futon|Mattress|"
                            r"Clothes drying|Drying facilities|Other equipment|Toilet: Toilet|"
                            r"Bath: (Shower|Toiletr(y|ies))|Desk light|Indoor kitchen|In-room kitchen|"
                            r"Living room: (Living|Tv)|(Desk|Chair|Storage space|TV)$|"
                            r"Desk: (Low table|Folding|Simple table)|Safe box|Life ?lines?|Intercom|Kettle|Toaster|"
-                           r"Rice cooker)")
+                           r"Rice cooker|Washing machine: Coin laundry)")
 _XROSS_ROOM = [(k, re.compile(rx)) for k, rx in XROSS_ROOM]
 _XROSS_BUILDING = [(k, re.compile(rx)) for k, rx in XROSS_BUILDING]
 
