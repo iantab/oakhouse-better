@@ -1,19 +1,23 @@
-"""Scrape Oakhouse and Xross House and write the site's data files.
+"""Scrape Oakhouse, Xross House and LIFULL HOME'S Monthly and write the site's data files.
 
     python build.py                 # full run: fetch, then process
     python build.py fetch           # download only: both sites' pages into scraper/.cache + a manifest
     python build.py process         # parse the manifest's cached pages → geocode → stations → amenities → write
     python build.py --limit 20      # quick local run on the first 20 listings of each operator
     python build.py --offline       # same as `process` (re-parse after changing parse.py / xross.py)
-    python build.py --no-xross      # Oakhouse only
+    python build.py --no-xross      # skip Xross House
+    python build.py --no-lifull     # skip LIFULL HOME'S Monthly
 
 CI runs the two stages as separate workflow steps ("Scrape listings", "Parse & enrich").
 
 Outputs (all gitignored, regenerated every run):
-    web/src/data/properties.json        full detail, read by Astro at build time
     web/src/data/areas.json, codes.json, amenities.json, meta.json
-    web/public/data/search-index.json   compact rows the results page filters in the browser
+    web/public/data/search-index.json   compact rows the results page filters in the browser (and the
+                                        line search page reads at build time)
     web/public/data/*.json              copies of the above for `npm run data:pull`
+
+Only facts are published (prices, sizes, stations, amenities, links); the operators' photos and
+descriptions are copyrighted and never leave the scraper. Every listing links to the operator's page.
 
 The process stage exits with status 2 (writing nothing) if either operator's listing count drops
 more than --max-drop below the previous successful run, so a broken scrape never deploys.
@@ -34,6 +38,7 @@ from datetime import datetime, timezone
 from typing import Any, Iterator
 
 import amenities as am
+import lifull
 import xross
 from common import CACHE_DIR, WEB_DATA, WEB_PUBLIC_DATA, PoliteClient, log, read_json, setup_logging, write_json
 from fetch import cache_path, fetch_all
@@ -42,6 +47,7 @@ from parse import parse_listing
 from sitemap import listing_ids
 
 LAST_GOOD = CACHE_DIR / "last-good.json"
+OPERATORS = ("oakhouse", "xross", "lifull")
 MANIFEST = CACHE_DIR / "manifest.json"  # what the fetch stage downloaded; the process stage reads only these
 WALK_M_PER_MIN = 80      # Japanese real-estate standard (不動産の表示に関する公正競争規約)
 DETOUR = 1.25            # straight line → street distance
@@ -150,6 +156,16 @@ def room_class(room_type: str | None) -> str | None:
     return None
 
 
+def unit_url(p: dict[str, Any], r: dict[str, Any]) -> str:
+    """Where a unit's row links: its own page or anchor when the operator has one, else the building page.
+    Oakhouse room rows are <tr id="10063"> (our room id); brokered-apartment cards have no anchor."""
+    if r.get("url"):
+        return r["url"]
+    if p["operator"] == "oakhouse" and r.get("type_key") != "card" and r["id"]:
+        return f"{p['url']}#{r['id']}"
+    return p["url"]
+
+
 def _dur(seconds: float) -> str:
     m, s = divmod(int(seconds), 60)
     return f"{m}m{s:02d}s" if m else f"{s}s"
@@ -169,8 +185,10 @@ def fetch_stage(args: argparse.Namespace) -> None:
     with step("fetch"):
         # Xross runs alongside Oakhouse (different hosts, so neither slows the other); its room lists are
         # capped at 30/min, so it takes about an hour, longer than Oakhouse's whole crawl.
-        pool = ThreadPoolExecutor(max_workers=1)
+        # LIFULL is a JSON API (~2 min) on yet another host, so it runs alongside both.
+        pool = ThreadPoolExecutor(max_workers=2)
         xross_job = None if args.no_xross else pool.submit(xross.fetch, args)
+        lifull_job = None if args.no_lifull else pool.submit(lifull.fetch, args)
 
         client = PoliteClient(delay=args.delay)
         ids = listing_ids(client)
@@ -182,15 +200,24 @@ def fetch_stage(args: argparse.Namespace) -> None:
         log.info("oakhouse: fetched %d listings", len(oakhouse))
 
         xross_entries = xross_job.result() if xross_job is not None else None  # re-raises if Xross failed
+        lifull_entries = lifull_job.result() if lifull_job is not None else None
         pool.shutdown()
         write_json(MANIFEST, {
             "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "limited": bool(args.limit),
             "oakhouse": oakhouse,
             "xross": [list(e) for e in xross_entries] if xross_entries is not None else None,
+            "lifull": lifull_entries,
         }, pretty=True)
-        log.info("manifest: oakhouse %d, xross %s", len(oakhouse),
-                 len(xross_entries) if xross_entries is not None else "skipped")
+        log.info("manifest: oakhouse %d, xross %s, lifull %s pages", len(oakhouse),
+                 len(xross_entries) if xross_entries is not None else "skipped",
+                 len(lifull_entries) if lifull_entries is not None else "skipped")
+
+
+def _label_source(group: str) -> str:
+    """Unmapped-facility groups are "xross/…" or "lifull/…"; anything else ("shared/room"…) is Oakhouse's."""
+    head = group.split("/", 1)[0]
+    return head if head in ("xross", "lifull") else "oakhouse"
 
 
 def _summary(operator: str, props: list[dict[str, Any]]) -> None:
@@ -242,11 +269,18 @@ def process_stage(args: argparse.Namespace) -> None:
                 xentries = [(xid, path) for xid, path in manifest["xross"]]
                 xprops = xross.process(xentries[: args.limit] if args.limit else xentries)
 
+        lprops: list[dict[str, Any]] = []
+        if manifest.get("lifull") is not None and not args.no_lifull:
+            with step("parse lifull"):
+                lprops = lifull.process(manifest["lifull"])
+
         if not limited:
             _sanity_check("oakhouse", props, args.max_drop)
             if manifest.get("xross") is not None:
                 _sanity_check("xross", xprops, args.max_drop)
-        props += xprops
+            if manifest.get("lifull") is not None:
+                _sanity_check("lifull", lprops, args.max_drop)
+        props += xprops + lprops
         n_units = sum(len(p["rooms"]) for p in props)
         write_json(CACHE_DIR / "coords.json", [[p["lat"], p["lng"]] for p in props if p["lat"] is not None])
 
@@ -263,6 +297,8 @@ def process_stage(args: argparse.Namespace) -> None:
                 if p["geo"] and not p["ward"]:
                     p["ward"] = p["geo"].get("ward")
                 p["stations"] = nearest_stations(p, stations, grid) if stations else []
+                if p["operator"] == "lifull":
+                    p["name"] = lifull.english_name(p)  # needs the stations
             geocoder.save()
 
         # 3. Amenities + compact search index
@@ -273,38 +309,39 @@ def process_stage(args: argparse.Namespace) -> None:
             unit_counts: dict[int, int] = {}
             year_now = datetime.now(timezone.utc).year
             for p in props:
-                is_xross = p["operator"] == "xross"
-                building, contract = am.xross_property_amenities(p) if is_xross else am.property_amenities(p)
+                op = p["operator"]
+                building, contract = (am.xross_property_amenities(p) if op == "xross" else
+                                      am.lifull_property_amenities(p) if op == "lifull" else am.property_amenities(p))
                 unit_counts[p["id"]] = len(p["rooms"])
                 p["amenities"] = sorted(building | contract)
                 p["structure"] = am.structure(p)
-                if not is_xross and p["kind"] == "apartment" and am.is_oakhouse_lease(p):
+                if op == "oakhouse" and p["kind"] == "apartment" and am.is_oakhouse_lease(p):
                     p["category"] = "OAKHOUSE APARTMENT"  # month-to-month, flat contract fee
-                cover = next((ph["src"] for ph in p["photos"]), None) or next(
-                    (r["photos"][0] for r in p["rooms"] if r["photos"]), None)
                 index_props.append({
                     "id": p["id"], "o": p["operator"][0], "k": p["kind"][0], "c": p["category"], "n": p["name"],
                     "a": p["area_path"], "w": p["ward"], "lat": p["lat"], "lng": p["lng"],
-                    "img": cover, "b": p["structure"], "y": am.built_year(p, year_now),
+                    "h": p["url"], "b": p["structure"], "y": am.built_year(p, year_now),
+                    **({"nj": p["name_ja"]} if p.get("name_ja") else {}),
                     # nearest stations: [station name, walk minutes, [line ids], [osm node ids]]
                     "st": [[s["name"], s["walk_min"], s["lines"], s["ids"]] for s in p["stations"]]
                           or [[name, walk, [], []] for name, walk in _dedupe_stations(p["operator_stations"])],
                 })
                 for r in p["rooms"]:
-                    keys = (am.xross_unit_amenities(r, building, contract) if is_xross
-                            else am.unit_amenities(p, r, building, contract))
+                    keys = (am.xross_unit_amenities(r, building, contract) if op == "xross" else
+                            am.lifull_unit_amenities(r, building, contract) if op == "lifull" else
+                            am.unit_amenities(p, r, building, contract))
                     r["amenities"] = sorted(keys)
                     r["floor"] = am.floor_number(r)
                     index_units.append({
                         "p": p["id"], "u": r["id"], "n": r["number"], "s": r["status"][0],
                         "d": r["available_from"], "r": r["rent"], "t": r["monthly_total"],
                         "sz": r["size_m2"], "f": r["floor"], "rt": r["room_type"], "rc": room_class(r["room_type"]),
-                        "am": sorted(amenity_index[k] for k in keys),
+                        "am": sorted(amenity_index[k] for k in keys), "l": unit_url(p, r),
+                        **({"pu": 1} if r.get("upfront_only") else {}),  # LIFULL: must pay the whole stay upfront
                     })
-            for operator in ("oakhouse", "xross"):
+            for operator in OPERATORS:
                 _summary(operator, [p for p in props if p["operator"] == operator])
-                misses = [(key, n) for key, n in am.unmatched.most_common()
-                          if key[0].startswith("xross/") == (operator == "xross")]
+                misses = [(key, n) for key, n in am.unmatched.most_common() if _label_source(key[0]) == operator]
                 if misses:
                     log.info("%s: %d facility labels not mapped to an amenity (top 15):", operator, len(misses))
                     for (group, label, icon), n in misses[:15]:
@@ -313,15 +350,13 @@ def process_stage(args: argparse.Namespace) -> None:
         now = datetime.now(timezone.utc).isoformat(timespec="seconds")
         meta = {"updated": now, "properties": len(props), "units": n_units,
                 "available": sum(1 for u in index_units if u["s"] != "f"),
-                "operators": {op: _counts([p for p in props if p["operator"] == op]) for op in ("oakhouse", "xross")}}
+                "operators": {op: _counts([p for p in props if p["operator"] == op]) for op in OPERATORS}}
 
-        # 4. Write. Raw data-* attributes are only needed to derive amenities; keep the few the UI shows.
+        # 4. Write
         with step("write data files"):
-            for p in props:
-                for r in p["rooms"]:
-                    a = r.pop("attrs")
-                    r["gender"] = {"W": "women", "M": "men"}.get(a.get("gender", ""), "any")
-            write_json(WEB_DATA / "properties.json", props)
+            # Older runs wrote the full listing details (descriptions, photo URLs); never publish a stale copy
+            for stale in (WEB_DATA / "properties.json", WEB_PUBLIC_DATA / "properties.json"):
+                stale.unlink(missing_ok=True)
             write_json(WEB_DATA / "areas.json", _areas(props, unit_counts))
             write_json(WEB_DATA / "codes.json", codes, pretty=True)
             write_json(WEB_DATA / "amenities.json", {"groups": am.GROUPS, "items": am.catalog()}, pretty=True)
@@ -329,7 +364,7 @@ def process_stage(args: argparse.Namespace) -> None:
             write_json(WEB_PUBLIC_DATA / "search-index.json",
                        {"updated": now, "amenities": amenity_keys, "properties": index_props, "units": index_units})
             # Publish the generated files too, so `npm run data:pull` can fetch them from the live site
-            for name in ("properties.json", "areas.json", "codes.json", "amenities.json", "meta.json"):
+            for name in ("areas.json", "codes.json", "amenities.json", "meta.json"):
                 shutil.copyfile(WEB_DATA / name, WEB_PUBLIC_DATA / name)
             if not limited:
                 write_json(LAST_GOOD, meta, pretty=True)
@@ -350,6 +385,8 @@ def main() -> None:
     ap.add_argument("--no-xross", action="store_true", help="skip Xross House")
     ap.add_argument("--xross-delay", type=float, default=2.0, help="seconds between x-house.co.jp detail requests, per worker")
     ap.add_argument("--xross-workers", type=int, default=1, help="Xross detail-page fetchers; keep the total near 1 req/s or the site blocks us (room lists are capped at 30/min regardless)")
+    ap.add_argument("--no-lifull", action="store_true", help="skip LIFULL HOME'S Monthly")
+    ap.add_argument("--lifull-delay", type=float, default=1.5, help="seconds between api.monthly-homes.jp requests")
     ap.add_argument("--xross-max-age-d", type=float, default=7, help="refetch Xross detail pages after this many days")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()

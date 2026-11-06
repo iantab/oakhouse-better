@@ -4,16 +4,19 @@ import type { Commute } from './commute';
 
 export interface IndexProperty {
   id: number;
-  /** Operator: o = Oakhouse, x = Xross House. */
-  o: 'o' | 'x';
+  /** Operator: o = Oakhouse, x = Xross House, l = LIFULL HOME'S Monthly. */
+  o: Operator;
   k: 'h' | 'a';
   c: string;
   n: string;
+  /** Japanese building name (LIFULL only; `n` is then an English name built from facts). */
+  nj?: string;
   a: string[];
   w: string | null;
   lat: number | null;
   lng: number | null;
-  img: string | null;
+  /** The listing's page on the operator's site (we have no pages of our own). */
+  h: string;
   /** Building structure: wood / steel / rc, null when not stated. */
   b: string | null;
   /** Year built; null when the listing doesn't say. Missing from indexes built before this field. */
@@ -35,6 +38,10 @@ export interface IndexUnit {
   /** Share-house room class (both operators' wording normalised); null for apartments. */
   rc: RoomClass | null;
   am: number[];
+  /** Where the unit opens: its own page or anchor on the operator's site, else the building page. */
+  l: string;
+  /** LIFULL: paying the whole stay at once is the only option. */
+  pu?: 1;
 }
 
 export type RoomClass = 'private' | 'semi' | 'dorm';
@@ -54,7 +61,7 @@ export interface Query {
   rmin: number | null;
   rmax: number | null;
   types: string[];
-  /** Operators: 'o' Oakhouse, 'x' Xross House. */
+  /** Operators: 'o' Oakhouse, 'x' Xross House, 'l' LIFULL HOME'S Monthly. */
   ops: string[];
   /** Share-house room classes. */
   rc: string[];
@@ -93,6 +100,7 @@ export const TYPE_OF: Record<string, string> = {
   'SOCIAL RESIDENCE': 'social',
   'OAKHOUSE APARTMENT': 'flexapt',
   'FURNISHED APARTMENT': 'flexapt',
+  'MONTHLY APARTMENT': 'flexapt',
   APARTMENT: 'apartment',
 };
 /** Type values from older links. */
@@ -103,13 +111,16 @@ export const CATEGORY_LABELS: Record<string, string> = {
   'SOCIAL RESIDENCE': 'Social residence',
   'OAKHOUSE APARTMENT': 'Furnished apartment',
   'FURNISHED APARTMENT': 'Furnished apartment',
+  'MONTHLY APARTMENT': 'Monthly apartment',
   APARTMENT: 'Apartment',
 };
 
 export const OPERATORS = {
   o: { name: 'Oakhouse', site: 'oakhouse.jp', url: 'https://www.oakhouse.jp/eng/' },
   x: { name: 'Xross House', site: 'x-house.co.jp', url: 'https://x-house.co.jp/en/' },
+  l: { name: "LIFULL HOME'S Monthly", site: 'monthly.homes.jp', url: 'https://monthly.homes.jp/' },
 } as const;
+export type Operator = keyof typeof OPERATORS;
 
 const num = (v: string | null) => (v && !Number.isNaN(Number(v)) && v !== '' ? Number(v) : null);
 

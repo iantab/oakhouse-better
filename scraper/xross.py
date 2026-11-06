@@ -502,7 +502,6 @@ def _parse_rooms(html: str, fees: dict[str, dict[str, int | None]], kind: str, w
                     size = float(m.group().replace(",", "")) if m else None
                 elif label:
                     facilities[CATEGORY_FIXES.get(label, label)] = _facility_items(td)
-            photos = [img.attributes["src"] for img in card.css(".c-vacancy-sub-img img") if img.attributes.get("src")]
             maint = sum(extra) if extra else None
             # Apartment units are numbered by floor ("302" → 3F); share-house rooms aren't ("03")
             floor = f"{number[:-2]}F" if kind == "apartment" and re.fullmatch(r"\d{3,4}", number) else None
@@ -523,7 +522,6 @@ def _parse_rooms(html: str, fees: dict[str, dict[str, int | None]], kind: str, w
                 "requirements": [],
                 "features": features,
                 "facilities": facilities,
-                "photos": photos,
                 "attrs": {"gender": "W"} if women_only else {},
                 "type_key": key,
                 "specific_facilities": [],
@@ -566,16 +564,6 @@ def parse_xross(detail_html: str, rooms_html: str, xid: int, path: str) -> dict[
             if items:
                 shared[CATEGORY_FIXES.get(_text(th), _text(th))] = items
 
-    comments = _section(tree, "Property comments")
-    description = _text(comments)[len("Property comments"):].strip() if comments else ""
-
-    photos, seen = [], set()
-    for img in tree.css(".main-slider .swiper-slide img"):
-        src = img.attributes.get("src")
-        if src and src not in seen:
-            seen.add(src)
-            photos.append({"src": src, "caption": ""})
-
     address_td = t.get("Address")
     address_lines = _lines(address_td)
     postcode = address_lines[0].lstrip("〒") if address_lines and address_lines[0].startswith("〒") else None
@@ -597,7 +585,6 @@ def parse_xross(detail_html: str, rooms_html: str, xid: int, path: str) -> dict[
         "name": _text(tree.css_first("h1.c-ttl03")),
         "url": f"{XROSS_URL}/en/{path}/",
         "updated": "",
-        "description": description,
         "address": address,
         "postcode": postcode,
         "address_ja": unquote(embed.group(1)) if embed else None,
@@ -615,7 +602,6 @@ def parse_xross(detail_html: str, rooms_html: str, xid: int, path: str) -> dict[
         "shared_facilities": shared,
         "room_types": room_types,
         "rooms": rooms,
-        "photos": photos,
     }
 
 
@@ -650,9 +636,6 @@ def group_apartments(props: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         b = buildings[key]
         b["rooms"] = b["rooms"] + p["rooms"]
-        seen = {ph["src"] for ph in b["photos"]}
-        b["photos"] = b["photos"] + [ph for ph in p["photos"] if ph["src"] not in seen]
-        b["description"] = b["description"] or p["description"]
         b["discounts"] = sorted(set(b["discounts"]) | set(p["discounts"]))
         for k, v in p["building"].items():
             b["building"].setdefault(k, v)

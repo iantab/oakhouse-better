@@ -32,7 +32,7 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     ("corner", "Corner room", "room", {"pos_corner"}, r"Corner room"),
     ("near_toilet", "Close to a toilet", "room", {"pos_toilet"}, r"Close to a toilet"),
     ("tatami", "Japanese-style (tatami)", "room", {"style_japanese"}, r"Interior: Japanese"),
-    ("two_people", "2 people OK", "room", set(), None),
+    ("two_people", "2 people OK", "room", {"2people_stay"}, None),
     ("loft", "Loft", "room", set(), None),  # Xross only
     ("video_intercom", "Intercom with monitor", "room", set(), None),  # Xross only
     # Building (shared)
@@ -52,15 +52,19 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     ("gym", "Gym", "building", {"gym"}, r"gym"),
     ("coworking", "Coworking space", "building", {"coworking_space"}, r"Coworking"),
     ("free_internet", "Free internet", "building", {"internet_free_wifi"}, r"Free Internet|usage fee: free"),
+    ("barrier_free", "Barrier-free", "building", set(), r"(?i)barrier[- ]free"),
+    ("pool", "Swimming pool", "building", set(), r"(?i)swimming pool"),
     # Contract
     ("foreigners_ok", "Foreigners welcome", "contract", {"worldwide"}, r"Foreign Residents Allowed"),
     ("short_term", "Short-term OK", "contract", {"monthly"}, r"Short-Term Rental|Monthly available"),
+    ("pay_monthly", "Pay in monthly installments", "contract", set(), None),  # LIFULL rooms may need paying upfront
     ("no_deposit", "No security deposit", "contract", set(), r"^No security deposit$"),
     ("no_key_money", "No key money", "contract", set(), r"^No Key Money$"),
     ("no_guarantor", "No guarantor needed", "contract", set(), r"^No guarantor( company)?$"),
     ("no_brokerage", "No brokerage fee", "contract", set(), r"^No brokerage Fee$"),
     ("guests_ok", "Overnight guests OK", "contract", {"overnight_guest_ok"}, r"Accommodation for friends"),
     ("non_smoking", "Non-smoking building", "contract", {"nosmoking"}, r"Non-Smoking"),
+    ("pets_ok", "Pets allowed", "contract", set(), r"(?i)^pet[- ]friendly$|^pets? (ok|allowed)$"),  # not "Pets are negotiable"
     ("age_40_plus", "Ages 40+ accepted", "contract", set(), None),
     ("women_only", "Women only", "contract", set(), None),
     ("men_only", "Men only", "contract", set(), None),
@@ -95,7 +99,9 @@ IGNORED_LABELS = re.compile(r"^(Man / Woman|Woman Only|Man Only|Close to |Kitche
                             r".*Required$|Invitation of friends|Overnight stays|"
                             # women_only comes from each room's gender attribute instead
                             r"No Guarantor Deposit$|No furnitures and appliances$|Women only$|Women-only rooms|"
-                            r"AU$|Netflix$)")
+                            r"AU$|Netflix$|"
+                            # brokered-apartment move-in notes with no filter
+                            r"Pets are negotiable$|Instruments are negotiable$|Students welcome$)")
 
 
 def _match(items: Iterable[dict[str, Any]], *groups: str) -> set[str]:
@@ -125,6 +131,7 @@ def property_amenities(prop: dict[str, Any]) -> tuple[set[str], set[str]]:
     # Oakhouse listings never state an age limit (Xross ones always do; see xross_property_amenities)
     if not any(re.search(r"\bage\b|years old", t["label"], re.I) for t in prop["terms"]):
         contract.add("age_40_plus")
+    contract.add("pay_monthly")  # rent is paid monthly
     return building, contract
 
 
@@ -280,6 +287,7 @@ def xross_property_amenities(prop: dict[str, Any]) -> tuple[set[str], set[str]]:
     if not b.get("Age limit") or (age and int(age.group(1)) >= 40):
         contract.add("age_40_plus")
     # A guarantee company is always required, so never "no_guarantor"
+    contract.add("pay_monthly")  # rent is paid monthly
     return building, contract
 
 
@@ -344,3 +352,70 @@ def built_year(prop: dict[str, Any], year_now: int) -> int | None:
 
 def catalog() -> list[dict[str, str]]:
     return [{"key": k, "label": label, "group": g} for k, label, g, _, _ in AMENITIES]
+
+
+# ------------------------------------------------------------------------------------ LIFULL HOME'S Monthly
+# The API tags rooms (1xxxxx) and buildings (2xxxxx) with fixed Japanese labels; map them by id.
+LIFULL_TAGS: dict[int, str] = {
+    101001: "internet",              # インターネット
+    101021: "internet",              # WIFIネット接続
+    101004: "aircon",                # 冷房
+    101019: "aircon",                # エアコン
+    101007: "bath_toilet_separate",  # バス・トイレ別
+    101008: "washlet",               # 温水洗浄トイレ
+    101009: "private_bath",          # シャワー
+    101010: "private_bath",          # バスタブ
+    101011: "private_bath",          # シャワールーム
+    101012: "private_kitchen",       # キッチン
+    101016: "balcony",               # バルコニー
+    101017: "balcony",               # ベランダ
+    102006: "desk",                  # デスク
+    103002: "fridge",                # 冷蔵庫
+    103003: "microwave",             # 電子レンジ
+    103009: "washer_in_room",        # 洗濯機
+    103013: "dryer",                 # 乾燥機
+    106001: "pets_ok",               # ペット可
+    106003: "foreigners_ok",         # 外国人可
+    101018: "barrier_free",          # バリアフリー (room)
+    201009: "barrier_free",          # バリアフリー (building)
+    201008: "pool",                  # プール
+    201001: "autolock",              # オートロック
+    201002: "elevator",              # エレベーター
+    201003: "car_parking",           # 無料駐車場
+    201004: "car_parking",           # 有料駐車場
+    201005: "bike_parking",          # 無料駐輪場
+    201006: "bike_parking",          # 有料駐輪場
+    201007: "gym",                   # ジム
+    201011: "delivery_box",          # 宅配ボックス
+}
+# Tags with no filter (furniture, supplies, cookers, alarms, "designer", "high class", coin laundry…);
+# not reported as unmapped.
+LIFULL_IGNORED = re.compile(r"^(10100[2356]|1010(1[345]|20|22)|102\d{3}|103\d{3}|104\d{3}|105\d{3}|10600[245]|201010)$")
+
+
+def _lifull_keys(tags: Iterable[int], group: str) -> set[str]:
+    keys = set()
+    for t in tags:
+        if t in LIFULL_TAGS:
+            keys.add(LIFULL_TAGS[t])
+        elif not LIFULL_IGNORED.match(str(t)):
+            unmatched[(f"lifull/{group}", str(t), None)] += 1
+    return keys
+
+
+def lifull_property_amenities(prop: dict[str, Any]) -> tuple[set[str], set[str]]:
+    """Building and contract amenities for a LIFULL building: every listing is a furnished, self-contained
+    monthly rental whose initial cost is just the first 30 days plus cleaning (no deposit or key money).
+    Whether a guarantor is needed isn't in the data, so never claim no_guarantor."""
+    return _lifull_keys(prop["building_tags"], "building"), {"short_term", "no_deposit", "no_key_money"}
+
+
+def lifull_unit_amenities(room: dict[str, Any], building: set[str], contract: set[str]) -> set[str]:
+    keys = _lifull_keys(room["tags"], "room") | building | contract | {"furnished", "private_toilet"}
+    if room.get("campaign"):
+        keys.add("campaign")
+    if room.get("pay_monthly"):
+        keys.add("pay_monthly")
+    if (room.get("max_occupancy") or 0) >= 2:
+        keys.add("two_people")
+    return keys

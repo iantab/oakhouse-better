@@ -1,4 +1,5 @@
-# Build the Astro site and deploy it to GitHub Pages, scraping oakhouse.jp and x-house.co.jp first when needed:
+# Build the Astro site and deploy it to GitHub Pages, scraping oakhouse.jp, x-house.co.jp and LIFULL HOME'S Monthly
+# (api.monthly-homes.jp) first when needed:
 #   - daily run triggered by cron-job.org (workflow_dispatch), or a manual run with "scrape" ticked
 #     → fresh scrape
 #   - any push (whatever it touches, scraper/ included) → reuse the data already on the live site
@@ -7,7 +8,7 @@
 # Scraped listings are never committed: they live in the Pages deployment. Reference data that
 # rarely changes is committed (scraper/geocode.json, web/src/data/stations.json + lines.json).
 # Run state kept between runs lives in actions/cache: last successful counts, Xross detail pages
-# (refetched weekly, not daily) and Xross address lookups.
+# (refetched weekly, not daily), Xross address lookups and LIFULL's city lists (refetched weekly).
 name: Scrape & deploy
 
 on:
@@ -32,7 +33,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Oakhouse and Xross scrape in parallel; Xross's room lists are capped at 30/min, so a run takes ~1 h
+    # Oakhouse, Xross and LIFULL scrape in parallel; Xross's room lists are capped at 30/min, so a run takes ~1 h
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v7
@@ -76,11 +77,13 @@ jobs:
           path: |
             scraper/.cache/last-good.json
             scraper/.cache/xross/detail
+            scraper/.cache/lifull/cities
             scraper/xross-geocode.json
           key: scraper-state-${{ github.run_id }}
           restore-keys: scraper-state-
 
-      # Downloads only (~1 h: Xross room lists are capped at 30/min); writes scraper/.cache/manifest.json.
+      # Downloads only (~1 h: Xross room lists are capped at 30/min; LIFULL's JSON API takes ~4 min alongside);
+      # writes scraper/.cache/manifest.json.
       # Fails if Xross blocks us or too many of its listings fail; the previous deployment stays live.
       - name: Scrape listings
         if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'
@@ -88,7 +91,7 @@ jobs:
         run: python build.py fetch
 
       # Parses the downloaded pages, geocodes (Nominatim, GSI), finds nearest stations, maps amenities and
-      # writes the site's data. Exits non-zero if either site's listing count drops >10% vs. the last good
+      # writes the site's data. Exits non-zero if any site's listing count drops >10% vs. the last good
       # run; the job then stops and the previous deployment stays live.
       - name: Parse & enrich
         if: steps.mode.outputs.scrape == 'true' || steps.pull.outcome == 'failure'

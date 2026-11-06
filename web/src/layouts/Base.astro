@@ -11,7 +11,7 @@ interface Props {
 const SITE_NAME = 'Heya Search';
 const {
   title,
-  description = 'Search every Oakhouse and Xross House share house, social residence and furnished apartment by area, train line or commute.',
+  description = "Search every Oakhouse and Xross House share house and social residence, and furnished and monthly apartments from LIFULL HOME'S, by area, train line or commute.",
 } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const { meta } = getData();
@@ -67,9 +67,9 @@ const updated = meta.updated
     <footer class="mt-16 border-t">
       <div class="wrap space-y-1 py-8 text-sm text-muted-foreground">
         <p>
-          An unofficial search for listings from <a class="link" href={OPERATORS.o.url}>{OPERATORS.o.site}</a> and{' '}
-          <a class="link" href={OPERATORS.x.url}>{OPERATORS.x.site}</a>. Prices and vacancies change; always confirm on the
-          official page before applying.
+          An unofficial search for listings from <a class="link" href={OPERATORS.o.url}>{OPERATORS.o.site}</a>,{' '}
+          <a class="link" href={OPERATORS.x.url}>{OPERATORS.x.site}</a> and <a class="link" href={OPERATORS.l.url}>{OPERATORS.l.site}</a>. Listings open on the operator's own site, where
+          you'll find photos and full details. Prices and vacancies change; always confirm there before applying.
         </p>
         <p>
           Data updated {updated}. Station data © <a class="link" href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.

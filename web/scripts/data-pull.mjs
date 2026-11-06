@@ -11,7 +11,6 @@ const root = join(import.meta.dirname, '..');
 // Same layout scraper/build.py writes: src/data is read at build time, public/data is published
 // (so the next pull — locally or in CI — finds every file on the live site again).
 const files = {
-  'properties.json': ['src/data', 'public/data'],
   'areas.json': ['src/data', 'public/data'],
   'codes.json': ['src/data', 'public/data'],
   'amenities.json': ['src/data', 'public/data'],

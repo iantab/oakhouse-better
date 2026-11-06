@@ -1,24 +1,26 @@
 // Build-time access to the scraper's output in src/data/.
 // Files are read from disk (not imported) so a fresh clone without data still builds;
 // run `npm run data:pull` or the scraper to get real listings.
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { CATEGORY_LABELS, OPERATORS } from './filter';
-import type { AreaNode, Amenity, Line, Meta, Property, Station } from './types';
+import type { SearchIndex } from './filter';
+import type { AreaNode, Amenity, Line, Meta, Station } from './types';
 
 const DATA_DIR = join(process.cwd(), 'src', 'data');
+/** The browser's search index; the line picker reads it at build time too. */
+const INDEX_PATH = join(process.cwd(), 'public', 'data', 'search-index.json');
 
-function load<T>(name: string, fallback: T): T {
+function load<T>(name: string, fallback: T, path = join(DATA_DIR, name)): T {
   try {
-    return JSON.parse(readFileSync(join(DATA_DIR, name), 'utf-8')) as T;
+    return JSON.parse(readFileSync(path, 'utf-8')) as T;
   } catch {
-    console.warn(`[data] ${name} not found in src/data; using empty data`);
+    console.warn(`[data] ${path} not found; using empty data`);
     return fallback;
   }
 }
 
 let cache: {
-  properties: Property[];
+  index: SearchIndex;
   areas: AreaNode[];
   lines: Line[];
   stations: Station[];
@@ -26,14 +28,34 @@ let cache: {
   meta: Meta;
 } | null = null;
 
-/** Data scraped before Xross House was added has no operator fields; fill them in. */
-function withOperator(p: Property & { oakhouse_stations?: Property['operator_stations'] }): Property {
-  return { ...p, operator: p.operator ?? 'oakhouse', operator_stations: p.operator_stations ?? p.oakhouse_stations ?? [] };
+const DATA_FILES = ['areas.json', 'lines.json', 'stations.json', 'amenities.json', 'meta.json'].map((n) => join(DATA_DIR, n));
+let cacheStamp = '';
+
+/** Modification times of the data files: the dev server reloads them when the scraper rewrites one. */
+function dataStamp() {
+  return [...DATA_FILES, INDEX_PATH]
+    .map((path) => {
+      try {
+        return statSync(path).mtimeMs;
+      } catch {
+        return 0;
+      }
+    })
+    .join();
 }
 
 export function getData() {
+  // Builds read the files once; the dev server re-reads them after they change, so regenerated data
+  // shows up on refresh without restarting it.
+  if (import.meta.env.DEV) {
+    const stamp = dataStamp();
+    if (stamp !== cacheStamp) {
+      cache = null;
+      cacheStamp = stamp;
+    }
+  }
   cache ??= {
-    properties: load<Property[]>('properties.json', []).map(withOperator),
+    index: load<SearchIndex>('search-index.json', { updated: '', amenities: [], properties: [], units: [] }, INDEX_PATH),
     areas: load<AreaNode[]>('areas.json', []),
     lines: load<Line[]>('lines.json', []),
     stations: load<Station[]>('stations.json', []),
@@ -52,19 +74,22 @@ export interface LineStation {
 
 /** Lines that have at least one property within walking distance, with those stations. */
 export function linesWithListings(maxWalk = 20) {
-  const { properties, lines } = getData();
+  const { index, lines } = getData();
+  const unitCounts = new Map<number, number>();
+  for (const u of index.units) unitCounts.set(u.p, (unitCounts.get(u.p) ?? 0) + 1);
   const byLine = new Map<string, Map<string, LineStation>>();
-  for (const p of properties) {
-    for (const s of p.stations) {
-      if (s.walk_min > maxWalk) continue;
-      for (const lineId of s.lines) {
+  for (const p of index.properties) {
+    // Only OSM-matched stations carry line ids; operator-listed fallbacks have none
+    for (const [name, walk, lineIds, osmIds] of p.st) {
+      if (walk == null || walk > maxWalk) continue;
+      for (const lineId of lineIds) {
         const stations = byLine.get(lineId) ?? new Map<string, LineStation>();
         byLine.set(lineId, stations);
-        const entry = stations.get(s.name) ?? { ids: [], name: s.name, properties: 0, units: 0 };
-        entry.ids = [...new Set([...entry.ids, ...s.ids])];
+        const entry = stations.get(name) ?? { ids: [], name, properties: 0, units: 0 };
+        entry.ids = [...new Set([...entry.ids, ...osmIds])];
         entry.properties += 1;
-        entry.units += p.rooms.length;
-        stations.set(s.name, entry);
+        entry.units += unitCounts.get(p.id) ?? 0;
+        stations.set(name, entry);
       }
     }
   }
@@ -76,13 +101,3 @@ export function linesWithListings(maxWalk = 20) {
     }))
     .sort((a, b) => (a.operator ?? '').localeCompare(b.operator ?? '') || a.name.localeCompare(b.name));
 }
-
-export const yen = (n: number | null | undefined) =>
-  n == null ? '—' : `¥${n.toLocaleString('en-US')}`;
-
-export function categoryLabel(category: string) {
-  return CATEGORY_LABELS[category] ?? category.charAt(0) + category.slice(1).toLowerCase();
-}
-
-/** Operator display info for a property (name, site, home URL). */
-export const operatorOf = (p: Property) => OPERATORS[p.operator === 'xross' ? 'x' : 'o'];

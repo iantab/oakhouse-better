@@ -5,7 +5,7 @@ import Base from '../layouts/Base.astro';
 import ConditionsFields from '../components/ConditionsFields.astro';
 ---
 
-<Base title="Map" description="Every Oakhouse and Xross House listing on a map of Japan, with the same filters as search.">
+<Base title="Map" description="Every Oakhouse, Xross House and LIFULL HOME'S Monthly listing on a map of Japan, with the same filters as search.">
   <div class="map-layout">
     <aside id="filters">
       <form class="card" data-size="sm" id="filter-form">
@@ -31,6 +31,7 @@ import ConditionsFields from '../components/ConditionsFields.astro';
         <div class="flex items-center gap-2">
           <span class="legend"><span class="dot dot-o"></span>Oakhouse</span>
           <span class="legend"><span class="dot dot-x"></span>Xross House</span>
+          <span class="legend"><span class="dot dot-l"></span>LIFULL HOME'S Monthly</span>
           <button class="btn filter-toggle" data-variant="outline" data-size="sm" type="button" id="filter-toggle" aria-controls="filters" aria-expanded="false">Filters</button>
         </div>
       </div>
@@ -55,7 +56,7 @@ import ConditionsFields from '../components/ConditionsFields.astro';
     toggle.setAttribute('aria-expanded', String(open));
   });
 
-  const map = createMap(document.getElementById('map')!, base);
+  const map = createMap(document.getElementById('map')!);
   const indexP = loadIndex(base);
 
   async function update(params: URLSearchParams) {

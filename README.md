@@ -1,7 +1,8 @@
 # Heya Search
 
 An unofficial, faster way to search the share houses, social residences and furnished apartments of
-[Oakhouse](https://www.oakhouse.jp/eng/) and [Xross House](https://x-house.co.jp/en/) in one place, in the style of
+[Oakhouse](https://www.oakhouse.jp/eng/) and [Xross House](https://x-house.co.jp/en/), plus monthly apartments across
+Japan from [LIFULL HOME'S Monthly](https://monthly.homes.jp/), in one place, in the style of
 SUUMO: choose **area**, **line & station** or **commute time** → set **conditions** → browse **results**.
 
 Live site: https://iantab.github.io/oakhouse-better/
@@ -10,10 +11,10 @@ Live site: https://iantab.github.io/oakhouse-better/
 
 ```
 GitHub Actions (daily 03:00 Toronto time, on push to master, or manual)
-  build.py fetch    → "Scrape listings": downloads oakhouse.jp/eng + x-house.co.jp/en pages into scraper/.cache (~1 h)
+  build.py fetch    → "Scrape listings": downloads oakhouse.jp/eng + x-house.co.jp/en pages and the LIFULL JSON API into scraper/.cache (~1 h)
   build.py process  → "Parse & enrich": parse → geocode → nearest stations → amenities → JSON into web/   (never committed)
      or data-pull   → re-uses the data already on the live site (pushes that don't touch scraper/)
-  astro build       → static site, one page per property
+  astro build       → static site: search, results and map pages (listings open on the operators' sites)
   deploy-pages      → GitHub Pages
 ```
 
@@ -36,6 +37,7 @@ GitHub Actions (daily 03:00 Toronto time, on push to master, or manual)
 | `scraper/build.py` | Main pipeline in two stages: `fetch` (sitemaps → pages, records a manifest) and `process` (parse → geocode → nearest stations → amenities → JSON) |
 | `scraper/parse.py` | HTML → property/room records (share-house tables and brokered-apartment cards) |
 | `scraper/xross.py` | Xross House: sitemap → detail pages + room lists → the same records as `parse.py`; groups apartment units into buildings |
+| `scraper/lifull.py` | LIFULL HOME'S Monthly: JSON API list pages → one property per building, one room per room type; English name built from facts |
 | `scraper/amenities.py` | Maps both sites' free-text facilities to filter keys (`washlet`, `bathtub`, `no_deposit`…) |
 | `scraper/stations.py` | Overpass (OSM) → `stations.json` + `lines.json` + `rail-graph.json` |
 | `scraper/geocode.py` | Nominatim reverse geocoding (chōme + postcode) → `scraper/geocode.json` |
@@ -88,12 +90,14 @@ Repository **Settings → Pages → Source: GitHub Actions**. The workflow then 
 ## Data notes
 
 - Walking times are estimated from straight-line distance to OSM stations (80 m/min, +25% for streets).
-  Oakhouse's own station list is shown alongside it, because its walking minutes are sometimes copy-pasted.
+  The operator's own station list is only used when no OSM station is within 20 min.
 - Commute times are estimates: OSM has no timetables, so ride time comes from the distance between stops at a
   per-mode average speed (subway, commuter rail, express), plus a few minutes per transfer. They don't include
   waiting for the first train. The search runs in the browser (`web/src/lib/commute.ts`); speeds and the transfer
   penalty are set at the top of `scraper/stations.py`.
-- Photos are linked from oakhouse.jp and x-house.co.jp, not copied.
+- **Facts only.** The site shows and filters on facts (prices, sizes, stations, amenities, terms). The operators'
+  photos and descriptions are their copyright, so they're never published; each listing and room links to the
+  operator's own page instead (Oakhouse rooms open at their row, `#<room id>`), plus a Google Maps link.
 - **Xross House** is scraped within its robots.txt: listing URLs come from its sitemap, and only English detail pages
   and each property's room list are fetched (never the map or search endpoints). The room-list endpoint allows 30
   requests a minute per IP, so refreshing all ~1,600 listings takes ~55 min whatever the parallelism. Detail pages
@@ -103,5 +107,12 @@ Repository **Settings → Pages → Source: GitHub Actions**. The workflow then 
   availability daily. Coordinates come from [GSI's address search](https://msearch.gsi.go.jp/) on each listing's
   street address.
 - Xross lists every furnished-apartment unit separately; units with the same address and building name are shown as
-  one property, and each unit links to its own Xross page. Xross ids are offset by 100000 in this site's URLs.
+  one property, and each unit links to its own Xross page. Xross ids are offset by 100000 in the search index.
+- **LIFULL HOME'S Monthly** has no public API, but its site loads listings from a JSON API
+  (`api.monthly-homes.jp`) with a fixed key that every visitor's browser sends; we read the same ~122 list pages
+  (100 rooms each, 1.5 s apart) plus the 47 prefectures' city lists. robots.txt allows everything. Listing titles
+  and remarks are Japanese marketing copy and aren't kept: the English name is built from the building type and
+  nearest station, and the Japanese building name is shown beneath it. Amenity tags are translated by a fixed
+  dictionary in `amenities.py` (`LIFULL_TAGS`). Prices are per 30 days; the API has no vacancy calendar, so every
+  published room shows as available.
 - Station data © OpenStreetMap contributors (ODbL). Addresses: Nominatim (OSM).

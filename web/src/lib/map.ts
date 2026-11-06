@@ -12,8 +12,10 @@ import { CATEGORY_LABELS, esc, OPERATORS, yen, type Group } from './filter';
 const STYLES = { light: 'https://tiles.openfreemap.org/styles/liberty', dark: 'https://tiles.openfreemap.org/styles/dark' };
 const SOURCE = 'buildings';
 // Point colours per operator, matching the site's brand green for Oakhouse
-const OP_COLOURS = { light: { o: '#1f7a5c', x: '#c2410c' }, dark: { o: '#5fd4a6', x: '#fb923c' } };
+const OP_COLOURS = { light: { o: '#1f7a5c', x: '#c2410c', l: '#be185d' }, dark: { o: '#5fd4a6', x: '#fb923c', l: '#f472b6' } };
 const FONT = ['Noto Sans Regular'];
+const EXT_ICON =
+  '<svg class="ext-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
 // Place names: wards/cities in indigo (distinct from the green/orange building dots), neighbourhoods in slate
 const LABEL_COLOURS = {
   light: { ward: '#4338ca', area: '#334155', halo: '#ffffff' },
@@ -24,7 +26,7 @@ const WARD_CLASSES = ['city', 'town', 'village'];
 type Theme = 'light' | 'dark';
 const theme = (): Theme => (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
 
-export function toGeoJSON(groups: Group[], base: string): FeatureCollection<Point> {
+export function toGeoJSON(groups: Group[]): FeatureCollection<Point> {
   const features: Feature<Point>[] = [];
   for (const g of groups) {
     const p = g.prop;
@@ -41,8 +43,9 @@ export function toGeoJSON(groups: Group[], base: string): FeatureCollection<Poin
         rooms: g.units.length,
         from: prices.length ? Math.min(...prices) : null,
         station: p.st[0] ? `${p.st[0][0]}${p.st[0][1] != null ? ` · ${p.st[0][1]} min walk` : ''}` : '',
-        img: p.img ?? '',
-        href: `${base}${p.k === 'h' ? 'house' : 'apartment'}/${p.id}/`,
+        site: OPERATORS[p.o ?? 'o'].site,
+        href: p.h,
+        maps: `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`,
       },
     });
   }
@@ -53,13 +56,13 @@ function popupHtml(f: MapGeoJSONFeature) {
   const p = f.properties as Record<string, string | number | null>;
   const rooms = Number(p.rooms);
   return `<div class="map-popup">
-    ${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <p class="text-xs text-muted-foreground">${esc(p.kind)}</p>
       <h3 class="font-semibold leading-snug">${esc(p.name)}</h3>
       <p class="text-sm">${rooms} matching room${rooms === 1 ? '' : 's'}${p.from != null && p.from !== '' ? ` · from <strong>${yen(Number(p.from))}</strong>` : ''}</p>
       ${p.station ? `<p class="text-xs text-muted-foreground">${esc(p.station)}</p>` : ''}
-      <a class="btn w-full" data-size="sm" href="${esc(p.href)}">View building →</a>
+      <a class="btn w-full" data-size="sm" href="${esc(p.href)}" target="_blank" rel="noopener">View on ${esc(p.site)}${EXT_ICON}</a>
+      <a class="btn w-full" data-size="sm" data-variant="outline" href="${esc(p.maps)}" target="_blank" rel="noopener">Show on Google Maps${EXT_ICON}</a>
     </div>
   </div>`;
 }
@@ -127,7 +130,7 @@ function addLayers(map: MapLibre, data: FeatureCollection) {
     source: SOURCE,
     filter: ['!', ['has', 'point_count']],
     paint: {
-      'circle-color': ['match', ['get', 'op'], 'x', colours.x, colours.o],
+      'circle-color': ['match', ['get', 'op'], 'x', colours.x, 'l', colours.l, colours.o],
       'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 5, 16, 9],
       'circle-stroke-width': 2,
       'circle-stroke-color': t === 'dark' ? '#0a0a0a' : '#ffffff',
@@ -140,7 +143,7 @@ export interface BuildingMap {
 }
 
 /** Create the map in `container`; the first setGroups() call also fits the view to the points. */
-export function createMap(container: HTMLElement, base: string): BuildingMap {
+export function createMap(container: HTMLElement): BuildingMap {
   let data: FeatureCollection<Point> = { type: 'FeatureCollection', features: [] };
   let fitted = false;
   let ready = false;
@@ -205,7 +208,7 @@ export function createMap(container: HTMLElement, base: string): BuildingMap {
   return {
     setGroups(groups) {
       popup?.remove(); // its building may no longer match
-      data = toGeoJSON(groups, base);
+      data = toGeoJSON(groups);
       if (ready) map.getSource<GeoJSONSource>(SOURCE)?.setData(data);
       fit();
     },

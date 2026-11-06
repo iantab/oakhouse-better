@@ -71,7 +71,7 @@ def _labelled_values(scope: LexborNode, title_sel: str) -> dict[str, str]:
     return out
 
 
-def _parse_room(row: LexborNode, base_url: str) -> dict[str, Any]:
+def _parse_room(row: LexborNode) -> dict[str, Any]:
     attrs = {k[5:]: v for k, v in row.attrs.items() if k.startswith("data-") and v is not None}
     head = row.css_first(".ext-spheader")
     number = _text(head.css_first("h3")) if head else ""
@@ -100,12 +100,6 @@ def _parse_room(row: LexborNode, base_url: str) -> dict[str, Any]:
     requirements = _items(lists[0]) if lists else []
     features = _items(lists[1]) if len(lists) > 1 else []
 
-    photos = []
-    for img in row.css("ul.p-room__table__slide img"):
-        src = img.attrs.get("data-src") or img.attrs.get("src")
-        if src and not src.startswith("data:"):
-            photos.append(base_url + src if src.startswith("/") else src)
-
     size = details.get("Size", "")
     size_m = _NUM_RE.search(size)
     occupancy = _NUM_RE.search(details.get("Maximum occupancy", ""))
@@ -126,12 +120,11 @@ def _parse_room(row: LexborNode, base_url: str) -> dict[str, Any]:
         "max_occupancy": int(occupancy.group()) if occupancy else None,
         "requirements": requirements,
         "features": features,
-        "photos": photos,
         "attrs": attrs,
     }
 
 
-def _parse_card(card: LexborNode, base_url: str) -> dict[str, Any]:
+def _parse_card(card: LexborNode) -> dict[str, Any]:
     """Room card used by brokered (third-party) apartment pages: <article class="p-room__caset">."""
     attrs = {k[5:]: v for k, v in card.attrs.items() if k.startswith("data-") and v is not None}
     head = card.css_first(".p-room__caset__number")
@@ -170,12 +163,6 @@ def _parse_card(card: LexborNode, base_url: str) -> dict[str, Any]:
             ul = ul.next
         features.extend(_items(ul))
 
-    photos = []
-    for img in card.css(".p-room__caset__slide img"):
-        src = img.attrs.get("data-src") or img.attrs.get("src") or ""
-        if src.startswith("/uploads") or src.startswith("http"):
-            photos.append(base_url + src if src.startswith("/") else src)
-
     size_m = _NUM_RE.search(inline.get("Size", ""))
     status = attrs.get("status")
     if status == "vacancy" or "Vacancy" in status_text:
@@ -198,13 +185,14 @@ def _parse_card(card: LexborNode, base_url: str) -> dict[str, Any]:
         "floor_plan": inline.get("Floor plan"),
         "floor_label": inline.get("Floor"),
         "max_occupancy": None,
-        "requirements": [{"label": x, "icon": None} for x in [inline.get("Move in conditions")] if x],
+        # "Move in conditions" is a short text ("Man / Woman") plus an icon list (Pet Friendly, Couple/Double…)
+        "requirements": [{"label": x, "icon": None} for x in [inline.get("Move in conditions")] if x]
+                        + [item for ul in card.css("div.p-room__inlinelist ul.p-room__caset__facilities") for item in _items(ul)],
         "features": features,
         "facilities": facilities,
         "fees": {k: v for k, v in table.items() if k not in ("Monthly fee", "Rent", "Maintenance fee・Management fee", "Remarks")},
         "remarks": table.get("Remarks"),
         "move_in": inline.get("handover and move-in"),
-        "photos": photos,
         "attrs": attrs,
     }
 
@@ -226,7 +214,6 @@ def parse_listing(html: str, kind: str, pid: int, base_url: str = "https://www.o
     name = _text(tree.css_first("h1.p-description__name"))
     category = _text(tree.css_first(".p-titile__box .p-description__category"))
     updated = _text(tree.css_first(".p-description__date")).replace("Last updated", "").strip()
-    description = _text(tree.css_first(".p-description__text"))
 
     # Breadcrumbs: Home > Share Houses for Rent > Tokyo > Region > Ward > Station > Name
     # The page repeats the breadcrumb at the bottom, so keep the first list only.
@@ -327,32 +314,17 @@ def parse_listing(html: str, kind: str, pid: int, base_url: str = "https://www.o
                 target.setdefault(head, []).extend(items)
         room_types.append({"key": tab.attrs.get("id"), "name": type_name, "facilities": type_facilities})
         for row in rows:
-            room = _parse_room(row, base_url)
+            room = _parse_room(row)
             room["type_key"] = tab.attrs.get("id")
             room["specific_facilities"] = specific.get(room["number"], [])
             rooms.append(room)
 
     # Brokered apartments: one <article> card per unit, no room-type tabs
     for card in tree.css("article.p-room__caset"):
-        room = _parse_card(card, base_url)
+        room = _parse_card(card)
         room["type_key"] = "card"
         room["specific_facilities"] = []
         rooms.append(room)
-
-    # Property photos: key visual + full photo list modal
-    photos, seen = [], set()
-    for el in tree.css(".p-photo__list__item, [data-photo-src]"):
-        style = el.attrs.get("style") or ""
-        m = re.search(r"url\(([^)\"']+)", style)
-        if m:
-            src = m.group(1)
-            title_el = el.css_first("a")
-            if src not in seen:
-                seen.add(src)
-                photos.append({
-                    "src": base_url + src if src.startswith("/") else src,
-                    "caption": (title_el.attrs.get("data-title") or "").strip() if title_el else "",
-                })
 
     prefecture = area_crumbs[0]["name"] if area_crumbs else None
     region = area_crumbs[1]["name"] if len(area_crumbs) > 1 else None
@@ -382,7 +354,6 @@ def parse_listing(html: str, kind: str, pid: int, base_url: str = "https://www.o
         "name": name,
         "url": f"{base_url}/eng/{kind}/{pid}",
         "updated": updated,
-        "description": description,
         "address": address,
         "prefecture": prefecture,
         "region": region,
@@ -398,6 +369,5 @@ def parse_listing(html: str, kind: str, pid: int, base_url: str = "https://www.o
         "shared_facilities": shared,
         "room_types": room_types,
         "rooms": rooms,
-        "photos": photos,
         "_codes": _filter_codes(tree),
     }

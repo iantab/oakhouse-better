@@ -82,6 +82,13 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     '<svg class="meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M9 21l-2-4M15 21l2-4"/></svg>';
   const CLOCK_ICON =
     '<svg class="meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  const EXT_ICON =
+    '<svg class="ext-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
+  const PIN_ICON =
+    '<svg class="meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>';
+  /** Listings open on the operator's own site (we only show facts, never their photos or text). */
+  const ext = (href: string, html: string, cls = '') =>
+    `<a ${cls ? `class="${cls}" ` : ''}href="${esc(href)}" target="_blank" rel="noopener">${html}${EXT_ICON}</a>`;
   const SEARCH_ICON =
     '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
   let dest = '';
@@ -93,14 +100,14 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     toggle.setAttribute('aria-expanded', String(open));
   });
 
-  function unitRow(u: IndexUnit) {
+  function unitRow(u: IndexUnit, extra: boolean, per30: boolean) {
     const [cls, label] = STATUS[u.s];
     const when = u.s === 's' && u.d ? `<div class="text-xs whitespace-nowrap text-muted-foreground">from ${esc(u.d)}</div>` : '';
     const gender = u.am.includes(genderIdx.w) ? ['women', 'Women only'] : u.am.includes(genderIdx.m) ? ['men', 'Men only'] : null;
-    return `<tr class="${u.s === 'f' ? 'is-full' : ''}">
+    return `<tr class="unit-row${u.s === 'f' ? ' is-full' : ''}" data-href="${esc(u.l)}"${extra ? ' data-extra hidden' : ''}>
       <td><span class="badge status-${cls}">${label}</span>${when}</td>
-      <td>${esc(u.n)}${gender ? `<div class="mt-1"><span class="badge gender-${gender[0]}">${gender[1]}</span></div>` : ''}</td>
-      <td class="num"><strong>${yen(u.t ?? u.r)}</strong>${u.t != null && u.r != null && u.t !== u.r ? `<div class="text-xs text-muted-foreground">rent ${yen(u.r)}</div>` : ''}</td>
+      <td>${ext(u.l, esc(u.n), 'unit-link')}${gender ? `<div class="mt-1"><span class="badge gender-${gender[0]}">${gender[1]}</span></div>` : ''}${u.pu ? '<div class="mt-1"><span class="badge pay-upfront">Pay upfront only</span></div>' : ''}</td>
+      <td class="num"><strong>${yen(u.t ?? u.r)}</strong>${per30 ? '<div class="text-xs text-muted-foreground">per 30 days</div>' : u.t != null && u.r != null && u.t !== u.r ? `<div class="text-xs text-muted-foreground">rent ${yen(u.r)}</div>` : ''}</td>
       <td class="num">${u.sz != null ? `${u.sz}㎡` : '—'}</td>
       <td class="num">${u.f != null ? `${u.f}F` : '—'}</td>
       <td class="opt">${esc(u.rt ?? '')}</td>
@@ -109,25 +116,26 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 
   function card(g: Group) {
     const p = g.prop;
-    const href = `${base}${p.k === 'h' ? 'house' : 'apartment'}/${p.id}/`;
+    const op = OPERATORS[p.o ?? 'o'];
+    const maps = p.lat != null && p.lng != null ? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}` : null;
     const st = p.st.slice(0, 3).map(([name, walk]) => `${esc(name)}${walk != null ? ` ${walk} min` : ''}`).join(' · ');
-    const shown = g.units.slice(0, UNITS_SHOWN);
-    const more = g.units.length - shown.length;
+    const more = g.units.length - UNITS_SHOWN;
     return `<article class="card prop-card">
-      <a class="thumb" href="${href}" aria-hidden="true" tabindex="-1">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}</a>
       <header>
-          <p class="kind">${esc(CATEGORY_LABELS[p.c] ?? p.c)} · ${OPERATORS[p.o ?? 'o'].name}${p.w ? ` · ${esc(p.w)}` : ''}</p>
-          <h3><a href="${href}">${esc(p.n)}</a></h3>
+          <p class="kind">${esc(CATEGORY_LABELS[p.c] ?? p.c)} · ${op.name}${p.w ? ` · ${esc(p.w)}` : ''}</p>
+          <h3>${ext(p.h, esc(p.n))}</h3>
+          ${p.nj ? `<p class="name-ja" lang="ja">${esc(p.nj)}</p>` : ''}
           ${st ? `<p class="meta">${TRAIN_ICON}<span>${st}</span></p>` : ''}
+          <p class="links">${ext(p.h, `View on ${op.site}`, 'link')}${maps ? ` ${ext(maps, `${PIN_ICON}Show on Google Maps`, 'link')}` : ''}</p>
           ${g.commute ? `<p class="meta text-foreground">${CLOCK_ICON}<span><strong>≈ ${g.commute.min} min*</strong> to ${esc(dest)} from ${esc(g.commute.station)} · ${transfersLabel(g.commute.transfers)} · +${g.commute.walk} min walk</span></p>` : ''}
         </header>
         <section>
           <div class="table-container"><table class="table">
             <thead><tr><th>Status</th><th>Room</th><th class="num">Monthly</th><th class="num">Size</th><th class="num">Floor</th><th class="opt">Type</th></tr></thead>
-            <tbody>${shown.map((u) => unitRow(u)).join('')}</tbody>
+            <tbody>${g.units.map((u, i) => unitRow(u, i >= UNITS_SHOWN, p.o === 'l')).join('')}</tbody>
           </table></div>
         </section>
-        ${more > 0 ? `<footer><a class="btn" data-variant="link" data-size="sm" href="${href}">+ ${more} more matching room${more > 1 ? 's' : ''}</a></footer>` : ''}
+        ${more > 0 ? `<footer><button class="btn" data-variant="link" data-size="sm" type="button" data-more="${more}" aria-expanded="false">+ ${more} more matching room${more > 1 ? 's' : ''}</button></footer>` : ''}
     </article>`;
   }
 
@@ -215,6 +223,22 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     if (!btn) return;
     go(paramsFromForm(Number(btn.dataset.page)), true);
     window.scrollTo({ top: 0 });
+  });
+  results.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    // "+ N more matching rooms" expands the card's remaining rows in place
+    const btn = target.closest<HTMLButtonElement>('button[data-more]');
+    if (btn) {
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      btn.closest('.prop-card')!.querySelectorAll<HTMLElement>('tr[data-extra]').forEach((tr) => (tr.hidden = !open));
+      btn.setAttribute('aria-expanded', String(open));
+      const n = Number(btn.dataset.more);
+      btn.textContent = open ? 'Show fewer rooms' : `+ ${n} more matching room${n > 1 ? 's' : ''}`;
+      return;
+    }
+    // A click anywhere on a unit row opens that unit on the operator's site (the room number is the real link)
+    const row = target.closest<HTMLTableRowElement>('tr[data-href]');
+    if (row && !target.closest('a') && !window.getSelection()?.toString()) window.open(row.dataset.href, '_blank', 'noopener');
   });
   window.addEventListener('popstate', () => go(new URLSearchParams(location.search), false));
   go(new URLSearchParams(location.search), false);
