@@ -26,7 +26,7 @@ const WARD_CLASSES = ['city', 'town', 'village'];
 type Theme = 'light' | 'dark';
 const theme = (): Theme => (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
 
-export function toGeoJSON(groups: Group[]): FeatureCollection<Point> {
+export function toGeoJSON(groups: Group[], base: string): FeatureCollection<Point> {
   const features: Feature<Point>[] = [];
   for (const g of groups) {
     const p = g.prop;
@@ -43,8 +43,7 @@ export function toGeoJSON(groups: Group[]): FeatureCollection<Point> {
         rooms: g.units.length,
         from: prices.length ? Math.min(...prices) : null,
         station: p.st[0] ? `${p.st[0][0]}${p.st[0][1] != null ? ` · ${p.st[0][1]} min walk` : ''}` : '',
-        site: OPERATORS[p.o ?? 'o'].site,
-        href: p.h,
+        href: `${base}${p.k === 'h' ? 'house' : 'apartment'}/${p.id}/`,
         maps: `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`,
       },
     });
@@ -61,7 +60,7 @@ function popupHtml(f: MapGeoJSONFeature) {
       <h3 class="font-semibold leading-snug">${esc(p.name)}</h3>
       <p class="text-sm">${rooms} matching room${rooms === 1 ? '' : 's'}${p.from != null && p.from !== '' ? ` · from <strong>${yen(Number(p.from))}</strong>` : ''}</p>
       ${p.station ? `<p class="text-xs text-muted-foreground">${esc(p.station)}</p>` : ''}
-      <a class="btn w-full" data-size="sm" href="${esc(p.href)}" target="_blank" rel="noopener">View on ${esc(p.site)}${EXT_ICON}</a>
+      <a class="btn w-full" data-size="sm" href="${esc(p.href)}">View building →</a>
       <a class="btn w-full" data-size="sm" data-variant="outline" href="${esc(p.maps)}" target="_blank" rel="noopener">Show on Google Maps${EXT_ICON}</a>
     </div>
   </div>`;
@@ -143,7 +142,7 @@ export interface BuildingMap {
 }
 
 /** Create the map in `container`; the first setGroups() call also fits the view to the points. */
-export function createMap(container: HTMLElement): BuildingMap {
+export function createMap(container: HTMLElement, base: string): BuildingMap {
   let data: FeatureCollection<Point> = { type: 'FeatureCollection', features: [] };
   let fitted = false;
   let ready = false;
@@ -208,7 +207,7 @@ export function createMap(container: HTMLElement): BuildingMap {
   return {
     setGroups(groups) {
       popup?.remove(); // its building may no longer match
-      data = toGeoJSON(groups);
+      data = toGeoJSON(groups, base);
       if (ready) map.getSource<GeoJSONSource>(SOURCE)?.setData(data);
       fit();
     },

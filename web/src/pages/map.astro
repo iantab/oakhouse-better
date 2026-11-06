@@ -56,7 +56,7 @@ import ConditionsFields from '../components/ConditionsFields.astro';
     toggle.setAttribute('aria-expanded', String(open));
   });
 
-  const map = createMap(document.getElementById('map')!);
+  const map = createMap(document.getElementById('map')!, base);
   const indexP = loadIndex(base);
 
   async function update(params: URLSearchParams) {

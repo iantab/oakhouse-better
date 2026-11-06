@@ -1,6 +1,5 @@
 ---
-// GitHub Pages serves this for any unknown path, including old /house/{id}/ and /apartment/{id}/ links
-// from before listings moved to the operators' own sites.
+// GitHub Pages serves this for any unknown path, e.g. a building that is no longer listed.
 import Base from '../layouts/Base.astro';
 
 const base = import.meta.env.BASE_URL;
@@ -11,8 +10,7 @@ const base = import.meta.env.BASE_URL;
     <header>
       <h1 class="text-2xl font-semibold tracking-tight">Page not found</h1>
       <p>
-        Listings no longer have their own pages here. Search results now link straight to each room on the operator's
-        own site, where you'll find photos and full details.
+        This page doesn't exist, or the listing is no longer advertised. Try searching again.
       </p>
     </header>
     <section class="flex flex-wrap justify-center gap-2">

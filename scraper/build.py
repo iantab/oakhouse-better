@@ -11,13 +11,14 @@
 CI runs the two stages as separate workflow steps ("Scrape listings", "Parse & enrich").
 
 Outputs (all gitignored, regenerated every run):
+    web/src/data/buildings.json         facts for our building pages (/house/{id}/, /apartment/{id}/)
     web/src/data/areas.json, codes.json, amenities.json, meta.json
     web/public/data/search-index.json   compact rows the results page filters in the browser (and the
                                         line search page reads at build time)
     web/public/data/*.json              copies of the above for `npm run data:pull`
 
 Only facts are published (prices, sizes, stations, amenities, links); the operators' photos and
-descriptions are copyrighted and never leave the scraper. Every listing links to the operator's page.
+descriptions are copyrighted and never leave the scraper. Every room links to its page on the operator's site.
 
 The process stage exits with status 2 (writing nothing) if either operator's listing count drops
 more than --max-drop below the previous successful run, so a broken scrape never deploys.
@@ -164,6 +165,71 @@ def unit_url(p: dict[str, Any], r: dict[str, Any]) -> str:
     if p["operator"] == "oakhouse" and r.get("type_key") != "card" and r["id"]:
         return f"{p['url']}#{r['id']}"
     return p["url"]
+
+
+# Building facts shown on our building pages: short factual fields only (never Oakhouse's "Surroundings" prose)
+FACT_FIELDS = {
+    "oakhouse": ("Building outline", "Number of property visits by house manager", "Cleaning Frequency"),
+    "xross": ("Structure", "Capacity", "About smoking", "Age limit", "Contract Period",
+              "Guarantee company", "Registration fee", "Cancellation fee (moving out fee)", "Contract renewal fee",
+              "Available languages"),
+}
+FACT_LABELS = {"Number of property visits by house manager": "House manager visits", "About smoking": "Smoking",
+               "Cancellation fee (moving out fee)": "Cancellation fee"}
+
+
+def _clip(text: Any, n: int = 120) -> str:
+    """Short single-line value; long ones keep their first sentence ("This is a one-year fixed-term lease.")."""
+    text = " ".join(str(text).split())
+    if len(text) > n and ". " in text[:n]:
+        return text[: text.index(". ") + 1]
+    return text if len(text) <= n else text[: n - 1].rstrip() + "…"
+
+
+def building_record(p: dict[str, Any], groups: dict[str, str], year_now: int) -> dict[str, Any]:
+    """One building page's data: facts only (see the module docstring). Building-wide amenities are listed once;
+    each room keeps its room-level ones plus any it doesn't share with the building (women only, pay monthly…)."""
+    op = p["operator"]
+    built = am.built_year(p, year_now)
+    if op == "lifull":
+        facts = [["Structure", p["building"].get("Building outline", "").split(" Year Built")[0]],
+                 ["Lease type", next((r["contract_form"] for r in p["rooms"] if r.get("contract_form")), None)]]
+    else:
+        facts = [[FACT_LABELS.get(k, k), p["building"][k]] for k in FACT_FIELDS[op] if p["building"].get(k)]
+    if op == "xross":  # promotions: conditions ("No security deposit") vs offers
+        terms = [t["label"] for t in p["terms"] if t["label"] not in p["discounts"]]
+    else:
+        terms = [t["label"] for t in p["terms"]]
+    stations = ([[s["name"], s["walk_min"], s["lines"]] for s in p["stations"]]
+                or [[name, walk, []] for name, walk in _dedupe_stations(p["operator_stations"])])
+    rooms = []
+    for r in p["rooms"]:
+        keys = r["amenities"]
+        rooms.append({k: v for k, v in {
+            "id": r["id"], "number": r["number"], "status": r["status"], "from": r["available_from"],
+            "rent": r["rent"], "maint": r["maintenance"], "total": r["monthly_total"], "fee": r["contract_fee"],
+            "size": r["size_m2"], "floor": r["floor"], "type": r["room_type"], "plan": r.get("floor_plan"),
+            "occ": r.get("max_occupancy"),
+            "gender": "women" if "women_only" in keys else "men" if "men_only" in keys else None,
+            "am": [k for k in keys if groups.get(k) == "room" or k not in p["amenities"]],
+            "url": unit_url(p, r),
+            "fees": [[_clip(k, 40), _clip(v, 80)] for k, v in (r.get("fees") or {}).items() if v] or None,
+            "plans": r.get("plans") or None, "beds": r.get("beds") or None,
+            "pu": 1 if r.get("upfront_only") else None,
+        }.items() if v not in (None, [], "")})
+    return {k: v for k, v in {
+        "id": p["id"], "o": op[0], "kind": p["kind"], "category": p["category"], "name": p["name"],
+        "name_ja": p.get("name_ja"), "address": p.get("address"), "address_ja": p.get("address_ja"),
+        "postcode": p.get("postcode") or (p.get("geo") or {}).get("postcode"),
+        "prefecture": p["prefecture"], "region": p["region"], "ward": p["ward"], "area": p["area_path"],
+        "lat": p["lat"], "lng": p["lng"],
+        "ext": p["url"] if op == "oakhouse" else None,  # Xross and LIFULL rooms each have their own page
+        "stations": stations, "structure": p["structure"], "built": built,
+        "facts": [[k, _clip(v)] for k, v in facts if v], "terms": [_clip(t, 80) for t in terms],
+        "discounts": [_clip(d, 80) for d in p["discounts"]],
+        "amenities": [k for k in p["amenities"] if groups.get(k) in ("building", "contract")],
+        "rooms": rooms,
+    }.items() if v not in (None, [], "")}
 
 
 def _dur(seconds: float) -> str:
@@ -320,7 +386,8 @@ def process_stage(args: argparse.Namespace) -> None:
                 index_props.append({
                     "id": p["id"], "o": p["operator"][0], "k": p["kind"][0], "c": p["category"], "n": p["name"],
                     "a": p["area_path"], "w": p["ward"], "lat": p["lat"], "lng": p["lng"],
-                    "h": p["url"], "b": p["structure"], "y": am.built_year(p, year_now),
+                    **({"h": p["url"]} if op == "oakhouse" else {}),  # Xross/LIFULL rooms each have their own page
+                    "b": p["structure"], "y": am.built_year(p, year_now),
                     **({"nj": p["name_ja"]} if p.get("name_ja") else {}),
                     # nearest stations: [station name, walk minutes, [line ids], [osm node ids]]
                     "st": [[s["name"], s["walk_min"], s["lines"], s["ids"]] for s in p["stations"]]
@@ -352,6 +419,9 @@ def process_stage(args: argparse.Namespace) -> None:
                 "available": sum(1 for u in index_units if u["s"] != "f"),
                 "operators": {op: _counts([p for p in props if p["operator"] == op]) for op in OPERATORS}}
 
+        groups = {a["key"]: a["group"] for a in am.catalog()}
+        buildings = [building_record(p, groups, year_now) for p in props]
+
         # 4. Write
         with step("write data files"):
             # Older runs wrote the full listing details (descriptions, photo URLs); never publish a stale copy
@@ -361,10 +431,11 @@ def process_stage(args: argparse.Namespace) -> None:
             write_json(WEB_DATA / "codes.json", codes, pretty=True)
             write_json(WEB_DATA / "amenities.json", {"groups": am.GROUPS, "items": am.catalog()}, pretty=True)
             write_json(WEB_DATA / "meta.json", meta, pretty=True)
+            write_json(WEB_DATA / "buildings.json", buildings)  # our building pages, read at build time
             write_json(WEB_PUBLIC_DATA / "search-index.json",
                        {"updated": now, "amenities": amenity_keys, "properties": index_props, "units": index_units})
             # Publish the generated files too, so `npm run data:pull` can fetch them from the live site
-            for name in ("areas.json", "codes.json", "amenities.json", "meta.json"):
+            for name in ("areas.json", "codes.json", "amenities.json", "meta.json", "buildings.json"):
                 shutil.copyfile(WEB_DATA / name, WEB_PUBLIC_DATA / name)
             if not limited:
                 write_json(LAST_GOOD, meta, pretty=True)

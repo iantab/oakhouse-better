@@ -4,7 +4,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import type { SearchIndex } from './filter';
-import type { AreaNode, Amenity, Line, Meta, Station } from './types';
+import type { AreaNode, Amenity, Building, Line, Meta, Station } from './types';
 
 const DATA_DIR = join(process.cwd(), 'src', 'data');
 /** The browser's search index; the line picker reads it at build time too. */
@@ -32,8 +32,8 @@ const DATA_FILES = ['areas.json', 'lines.json', 'stations.json', 'amenities.json
 let cacheStamp = '';
 
 /** Modification times of the data files: the dev server reloads them when the scraper rewrites one. */
-function dataStamp() {
-  return [...DATA_FILES, INDEX_PATH]
+function dataStamp(paths = [...DATA_FILES, INDEX_PATH]) {
+  return paths
     .map((path) => {
       try {
         return statSync(path).mtimeMs;
@@ -100,4 +100,31 @@ export function linesWithListings(maxWalk = 20) {
       stations: [...byLine.get(l.id)!.values()].sort((a, b) => a.name.localeCompare(b.name)),
     }))
     .sort((a, b) => (a.operator ?? '').localeCompare(b.operator ?? '') || a.name.localeCompare(b.name));
+}
+
+const BUILDINGS_PATH = join(DATA_DIR, 'buildings.json');
+let buildings: Building[] | null = null;
+let buildingsById: Map<string, Building> | null = null;
+let buildingsStamp = '';
+
+/** Every building page's data. Separate from getData() so only the building pages load this big file. */
+export function getBuildings(): Building[] {
+  if (import.meta.env.DEV) {
+    const stamp = dataStamp([BUILDINGS_PATH]);
+    if (stamp !== buildingsStamp) {
+      buildings = null;
+      buildingsById = null;
+      buildingsStamp = stamp;
+    }
+  }
+  buildings ??= load<Building[]>('buildings.json', []);
+  return buildings;
+}
+
+/** One building by id. Pages look themselves up here rather than taking getStaticPaths props, because the dev
+ *  server caches those props until restart; this way regenerated data shows up on refresh. */
+export function getBuilding(id: string): Building | undefined {
+  const all = getBuildings();
+  buildingsById ??= new Map(all.map((b) => [String(b.id), b]));
+  return buildingsById.get(id);
 }

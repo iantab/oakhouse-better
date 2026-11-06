@@ -57,7 +57,8 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     # Contract
     ("foreigners_ok", "Foreigners welcome", "contract", {"worldwide"}, r"Foreign Residents Allowed"),
     ("short_term", "Short-term OK", "contract", {"monthly"}, r"Short-Term Rental|Monthly available"),
-    ("pay_monthly", "Pay in monthly installments", "contract", set(), None),  # LIFULL rooms may need paying upfront
+    # Excludes LIFULL rooms that must be paid in full upfront; rooms that don't say count as OK
+    ("pay_monthly", "Hide pay upfront only", "contract", set(), None),
     ("no_deposit", "No security deposit", "contract", set(), r"^No security deposit$"),
     ("no_key_money", "No key money", "contract", set(), r"^No Key Money$"),
     ("no_guarantor", "No guarantor needed", "contract", set(), r"^No guarantor( company)?$"),

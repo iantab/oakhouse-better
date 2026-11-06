@@ -89,9 +89,8 @@
   .ext-icon { @apply ml-1 inline-block align-[-1px] text-muted-foreground; }
   .prop-card .links { @apply mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm; }
   .prop-card .links .meta-icon { @apply mr-1 inline-block align-[-2px] text-primary; }
-  /* The whole unit row opens the unit; the room number is the keyboard-reachable link */
-  .prop-card .unit-row { @apply cursor-pointer; }
-  .prop-card .unit-row:hover td { @apply bg-muted/50; }
+  /* The whole card opens the building page (the name is the keyboard-reachable link) */
+  .prop-card[data-href] { @apply cursor-pointer transition-shadow hover:shadow-md hover:ring-primary/40 focus-within:ring-primary/40; }
   .prop-card .unit-link { @apply font-medium whitespace-nowrap underline-offset-4 hover:text-primary hover:underline; }
   .prop-card .meta { @apply flex items-center gap-1.5 text-muted-foreground; }
   .prop-card .meta svg { @apply shrink-0 text-primary; }
@@ -114,7 +113,25 @@
   .map-popup .btn { @apply mt-2; }
   .map-popup .ext-icon { @apply text-current; }
 
+  /* Building page: details on the left, map + stations on the right */
+  .building-layout { @apply grid items-start gap-4; grid-template-columns: minmax(0, 1fr) 340px; }
+  .map-embed { @apply block h-72 w-full border-0 bg-muted; }
+  .chips { @apply flex flex-wrap gap-1.5; }
+  .facts { @apply grid gap-x-4 gap-y-2 text-sm; grid-template-columns: minmax(6em, max-content) 1fr; }
+  .facts dt { @apply max-w-52 text-muted-foreground; }
+  /* One <tbody> per room: its row plus an optional details row */
+  .room-table .unit-link { @apply font-medium whitespace-nowrap underline-offset-4 hover:text-primary hover:underline; }
+  .room-table tr.room-more td { @apply border-t-0 pt-0 pb-3; }
+  .room-table tr.room-more summary { @apply w-fit cursor-pointer text-xs text-muted-foreground hover:text-foreground; }
+  .room-detail { @apply mt-2 flex flex-col gap-3 rounded-md bg-muted/40 p-3; }
+  .room-table tbody.is-full td { @apply text-muted-foreground; }
+  .room-table .plans { @apply max-w-md text-xs; }
+  /* Full rooms stay hidden until "Show full rooms" is ticked (pure CSS, so no flash on load) */
+  .rooms-panel:has(#show-full:not(:checked)) tbody[data-status='full'] { display: none; }
+
   @media (max-width: 860px) {
+    .building-layout { grid-template-columns: minmax(0, 1fr); }
+    .room-table .opt { display: none; }
     .results-layout { grid-template-columns: minmax(0, 1fr); }
     .results-layout aside { @apply static hidden max-h-none; }
     .results-layout aside.open { display: block; }

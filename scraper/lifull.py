@@ -48,6 +48,12 @@ STRUCTURES = {  # building.structure.name → wording amenities.structure() unde
 BUILDING_KINDS = {"マンション": "Monthly apartment", "アパート": "Monthly apartment",
                   "戸建て": "Monthly house", "サービスアパートメント": "Serviced apartment"}
 FLOOR_PLANS = {"ワンルーム": "Studio"}
+# Stay-length plans, as monthly.homes.jp labels them (料金: 3ヶ月未満 / 3ヶ月以上 / 7ヶ月以上)
+PLANS = (("short_plan", "Under 3 months"), ("middle_plan", "3 months or more"), ("long_plan", "7 months or more"))
+CONTRACT_FORMS = {"定期借家": "Fixed-term lease", "一時使用": "Temporary-use lease"}
+BED_TYPES = {"ベッド": "bed", "ソファベッド": "sofa bed", "布団": "futon", "二段ベッド": "bunk bed"}
+BED_SIZES = {"シングル": "Single", "セミダブル": "Semi-double", "ダブル": "Double", "クイーン": "Queen", "キング": "King",
+             "セミシングル": "Semi-single"}
 
 
 def _write_gz(path: Path, text: str) -> None:
@@ -166,13 +172,17 @@ def _room(r: dict[str, Any]) -> dict[str, Any]:
     plan = FLOOR_PLANS.get(r.get("floor_plan_text") or "", r.get("floor_plan_text") or "")
     cap = r.get("capacity")
     pay = {m.get("id") for m in r.get("method_of_payments") or []}  # 4 一括支払い (all at once), 5 分割支払い (installments)
+    # ~4% of rooms list only how to pay (transfer, card…), not when; only a lone lump-sum option rules monthly out
+    upfront_only = 4 in pay and 5 not in pay
     return {
         "id": r["id"],
         "number": plan or "Room",
         "status": "available",  # listings are bookable while published; the API has no vacancy calendar
         "available_from": None,
         "rent": per_day("rent_price") * 30 or None,
-        "maintenance": per_day("utility_price", "management_price") * 30,
+        # everything else per day: utilities, management and the operator's own extras (共益費, 光熱費…);
+        # rent + this always equals price_30d
+        "maintenance": per_day("utility_price", "management_price", "etc1_price", "etc2_price", "etc3_price") * 30,
         "monthly_total": total,
         "contract_fee": initial - total if initial is not None and total is not None else None,
         "size_m2": r.get("exclusive_area"),
@@ -182,12 +192,24 @@ def _room(r: dict[str, Any]) -> dict[str, Any]:
         "max_occupancy": cap,
         "tags": [t["tag_id"] for t in r.get("tags") or []],
         "campaign": bool(r.get("campaigns")),
-        "pay_monthly": 5 in pay,
-        "upfront_only": 4 in pay and 5 not in pay,
+        "pay_monthly": not upfront_only,
+        "upfront_only": upfront_only,
         "attrs": {},
         "type_key": "lifull",
         "url": f"{SITE_URL}/room_type_id-{r['id']}",
+        # [stay length, discount per day, cleaning fee] for each plan the room offers
+        "plans": [[label, (r.get(key) or {}).get("discount_price") or 0, (r.get(key) or {}).get("cleaning_price")]
+                  for key, label in PLANS if r.get(key)],
+        "beds": [_bed(b) for b in r.get("beddings") or [] if b.get("count")],
+        "contract_form": CONTRACT_FORMS.get(r.get("contract_form_text") or "", r.get("contract_form_text")),
     }
+
+
+def _bed(b: dict[str, Any]) -> str:
+    """"2 × Double bed" from {type_text: ベッド, size_text: ダブル, count: 2}."""
+    kind = BED_TYPES.get(b.get("type_text") or "", "bed")
+    size = BED_SIZES.get(b.get("size_text") or "")
+    return f"{b['count']} × {f'{size} ' if size else ''}{kind}"
 
 
 def _building(b: dict[str, Any], cities: Cities, year_now: int) -> dict[str, Any]:

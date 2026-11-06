@@ -15,6 +15,7 @@ const files = {
   'codes.json': ['src/data', 'public/data'],
   'amenities.json': ['src/data', 'public/data'],
   'meta.json': ['src/data', 'public/data'],
+  'buildings.json': ['src/data', 'public/data'],
   'search-index.json': ['public/data'],
 };
 

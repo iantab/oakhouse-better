@@ -15,8 +15,8 @@ export interface IndexProperty {
   w: string | null;
   lat: number | null;
   lng: number | null;
-  /** The listing's page on the operator's site (we have no pages of our own). */
-  h: string;
+  /** Oakhouse only: the building's page on oakhouse.jp (Xross and LIFULL rooms each have their own page, in `l`). */
+  h?: string;
   /** Building structure: wood / steel / rc, null when not stated. */
   b: string | null;
   /** Year built; null when the listing doesn't say. Missing from indexes built before this field. */
