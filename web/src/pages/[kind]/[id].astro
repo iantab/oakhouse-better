@@ -32,7 +32,7 @@ const yen = (n: number | null | undefined) => (n == null ? '—' : `¥${n.toLoca
 const STATUS = { available: 'Available', soon: 'Soon', full: 'Full' } as const;
 const STRUCTURE = { wood: 'Wood', steel: 'Steel frame', rc: 'Reinforced concrete' } as const;
 
-const rooms = b.rooms;
+const rooms = b.rooms ?? []; // stale data from before zero-room buildings were skipped can lack the key
 const open = rooms.filter((r) => r.status !== 'full');
 const prices = (open.length ? open : rooms).map((r) => r.total ?? r.rent).filter((n): n is number => n != null);
 const from = prices.length ? Math.min(...prices) : null;

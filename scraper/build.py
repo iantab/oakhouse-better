@@ -420,7 +420,8 @@ def process_stage(args: argparse.Namespace) -> None:
                 "operators": {op: _counts([p for p in props if p["operator"] == op]) for op in OPERATORS}}
 
         groups = {a["key"]: a["group"] for a in am.catalog()}
-        buildings = [building_record(p, groups, year_now) for p in props]
+        # A building with no rooms listed has nothing to show (and nothing links to it), so it gets no page
+        buildings = [building_record(p, groups, year_now) for p in props if p["rooms"]]
 
         # 4. Write
         with step("write data files"):
