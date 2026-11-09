@@ -66,6 +66,7 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
 <script>
   import { describeLocation, formToParams, keepOneChecked, pickerUrl, syncFormFromUrl } from '../lib/form';
   import { CATEGORY_LABELS, defaultSort, esc, loadIndex, OPERATORS, PAGE_SIZE, parseQuery, search, yen, type Group, type IndexUnit } from '../lib/filter';
+  import { markDeadOptions } from '../lib/dead-options';
   import { commuteFor, transfersLabel, type CommuteContext } from '../lib/commute';
 
   const base = import.meta.env.BASE_URL;
@@ -192,12 +193,16 @@ const amenityLabels = Object.fromEntries(amenities.items.map((a) => [a.key, a.la
     (document.getElementById('cond-link') as HTMLAnchorElement).href = `${base}conditions/?${params}`;
   }
 
+  let deadTimer: ReturnType<typeof setTimeout> | undefined;
   async function go(params: URLSearchParams, push: boolean) {
     if (push) history.pushState(null, '', params.size ? `?${params}` : location.pathname);
     sync(params);
     try {
       const [index, commute] = await Promise.all([loadIndex(base), commuteFor(base, params)]);
       render(params, index, commute);
+      // Grey out options that would leave 0 rooms; after the results paint, skipping passes a newer change replaces
+      clearTimeout(deadTimer);
+      deadTimer = setTimeout(() => markDeadOptions(form, index, commute?.times), 0);
     } catch (err) {
       document.getElementById('headline')!.textContent = 'Could not load listings';
       results.innerHTML = `<section class="empty border"><header><h3>Could not load listings</h3><p>${esc(err)}</p></header></section>`;

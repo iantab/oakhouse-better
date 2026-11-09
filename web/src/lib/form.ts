@@ -9,8 +9,19 @@ export function pickerUrl(base: string, params: URLSearchParams) {
   return `${base}search/${kind}/${kind === 'commute' ? `?${params}` : ''}`;
 }
 
+/** Re-enable the options lib/dead-options.ts greyed out. */
+export function clearDeadOptions(form: HTMLFormElement) {
+  for (const el of form.querySelectorAll<HTMLInputElement | HTMLOptionElement>('[data-dead]')) {
+    el.disabled = false;
+    el.removeAttribute('data-dead');
+    if (el instanceof HTMLInputElement) el.closest('label')?.removeAttribute('title');
+  }
+}
+
 /** Prefill inputs from `params` and carry the area/station/line picks along as hidden inputs. */
 export function syncFormFromUrl(form: HTMLFormElement, params: URLSearchParams) {
+  // A greyed-out box ticked from the URL would be disabled, and FormData would drop it
+  clearDeadOptions(form);
   const q = parseQuery(params);
   const avail: string[] = q.avail; // applies the default + old status=all links
   for (const el of form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]')) {
