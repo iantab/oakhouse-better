@@ -194,6 +194,7 @@ def _room(r: dict[str, Any]) -> dict[str, Any]:
         "campaign": bool(r.get("campaigns")),
         "pay_monthly": not upfront_only,
         "upfront_only": upfront_only,
+        "installments": 5 in pay,  # explicitly offers 分割支払い; rooms that don't say stay False
         "attrs": {},
         "type_key": "lifull",
         "url": f"{SITE_URL}/room_type_id-{r['id']}",

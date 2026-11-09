@@ -32,6 +32,8 @@
   :is(.fieldset, .accordion) .label { @apply -mx-2 cursor-pointer gap-3 rounded-md px-2 py-2 text-base hover:bg-muted; }
   :is(.fieldset, .accordion) .label > .input[type='checkbox'] { @apply size-5; }
   :is(.fieldset, .accordion) .label > .input[type='checkbox']:checked::after { @apply size-4 mask-size-[1rem]; }
+  /* Options that would leave no matching rooms (lib/dead-options.ts) */
+  :is(.fieldset, .accordion) .label:has(> .input:disabled) { @apply cursor-not-allowed opacity-50 hover:bg-transparent; }
   /* Basecoat's checkbox has no indeterminate look; the area picker's parent boxes need one */
   .input[type='checkbox']:indeterminate { @apply border-primary bg-primary; }
   .input[type='checkbox']:indeterminate::after {

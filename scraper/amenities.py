@@ -59,6 +59,8 @@ AMENITIES: list[tuple[str, str, str, set[str], str | None]] = [
     ("short_term", "Short-term OK", "contract", {"monthly"}, r"Short-Term Rental|Monthly available"),
     # Excludes LIFULL rooms that must be paid in full upfront; rooms that don't say count as OK
     ("pay_monthly", "Hide pay upfront only", "contract", set(), None),
+    # Stricter: LIFULL rooms must list installments (分割支払い); Oakhouse/Xross rent is monthly anyway
+    ("installments", "Can pay in installments", "contract", set(), None),
     ("no_deposit", "No security deposit", "contract", set(), r"^No security deposit$"),
     ("no_key_money", "No key money", "contract", set(), r"^No Key Money$"),
     ("no_guarantor", "No guarantor needed", "contract", set(), r"^No guarantor( company)?$"),
@@ -133,6 +135,7 @@ def property_amenities(prop: dict[str, Any]) -> tuple[set[str], set[str]]:
     if not any(re.search(r"\bage\b|years old", t["label"], re.I) for t in prop["terms"]):
         contract.add("age_40_plus")
     contract.add("pay_monthly")  # rent is paid monthly
+    contract.add("installments")
     return building, contract
 
 
@@ -289,6 +292,7 @@ def xross_property_amenities(prop: dict[str, Any]) -> tuple[set[str], set[str]]:
         contract.add("age_40_plus")
     # A guarantee company is always required, so never "no_guarantor"
     contract.add("pay_monthly")  # rent is paid monthly
+    contract.add("installments")
     return building, contract
 
 
@@ -417,6 +421,8 @@ def lifull_unit_amenities(room: dict[str, Any], building: set[str], contract: se
         keys.add("campaign")
     if room.get("pay_monthly"):
         keys.add("pay_monthly")
+    if room.get("installments"):
+        keys.add("installments")
     if (room.get("max_occupancy") or 0) >= 2:
         keys.add("two_people")
     return keys

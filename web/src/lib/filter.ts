@@ -281,6 +281,31 @@ export function search(
   return { groups: list, unitCount };
 }
 
+/** Whether `search()` would find at least one unit; stops at the first hit. */
+export function hasMatch(index: SearchIndex, q: Query, times?: Map<number, Commute> | null): boolean {
+  const amIdx = q.am.map((k) => index.amenities.indexOf(k)).filter((i) => i >= 0);
+  const props = propsById(index);
+  const propOk = new Map<number, boolean>();
+  for (const u of index.units) {
+    if (!unitMatches(u, q, amIdx)) continue; // the cheaper test first
+    let ok = propOk.get(u.p);
+    if (ok === undefined) {
+      const p = props.get(u.p);
+      ok = p != null && propertyMatches(p, q, times).ok;
+      propOk.set(u.p, ok);
+    }
+    if (ok) return true;
+  }
+  return false;
+}
+
+const byId = new WeakMap<SearchIndex, Map<number, IndexProperty>>();
+function propsById(index: SearchIndex) {
+  let m = byId.get(index);
+  if (!m) byId.set(index, (m = new Map(index.properties.map((p) => [p.id, p]))));
+  return m;
+}
+
 let indexPromise: Promise<SearchIndex> | null = null;
 export function loadIndex(base: string): Promise<SearchIndex> {
   indexPromise ??= fetch(`${base}data/search-index.json`).then((r) => {

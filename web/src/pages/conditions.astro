@@ -36,6 +36,7 @@ const lineNames = Object.fromEntries(getData().lines.map((l) => [l.id, l.name]))
 <script>
   import { describeLocation, formToParams, keepOneChecked, pickerUrl, syncFormFromUrl } from '../lib/form';
   import { loadIndex, parseQuery, search } from '../lib/filter';
+  import { markDeadOptions } from '../lib/dead-options';
   import { commuteFor } from '../lib/commute';
 
   const base = import.meta.env.BASE_URL;
@@ -53,12 +54,16 @@ const lineNames = Object.fromEntries(getData().lines.map((l) => [l.id, l.name]))
 
   const count = document.getElementById('match-count')!;
   const detail = document.getElementById('match-detail')!;
+  let deadTimer: ReturnType<typeof setTimeout> | undefined;
   async function update() {
     try {
       const [index, c] = await Promise.all([loadIndex(base), commute]);
       const { groups, unitCount } = search(index, parseQuery(formToParams(form)), c?.times);
       count.textContent = unitCount.toLocaleString('en-US');
       detail.textContent = `in ${groups.length.toLocaleString('en-US')} propert${groups.length === 1 ? 'y' : 'ies'}`;
+      // ~100 ms on the full index; let the count paint first, and skip a pass a newer change replaces
+      clearTimeout(deadTimer);
+      deadTimer = setTimeout(() => markDeadOptions(form, index, c?.times), 0);
     } catch {
       count.textContent = 'matching';
     }
